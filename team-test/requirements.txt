@@ -1,0 +1,12 @@
+# Requirements for the Task Management CLI Tool
+#
+# Runtime dependencies
+# --------------------
+# The core application (models.py, storage.py, services.py, cli.py) relies
+# exclusively on the Python standard library (argparse, dataclasses, datetime,
+# enum, json, os, sys, typing, uuid).  No third-party runtime packages are
+# required.
+
+# Development / testing dependencies
+# ------------------------------------
+pytest>=9.0.2          # Test runner used by tests/
