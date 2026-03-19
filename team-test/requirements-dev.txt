@@ -1,0 +1,37 @@
+# =============================================================================
+# task-manager — Development & Testing Requirements
+# =============================================================================
+#
+# Install with:
+#   pip install -r requirements-dev.txt
+#
+# These packages are only needed for running the test suite and development
+# tooling.  They are NOT required to use the CLI.
+# =============================================================================
+
+# Runtime requirements (none, but included for completeness)
+-r requirements.txt
+
+# ---------------------------------------------------------------------------
+# Testing
+# ---------------------------------------------------------------------------
+
+# Test framework
+pytest>=7.4.0
+
+# Coverage reporting
+pytest-cov>=4.1.0
+
+# ---------------------------------------------------------------------------
+# Code quality (optional but recommended)
+# ---------------------------------------------------------------------------
+
+# Static type checking
+mypy>=1.8.0
+
+# Linting
+flake8>=7.0.0
+
+# Auto-formatting
+black>=24.0.0
+isort>=5.13.0

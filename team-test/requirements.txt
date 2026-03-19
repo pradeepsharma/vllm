@@ -1,0 +1,14 @@
+# =============================================================================
+# task-manager — Runtime Requirements
+# =============================================================================
+#
+# The core application relies exclusively on the Python standard library
+# (json, argparse, uuid, dataclasses, pathlib, shutil, tempfile, etc.).
+# No third-party packages are required to run the CLI.
+#
+# This file is intentionally minimal.  If you later add optional integrations
+# (e.g. rich for coloured output, click for argument parsing) list them here.
+# =============================================================================
+
+# No third-party runtime dependencies.
+# Python >= 3.8 is required (dataclasses, from __future__ import annotations).
