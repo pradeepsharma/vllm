@@ -1,0 +1,29 @@
+# Requirements for the Click + Rich Task Management CLI
+#
+# This file lists all dependencies needed to run and develop the
+# Click-based CLI (cli_click.py) and its test suite (tests/test_cli_click.py).
+#
+# Install with:
+#   pip install -r requirements_click.txt
+
+# ---------------------------------------------------------------------------
+# Runtime dependencies
+# ---------------------------------------------------------------------------
+
+# Click — command-line interface creation toolkit used by cli_click.py.
+# Provides @click.group, @click.command, @click.option, @click.argument,
+# click.make_pass_decorator, click.Choice, click.confirm, and CliRunner
+# (used in tests via click.testing).
+click>=8.1.0
+
+# Rich — library for rich text and beautiful formatting in the terminal.
+# Used for Console, Panel, Table, box, and Text in cli_click.py.
+rich>=13.0.0
+
+# ---------------------------------------------------------------------------
+# Development / testing dependencies
+# ---------------------------------------------------------------------------
+
+# pytest — test runner used by tests/test_cli_click.py and tests/test_task_store.py.
+# click.testing.CliRunner (bundled with click) is used for CLI integration tests.
+pytest>=9.0.2
