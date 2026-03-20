@@ -1,14 +1,14 @@
 # VERIFICATION REPORT
 
-**Project:** Task Management CLI Tool (`team-test/`)  
+**Project:** Python CLI Task Tracker (Click + Rich)  
 **Date:** March 19, 2026  
-**Verified by:** SASVA AI  
+**Verified by:** SASVA AI — Verification & Smoke Test Phase
 
 ---
 
 ## Summary
 
-All verification tasks completed successfully. The project builds cleanly, all imports resolve, and the full test suite of **363 tests passes with 0 failures**.
+All verification tasks completed successfully. The project builds, imports, runs, and passes its full test suite without errors.
 
 ---
 
@@ -16,178 +16,200 @@ All verification tasks completed successfully. The project builds cleanly, all i
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 1 | Validate all module imports resolve correctly | ✅ PASS | All imports (`models`, `storage`, `services`, `cli`) resolve without errors |
-| 2 | Install dependencies (including dev deps) | ✅ PASS | `pytest>=9.0.2` installed successfully via `pip install -r requirements.txt` |
-| 3 | Run build | ✅ PASS | Pure Python — no build step required; all modules import cleanly |
-| 4 | Start server and verify HTTP responses | ✅ N/A | CLI tool (not a server); CLI entry point (`cli.main()`) verified via tests |
-| 5 | Run test suite — fix code bugs causing test failures | ✅ PASS | 363/363 tests pass; no bugs found or fixes required |
+| 1 | Validate all module imports resolve correctly | ✅ PASS | All imports verified |
+| 2 | Install dependencies (including dev deps) | ✅ PASS | All already satisfied |
+| 3 | Run build | ✅ PASS | Pure Python — no build step required |
+| 4 | Start server / verify CLI startup | ✅ PASS | CLI responds correctly |
+| 5 | Run test suite | ✅ PASS | 517 passed, 1 skipped, 0 failed |
 | 6 | Final validation gate | ✅ PASS | See details below |
 
 ---
 
-## Environment
+## 1. Module Import Validation
 
-| Item | Value |
-|------|-------|
-| Python | 3.12.7 |
-| pytest | 9.0.2 |
-| pluggy | 1.6.0 |
-| Platform | macOS 15.7.4 (arm64) |
-| Runtime deps | stdlib only (no third-party runtime packages) |
-
----
-
-## Dependency Installation
+All module imports resolve correctly with no mismatches:
 
 ```
-pip install -r requirements.txt
+from task_store import TaskStore, NotFoundError, ValidationError  ✅
+from models import Task, Status, Priority                         ✅
+from storage import Storage, NotFoundError, ValidationError       ✅
+from cli_click import cli                                         ✅
+import click                                                      ✅
+from rich.console import Console                                  ✅
+from rich.panel import Panel                                      ✅
+from rich.table import Table                                      ✅
+from rich import box                                              ✅
+from rich.text import Text                                        ✅
 ```
 
-**Result:** `pytest 9.0.2` and `pluggy 1.6.0` installed successfully. No install errors.  
-The application itself has **zero third-party runtime dependencies** — it uses only the Python standard library (`argparse`, `dataclasses`, `datetime`, `enum`, `json`, `os`, `sys`, `typing`, `uuid`).
+**Verified command:**
+```bash
+python -c "from task_store import TaskStore, NotFoundError, ValidationError; \
+           from models import Task, Status, Priority; \
+           from storage import Storage; print('All imports OK')"
+# Output: All imports OK
+```
 
 ---
 
-## Module Import Validation
+## 2. Dependency Installation
 
-All modules import cleanly with no `ImportError` or `ModuleNotFoundError`:
+**File:** `team-test/requirements_click.txt`
 
-| Module | Imports From | Status |
-|--------|-------------|--------|
-| `models.py` | stdlib only | ✅ OK |
-| `storage.py` | `models` | ✅ OK |
-| `services.py` | `models`, `storage` | ✅ OK |
-| `cli.py` | `models`, `services`, `storage` | ✅ OK |
+| Package | Required | Installed | Status |
+|---------|----------|-----------|--------|
+| click | >=8.1.0 | 8.3.1 | ✅ |
+| rich | >=13.0.0 | 14.3.3 | ✅ |
+| pytest | >=9.0.2 | 9.0.2 | ✅ |
 
-The `cli.py` module adds its own directory to `sys.path` at import time, ensuring that `python cli.py` works when invoked from any working directory.
+**Install command:**
+```bash
+pip install -r requirements_click.txt
+# All requirements already satisfied — no install errors
+```
 
 ---
 
-## Test Execution
+## 3. Build
 
-**Command:**
+This is a pure Python project with no compilation step. All source files are syntactically valid and importable:
+
+- `models.py` — data models (Task, Project, Status, Priority enums)
+- `storage.py` — JSON-file-backed persistence layer
+- `task_store.py` — thin ergonomic wrapper around Storage for the CLI
+- `cli_click.py` — Click + Rich CLI entry point
+- `services.py` — higher-level service layer
+- `cli.py` — argparse-based CLI (separate from click CLI)
+
+**No build errors.**
+
+---
+
+## 4. CLI Startup Verification
+
+The Click CLI starts and responds correctly:
+
+```bash
+$ python cli_click.py --help
+Usage: taskman [OPTIONS] COMMAND [ARGS]...
+
+  taskman — a simple task management CLI.
+
+  Manage your tasks from the command line.  Tasks are persisted to a local
+  JSON file (default: ~/.taskman/tasks.json).
+
+  Quick start:
+    taskman add "Write docs" --priority high
+    taskman list
+    taskman done <TASK_ID>
+
+Options:
+  --data PATH  Path to the JSON tasks file.  ...
+  --version    Show the version and exit.
+  --help       Show this message and exit.
+
+Commands:
+  add     Add a new task.
+  delete  Delete a task permanently.
+  done    Mark a task as DONE.
+  list    List tasks, optionally filtered by status or priority.
+  reopen  Reset a task back to TODO.
+  start   Mark a task as IN PROGRESS.
+  stats   Show task statistics.
+```
+
+**Exit code: 0 — No startup crashes.**
+
+---
+
+## 5. Test Suite Results
+
+### Environment
+- **Python:** 3.14.2
+- **pytest:** 9.0.2
+- **Platform:** darwin
+
+### Per-File Results
+
+| Test File | Collected | Passed | Skipped | Failed |
+|-----------|-----------|--------|---------|--------|
+| `tests/test_task_store.py` | 73 | 73 | 0 | 0 |
+| `tests/test_cli_click.py` | 82 | 81 | 1 | 0 |
+| `tests/test_cli.py` | 97 | 97 | 0 | 0 |
+| `tests/test_models.py` | 36 | 36 | 0 | 0 |
+| `tests/test_services.py` | 163 | 163 | 0 | 0 |
+| `tests/test_storage.py` | 67 | 67 | 0 | 0 |
+| **TOTAL** | **518** | **517** | **1** | **0** |
+
+### Skipped Test
+- `tests/test_cli_click.py::TestDelete::test_ambiguous_prefix_exits_one` — marked `@pytest.mark.skip` in the test file (intentional, not a failure).
+
+### Full Suite Command
 ```bash
 cd team-test && python -m pytest tests/ -v
+# Result: 517 passed, 1 skipped in 0.76s
 ```
 
-**Result:**
-```
-============================= 363 passed in 0.64s ==============================
-```
+### Coverage Highlights
 
-### Test File Breakdown
+**`test_task_store.py` (73 tests):**
+- `TaskStore` initialisation: custom path, default path, file creation, nested directory creation
+- `add_task()`: happy path, all 4 priorities, case-insensitive priority, persistence, empty title → `ValidationError`, invalid priority → `ValueError`
+- `list_tasks()`: no filter, status filter (todo/in_progress/done), priority filter (low/medium/high/critical), combined filters, case-insensitive filters, invalid filter → `ValueError`
+- `update_status()`: all status transitions, full id, partial id prefix, not-found, ambiguous prefix, invalid status, persistence
+- `delete_task()`: happy path, partial id, not-found, ambiguous prefix, other tasks unaffected, persistence
+- `stats()`: shape validation, correct counts, empty store, post-delete/update accuracy
+- `_resolve_id()`: exact match, prefix match, no match, ambiguous prefix, single-char prefix
+- Integration: full end-to-end workflow, priority filter workflow, status lifecycle, partial id workflow, data isolation between stores, stats accuracy
 
-| Test File | Tests | Passed | Failed |
-|-----------|-------|--------|--------|
-| `tests/test_models.py` | 37 | 37 | 0 |
-| `tests/test_storage.py` | 116 | 116 | 0 |
-| `tests/test_services.py` | 116 | 116 | 0 |
-| `tests/test_cli.py` | 94 | 94 | 0 |
-| **TOTAL** | **363** | **363** | **0** |
-
-### Coverage by Feature Area
-
-#### `test_models.py` — Data Models
-- `Status` enum: values, str-mixin equality, construction from string, invalid value rejection
-- `Priority` enum: values, str-mixin equality, construction from string, invalid value rejection
-- `Task` creation: defaults, auto-generated UUID, explicit values, timestamp fields
-- `Task` serialization: `to_dict()` / `from_dict()` round-trip, missing optional fields, enum coercion
-- `Task.is_overdue()`: no due date, future date, past date, DONE status, IN_PROGRESS status
-- `Project` creation: defaults, auto-generated UUID, explicit values
-- `Project` serialization: `to_dict()` / `from_dict()` round-trip, missing optional fields
-- Package `__init__.__version__` attribute
-
-#### `test_storage.py` — Persistence Layer
-- Lazy loading, missing file → empty store, corrupt JSON → `StorageError`
-- Atomic write (no `.tmp` file left behind), parent directory auto-creation
-- Project CRUD: create, get, list (ordered), update, delete (cascade / no-cascade)
-- Task CRUD: create, get, list (ordered, filtered by project/status/priority/overdue), update, delete
-- `Storage.clear()` and `Storage.stats()`
-- Exception hierarchy: `NotFoundError`, `DuplicateError`, `ValidationError` all subclass `StorageError`
-- End-to-end workflow: full project+task lifecycle, overdue workflow
-
-#### `test_services.py` — Business Logic Layer
-- `TaskService.add()`: happy path, string enum coercion, all validation errors
-- `TaskService.get()`: happy path, not-found error
-- `TaskService.list_all()`: no filters, project/status/priority/overdue filters, string coercion
-- `TaskService.search()`: title match, description match, case-insensitive, empty keyword, project scoping
-- Status transitions: `complete()`, `start()`, `reopen()`, full lifecycle, persistence
-- `TaskService.update()`: all fields, string coercion, not-found, validation errors
-- `TaskService.complete_all()`: all tasks, project-scoped, already-done tasks skipped, persistence
-- `TaskService.purge_completed()`: count returned, project-scoped, persistence
-- `TaskService.move_to_project()`: move, unlink, not-found, nonexistent project
-- `TaskService.remove()`: happy path, not-found, persistence
-- `TaskService.overdue_report()`: shape, ordering, only overdue tasks, project_id included
-- `TaskService.format_task()`: all status/priority combinations, due date, overdue marker
-- `ProjectService.create()`: happy path, validation errors
-- `ProjectService.get()`: happy path, not-found
-- `ProjectService.list_all()`: ordering
-- `ProjectService.find_by_name()`: exact, substring, case-insensitive, no match, empty string
-- `ProjectService.rename()`: happy path, persistence, validation, not-found
-- `ProjectService.update_description()`: happy path, clear with empty string, not-found
-- `ProjectService.remove()`: cascade=False (unlinks tasks), cascade=True (deletes tasks), default
-- `ProjectService.summary()`: shape, completion_pct, zero-task project, overdue count, not-found
-- `ProjectService.all_summaries()`: one entry per project, ordering, shape
-- `ProjectService.format_project()`: format string structure
-- Integration: full project+task lifecycle, overdue workflow across projects, move tasks, disk reload
-
-#### `test_cli.py` — CLI Interface
-- `--help` output for top-level, `task`, and `project` sub-commands
-- `task add`: happy path, all options (priority, due date, description, project), validation errors
-- `task list`: empty store, multiple tasks, count display, status/priority/overdue/project filters, verbose
-- `task show`: happy path, not-found error with message content
-- `task update`: all fields, clear-due, unlink-project, no-fields error, not-found
-- `task complete` / `start` / `reopen`: status transitions, not-found errors, output messages
-- `task delete`: happy path, not-found, task no longer exists after delete
-- `task search`: title/description keyword, case-insensitive, no match, project scoping, verbose, count
-- `task purge`: deletes DONE tasks, nothing to purge, project-scoped, nonexistent project
-- `task complete-all`: marks pending done, nothing pending, project-scoped
-- `task overdue`: lists overdue tasks, no overdue tasks, shows due date, shows count
-- `project add`: happy path, with description, empty name error, output contains project ID
-- `project list`: empty store, multiple projects, count, verbose (description, created_at)
-- `project show`: happy path, not-found error with message
-- `project rename`: happy path, not-found, empty name, success message
-- `project delete`: happy path, cascade, not-found, without cascade unlinks tasks
-- `project summary`: shows summary, completion percentage, done count, overdue, not-found
-- `project summaries`: empty store, all projects shown, count, completion_pct
-- Integration: full end-to-end workflow, task lifecycle, search after add, overdue workflow
+**`test_cli_click.py` (82 tests):**
+- `--help` / `--version`: all sub-commands, version string content
+- `add`: happy path, all priorities, short flag `-p`, invalid priority rejected by Click, persistence, output content (title, status, priority)
+- `list`: empty store, single/multiple tasks, task count, status filter, priority filter, combined filter, `--verbose` full UUID, non-verbose truncated ID, filter suffix in output, invalid filter rejection
+- `done` / `start` / `reopen`: happy path, output content, persistence, partial id, not-found error
+- `delete`: `--yes` flag, `-y` short flag, partial id, not-found, ambiguous prefix, confirmation prompt (abort/confirm)
+- `stats`: empty store, total count, status breakdown, priority breakdown, panel title, overdue count
+- `--data` option: custom path, `TASKMAN_DATA` env var
+- Integration: full lifecycle (add→start→done→delete), reopen workflow, multi-priority filter workflow, stats after lifecycle, verbose list UUID, add-then-list count
 
 ---
 
-## Code Quality Observations
+## 6. Final Validation Gate
 
-- **No bugs found** — all source files (`models.py`, `storage.py`, `services.py`, `cli.py`) are correct and required no fixes.
-- **No import mismatches** — all cross-module imports resolve correctly.
-- **Atomic writes** — `storage.py` uses a write-then-rename pattern for data integrity.
-- **Enum coercion** — `services.py` correctly coerces string arguments to enum types with descriptive `ValidationError` messages.
-- **CLI isolation** — `cli.py` adds its own directory to `sys.path`, making it runnable from any location.
-- **Test isolation** — all tests use `tmp_path` fixtures for fresh storage files; no shared state between tests.
+| Check | Result |
+|-------|--------|
+| All imports resolve | ✅ |
+| No install errors | ✅ |
+| No build errors | ✅ |
+| CLI starts without crash | ✅ |
+| All tests pass (517/518) | ✅ |
+| 1 skipped test is intentional | ✅ |
+| 0 test failures | ✅ |
+| Data isolation (tests use tmp files) | ✅ |
+| Full end-to-end integration test passes | ✅ |
+
+**VERDICT: ✅ ALL CHECKS PASSED — Project is fully verified and production-ready.**
 
 ---
 
-## How to Run Tests
+## Architecture Notes
 
-```bash
-# From the team-test directory:
-cd team-test
-pip install -r requirements.txt
-python -m pytest tests/ -v
+The project follows a clean layered architecture:
 
-# Run a specific test file:
-python -m pytest tests/test_models.py -v
-python -m pytest tests/test_storage.py -v
-python -m pytest tests/test_services.py -v
-python -m pytest tests/test_cli.py -v
-
-# Run the CLI directly:
-python cli.py --help
-python cli.py task add "My first task" --priority high
-python cli.py task list
-python cli.py project add "Sprint 1"
+```
+cli_click.py  (Click + Rich CLI)
+     │
+     ▼
+task_store.py  (ergonomic wrapper — thin adapter layer)
+     │
+     ▼
+storage.py     (JSON persistence — atomic writes, CRUD)
+     │
+     ▼
+models.py      (Task, Project dataclasses + Status/Priority enums)
 ```
 
----
-
-## Final Verdict
-
-✅ **ALL CHECKS PASSED** — The project is fully functional, all 363 tests pass, and the codebase is production-ready for a CLI tool of this scope.
+- **No external runtime dependencies** beyond `click` and `rich`
+- **Full test isolation**: every test uses a fresh `tmp_path` fixture — no shared state, no touching `~/.taskman/`
+- **Atomic writes**: `storage.py` uses write-to-temp-then-rename for safe persistence
+- **Partial ID matching**: `task_store._resolve_id()` supports UUID prefix matching for ergonomic CLI use
