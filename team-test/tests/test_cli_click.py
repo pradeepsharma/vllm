@@ -44,8 +44,8 @@ from task_store import TaskStore  # noqa: E402
 # ---------------------------------------------------------------------------
 
 def _runner() -> CliRunner:
-    """Return a CliRunner that mixes stdout and stderr into one stream."""
-    return CliRunner(mix_stderr=False)
+    """Return a CliRunner (stdout and stderr are mixed into one stream in Click 8+)."""
+    return CliRunner()
 
 
 def _invoke(tmp_path: Path, *args: str, input: str | None = None):
