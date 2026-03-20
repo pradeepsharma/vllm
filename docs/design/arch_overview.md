@@ -312,3 +312,98 @@ big problem.
 
 In summary, the complete config object `VllmConfig` can be treated as an
 engine-level global state that is shared among all vLLM classes.
+
+---
+
+## V1 Engine Internals
+
+The V1 engine is a redesigned inference stack that replaces the V0
+`LLMEngine`/`AsyncLLMEngine` with a cleaner multi-process architecture. This
+section provides a high-level map of the V1 components and links to detailed
+design documents.
+
+### V1 vs V0 Engine
+
+| Aspect | V0 Engine | V1 Engine |
+|---|---|---|
+| Architecture | Single-process (async loop) | Multi-process (API server + engine core + workers) |
+| Scheduling | Separate prefill/decode phases | Unified token-budget scheduling |
+| Communication | In-process function calls | ZMQ sockets with msgpack serialization |
+| Prefix caching | Optional, hash-based | Always-on in V1 (hash-based, LRU eviction) |
+| Chunked prefill | Optional | Enabled by default |
+| Pipeline parallelism | Limited | Batch queue for bubble elimination |
+
+### V1 Component Map
+
+The following diagram shows the major V1 components and how they communicate:
+
+```
+API Server Process(es)
+  AsyncLLM
+    InputProcessor   -- tokenize, validate, build EngineCoreRequest
+    EngineCoreClient -- ZMQ client (InprocClient / AsyncMPClient)
+    OutputProcessor  -- detokenize, stop-string check, logprobs
+          |
+          | ZMQ (msgpack)
+          v
+Engine Core Process(es)
+  EngineCore / EngineCoreProc
+    Scheduler            -- continuous batching, chunked prefill
+      KVCacheManager     -- block allocation, prefix cache
+      EncoderCacheManager-- encoder output cache (enc-dec models)
+    ModelExecutor        -- dispatch to GPU workers
+    StructuredOutputManager -- FSM compilation for guided decoding
+          |
+          | IPC / shared memory
+          v
+GPU Worker Process(es)
+  GPUWorker
+    ModelRunner          -- forward pass, CUDA graph capture
+      Model              -- torch.nn.Module (sharded + quantized)
+```
+
+### Scheduler: Unified Token Budget
+
+The V1 scheduler eliminates the distinction between prefill and decode. Every
+request has a `num_computed_tokens` counter, and the scheduler assigns tokens
+until a per-step budget is exhausted. This enables:
+
+- **Continuous batching** — new requests are admitted every step.
+- **Chunked prefill** — long prompts are split across multiple steps,
+  interleaved with decode steps.
+- **Speculative decoding** — draft tokens are appended to the token count and
+  verified in the same forward pass.
+
+See [Scheduler Design](scheduler.md) for a complete description.
+
+### KV Cache: Block Pool with Prefix Caching
+
+The V1 KV cache manager uses a pre-allocated block pool with a doubly linked
+free queue (LRU eviction). Prefix caching is implemented via content-addressable
+hashing: each full block is identified by a hash of its token IDs and the hash
+of the preceding block. Cache hits are detected at scheduling time and the
+matched blocks are "touched" (removed from the free queue) to prevent eviction.
+
+See [KV Cache Management](kv_cache_management.md) for a complete description.
+
+### Communication: ZMQ + msgpack
+
+The API server and engine core communicate via ZMQ sockets using msgpack
+serialization. This design:
+
+- Releases the Python GIL during socket I/O, allowing the engine core to
+  overlap I/O with GPU execution.
+- Supports many-to-many topologies (multiple API servers, multiple engine cores)
+  for data parallel deployments.
+- Uses a startup handshake protocol to exchange socket addresses and
+  configuration before accepting requests.
+
+### Further Reading
+
+| Document | Description |
+|---|---|
+| [V1 Engine Architecture](v1_engine.md) | `AsyncLLM`, `EngineCore`, `EngineCoreClient` internals |
+| [Scheduler Design](scheduler.md) | Continuous batching, chunked prefill, preemption |
+| [KV Cache Management](kv_cache_management.md) | Block pool, prefix caching, eviction |
+| [Prefix Caching](prefix_caching.md) | End-to-end prefix caching workflow with examples |
+| [Paged Attention](paged_attention.md) | GPU kernel for paged KV cache attention |

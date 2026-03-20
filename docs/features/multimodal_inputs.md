@@ -217,10 +217,43 @@ When loading RGBA images (images with transparency), vLLM converts them to RGB f
 
 ### Video Inputs
 
-You can pass a list of NumPy arrays directly to the `'video'` field of the multi-modal dictionary
-instead of using multi-image input.
+vLLM supports native video input through the `'video'` field of the multi-modal dictionary. You can pass video data as NumPy arrays, PyTorch tensors, raw bytes, or a URL/file path.
 
-Instead of NumPy arrays, you can also pass `'torch.Tensor'` instances, as shown in this example using Qwen2.5-VL:
+#### NumPy Array Input
+
+Pass a list of NumPy arrays (one per frame) or a 4-D array of shape `(num_frames, height, width, channels)`:
+
+??? code
+
+    ```python
+    import numpy as np
+    from vllm import LLM, SamplingParams
+
+    # Load video frames as a NumPy array: (num_frames, H, W, 3)
+    # Each frame should be in RGB format with uint8 dtype
+    video_frames = np.stack([...])  # shape: (16, 480, 640, 3)
+
+    llm = LLM(
+        model="llava-hf/llava-onevision-qwen2-0.5b-ov-hf",
+        limit_mm_per_prompt={"video": 1},
+    )
+
+    sampling_params = SamplingParams(temperature=0.0, max_tokens=256)
+
+    outputs = llm.generate(
+        {
+            "prompt": "<video>\nDescribe what is happening in this video.",
+            "multi_modal_data": {"video": video_frames},
+        },
+        sampling_params=sampling_params,
+    )
+
+    print(outputs[0].outputs[0].text)
+    ```
+
+#### PyTorch Tensor Input
+
+You can also pass `torch.Tensor` instances, as shown in this example using Qwen2.5-VL:
 
 ??? code
 
@@ -287,13 +320,202 @@ Instead of NumPy arrays, you can also pass `'torch.Tensor'` instances, as shown 
     !!! note
         'process_vision_info' is only applicable to Qwen2.5-VL and similar models.
 
+#### Video with Metadata
+
+For models that support video metadata (such as FPS and duration), you can pass a tuple of `(frames, metadata_dict)`:
+
+??? code
+
+    ```python
+    import numpy as np
+    from vllm import LLM, SamplingParams
+
+    # Load video frames
+    video_frames = np.stack([...])  # shape: (32, 480, 640, 3)
+
+    # Provide metadata alongside the frames
+    video_metadata = {
+        "fps": 2.0,
+        "duration": 16.0,
+        "total_num_frames": 32,
+    }
+
+    llm = LLM(
+        model="Qwen/Qwen2.5-VL-7B-Instruct",
+        limit_mm_per_prompt={"video": 1},
+    )
+
+    sampling_params = SamplingParams(temperature=0.0, max_tokens=512)
+
+    outputs = llm.generate(
+        {
+            "prompt": "<video>\nSummarize the key events in this video.",
+            "multi_modal_data": {"video": (video_frames, video_metadata)},
+        },
+        sampling_params=sampling_params,
+    )
+
+    print(outputs[0].outputs[0].text)
+    ```
+
+#### Multiple Videos in One Prompt
+
+Some models support multiple videos in a single prompt. Use a list in the `'video'` field:
+
+??? code
+
+    ```python
+    import numpy as np
+    from vllm import LLM, SamplingParams
+
+    video_a = np.stack([...])  # shape: (16, 480, 640, 3)
+    video_b = np.stack([...])  # shape: (24, 480, 640, 3)
+
+    llm = LLM(
+        model="llava-hf/llava-onevision-qwen2-7b-ov-hf",
+        limit_mm_per_prompt={"video": 2},
+    )
+
+    sampling_params = SamplingParams(temperature=0.0, max_tokens=512)
+
+    outputs = llm.generate(
+        {
+            "prompt": "<video><video>\nCompare the two videos and describe the differences.",
+            "multi_modal_data": {"video": [video_a, video_b]},
+        },
+        sampling_params=sampling_params,
+    )
+
+    print(outputs[0].outputs[0].text)
+    ```
+
+#### Loading Video from File with OpenCV
+
+vLLM includes built-in video loading utilities using OpenCV. You can use the `VideoLoader` registry to load video bytes directly:
+
+??? code
+
+    ```python
+    import numpy as np
+    from vllm import LLM, SamplingParams
+    from vllm.multimodal.video import VIDEO_LOADER_REGISTRY
+
+    # Load video bytes from a file
+    with open("my_video.mp4", "rb") as f:
+        video_bytes = f.read()
+
+    # Use the registered OpenCV dynamic loader
+    loader_cls = VIDEO_LOADER_REGISTRY.get("opencv_dynamic")
+    frames, metadata = loader_cls.load_bytes(
+        video_bytes,
+        fps=2,            # Sample at 2 frames per second
+        max_duration=60,  # Process at most 60 seconds
+    )
+
+    llm = LLM(
+        model="Qwen/Qwen2.5-VL-3B-Instruct",
+        limit_mm_per_prompt={"video": 1},
+    )
+
+    sampling_params = SamplingParams(temperature=0.0, max_tokens=256)
+
+    outputs = llm.generate(
+        {
+            "prompt": "<video>\nWhat is happening in this video?",
+            "multi_modal_data": {"video": (frames, metadata)},
+        },
+        sampling_params=sampling_params,
+    )
+
+    print(outputs[0].outputs[0].text)
+    ```
+
 Full example: [examples/offline_inference/vision_language.py](../../examples/offline_inference/vision_language.py)
 
 ### Audio Inputs
 
 You can pass a tuple `(array, sampling_rate)` to the `'audio'` field of the multi-modal dictionary.
 
-Full example: [examples/offline_inference/audio_language.py](../../examples/offline_inference/audio_language.py)
+#### Basic Audio Input
+
+??? code
+
+    ```python
+    import librosa
+    from vllm import LLM, SamplingParams
+
+    # Load audio file — librosa returns a float32 numpy array and sample rate
+    audio_array, sampling_rate = librosa.load("speech.wav", sr=16000)
+
+    llm = LLM(model="fixie-ai/ultravox-v0_5-llama-3_2-1b")
+    sampling_params = SamplingParams(temperature=0.0, max_tokens=256)
+
+    outputs = llm.generate(
+        {
+            "prompt": "<|audio|>\nWhat is being said in this audio?",
+            "multi_modal_data": {"audio": (audio_array, sampling_rate)},
+        },
+        sampling_params=sampling_params,
+    )
+
+    print(outputs[0].outputs[0].text)
+    ```
+
+#### Audio Transcription with Whisper
+
+??? code
+
+    ```python
+    import librosa
+    from vllm import LLM, SamplingParams
+
+    audio, sr = librosa.load("speech.wav", sr=16000)
+
+    llm = LLM(model="openai/whisper-large-v3-turbo")
+    sampling_params = SamplingParams(temperature=0, max_tokens=256)
+
+    outputs = llm.generate(
+        {
+            # Whisper uses a special prompt format with language/task tokens
+            "prompt": "<|startoftranscript|><|en|><|transcribe|><|notimestamps|>",
+            "multi_modal_data": {"audio": (audio, sr)},
+        },
+        sampling_params=sampling_params,
+    )
+
+    print(outputs[0].outputs[0].text)
+    ```
+
+#### Multiple Audio Inputs
+
+Some models accept multiple audio clips in a single prompt. Pass a list to the `'audio'` field:
+
+??? code
+
+    ```python
+    import librosa
+    from vllm import LLM, SamplingParams
+
+    audio1, sr1 = librosa.load("clip1.wav", sr=16000)
+    audio2, sr2 = librosa.load("clip2.wav", sr=16000)
+
+    llm = LLM(
+        model="Qwen/Qwen2-Audio-7B-Instruct",
+        limit_mm_per_prompt={"audio": 2},
+    )
+
+    sampling_params = SamplingParams(temperature=0.0, max_tokens=512)
+
+    outputs = llm.generate(
+        {
+            "prompt": "<|audio_bos|><|AUDIO|><|audio_eos|><|audio_bos|><|AUDIO|><|audio_eos|>\nCompare these two audio clips.",
+            "multi_modal_data": {"audio": [(audio1, sr1), (audio2, sr2)]},
+        },
+        sampling_params=sampling_params,
+    )
+
+    print(outputs[0].outputs[0].text)
+    ```
 
 #### Chunking Long Audio for Transcription
 
@@ -377,6 +599,43 @@ outputs = llm.generate({
 ```
 
 No manual conversion is needed - vLLM handles the channel normalization automatically based on the model's requirements.
+
+Full example: [examples/offline_inference/audio_language.py](../../examples/offline_inference/audio_language.py)
+
+### Mixed Modality Inputs
+
+Some models support combining multiple modalities in a single prompt. For example, Qwen2.5-Omni and Qwen3-Omni can process both images and audio simultaneously:
+
+??? code
+
+    ```python
+    import librosa
+    from PIL import Image
+    from vllm import LLM, SamplingParams
+
+    llm = LLM(
+        model="Qwen/Qwen2.5-Omni-7B",
+        limit_mm_per_prompt={"image": 1, "audio": 1},
+    )
+
+    image = Image.open("scene.jpg")
+    audio, sr = librosa.load("narration.wav", sr=16000)
+
+    sampling_params = SamplingParams(temperature=0.0, max_tokens=512)
+
+    outputs = llm.generate(
+        {
+            "prompt": "<image><audio>\nDescribe what you see and hear.",
+            "multi_modal_data": {
+                "image": image,
+                "audio": (audio, sr),
+            },
+        },
+        sampling_params=sampling_params,
+    )
+
+    print(outputs[0].outputs[0].text)
+    ```
 
 ### Embedding Inputs
 
@@ -597,11 +856,11 @@ Then, you can use the OpenAI client as follows:
             {
                 "role": "user",
                 "content": [
-                    # NOTE: The prompt formatting with the image token `<image>` is not needed
-                    # since the prompt will be processed automatically by the API server.
                     {
+                        # NOTE: The prompt formatting with the image token `<image>` is not needed
+                        # since the prompt will be processed automatically by the API server.
                         "type": "text",
-                        "text": "What’s in this image?",
+                        "text": "What's in this image?",
                     },
                     {
                         "type": "image_url",
@@ -628,7 +887,7 @@ Then, you can use the OpenAI client as follows:
                     "content": [
                         {
                             "type": "text",
-                            "text": "What’s in this image?",
+                            "text": "What's in this image?",
                         },
                         {
                             "type": "image_url",
@@ -737,12 +996,12 @@ Then, you can use the OpenAI client as follows:
                 ],
             }
         ],
-        model=model,
+        model="llava-hf/llava-onevision-qwen2-0.5b-ov-hf",
         max_completion_tokens=64,
     )
 
     result = chat_completion_from_url.choices[0].message.content
-    print("Chat completion output from image url:", result)
+    print("Chat completion output from video url:", result)
     ```
 
 Full example: [examples/online_serving/openai_chat_completion_client_for_multimodal.py](../../examples/online_serving/openai_chat_completion_client_for_multimodal.py)
@@ -753,6 +1012,53 @@ Full example: [examples/online_serving/openai_chat_completion_client_for_multimo
 
     ```bash
     export VLLM_VIDEO_FETCH_TIMEOUT=<timeout>
+    ```
+
+#### Multiple Videos via API
+
+To send multiple videos in a single request, include multiple `video_url` content items. The model must support multiple videos and the server must be started with an appropriate `--limit-mm-per-prompt.video` value:
+
+```bash
+vllm serve llava-hf/llava-onevision-qwen2-7b-ov-hf \
+  --runner generate \
+  --max-model-len 16384 \
+  --limit-mm-per-prompt.video 2
+```
+
+??? code
+
+    ```python
+    from openai import OpenAI
+
+    client = OpenAI(base_url="http://localhost:8000/v1", api_key="EMPTY")
+
+    video_url_1 = "https://example.com/video1.mp4"
+    video_url_2 = "https://example.com/video2.mp4"
+
+    response = client.chat.completions.create(
+        model="llava-hf/llava-onevision-qwen2-7b-ov-hf",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "Compare these two videos:"},
+                    {
+                        "type": "video_url",
+                        "video_url": {"url": video_url_1},
+                        "uuid": video_url_1,
+                    },
+                    {
+                        "type": "video_url",
+                        "video_url": {"url": video_url_2},
+                        "uuid": video_url_2,
+                    },
+                ],
+            }
+        ],
+        max_completion_tokens=256,
+    )
+
+    print(response.choices[0].message.content)
     ```
 
 #### Video Frame Recovery
@@ -856,7 +1162,7 @@ Then, you can use the OpenAI client as follows:
                 ],
             },
         ],
-        model=model,
+        model="fixie-ai/ultravox-v0_5-llama-3_2-1b",
         max_completion_tokens=64,
     )
 
@@ -880,13 +1186,15 @@ Alternatively, you can pass `audio_url`, which is the audio counterpart of `imag
                     },
                     {
                         "type": "audio_url",
-                        "audio_url": {"url": audio_url},
+                        "audio_url": {
+                            "url": audio_url,
+                        },
                         "uuid": audio_url,  # Optional
                     },
                 ],
-            }
+            },
         ],
-        model=model,
+        model="fixie-ai/ultravox-v0_5-llama-3_2-1b",
         max_completion_tokens=64,
     )
 
@@ -894,74 +1202,80 @@ Alternatively, you can pass `audio_url`, which is the audio counterpart of `imag
     print("Chat completion output from audio url:", result)
     ```
 
-Full example: [examples/online_serving/openai_chat_completion_client_for_multimodal.py](../../examples/online_serving/openai_chat_completion_client_for_multimodal.py)
+#### Multiple Audio Inputs via API
 
-!!! note
-    By default, the timeout for fetching audios through HTTP URL is `10` seconds.
-    You can override this by setting the environment variable:
+To send multiple audio clips in a single request, include multiple `input_audio` or `audio_url` content items. The server must be started with an appropriate `--limit-mm-per-prompt.audio` value:
 
-    ```bash
-    export VLLM_AUDIO_FETCH_TIMEOUT=<timeout>
-    ```
-
-### Embedding Inputs
-
-To input pre-computed embeddings belonging to a data type (i.e. image, video, or audio) directly to the language model,
-pass a tensor of shape `(..., hidden_size of LM)` for each item to the corresponding field of the multi-modal dictionary.
-
-!!! important
-    Unlike offline inference, the embeddings for each item must be passed separately
-    in order for placeholder tokens to be applied correctly by the chat template.
-
-You must enable this feature via the `--enable-mm-embeds` flag in `vllm serve`.
-
-!!! warning
-    The vLLM engine may crash if incorrect shape of embeddings is passed.
-    Only enable this flag for trusted users!
-
-#### Image Embedding Inputs
-
-For image embeddings, you can pass the base64-encoded tensor to the `image_embeds` field.
-The following example demonstrates how to pass image embeddings to the OpenAI server:
+```bash
+vllm serve Qwen/Qwen2-Audio-7B-Instruct \
+  --limit-mm-per-prompt.audio 2
+```
 
 ??? code
 
     ```python
-    from vllm.utils.serial_utils import tensor2base64
+    import base64
+    from openai import OpenAI
+
+    client = OpenAI(base_url="http://localhost:8000/v1", api_key="EMPTY")
+
+    def load_audio_base64(path: str) -> str:
+        with open(path, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
+
+    audio1_b64 = load_audio_base64("clip1.wav")
+    audio2_b64 = load_audio_base64("clip2.wav")
+
+    response = client.chat.completions.create(
+        model="Qwen/Qwen2-Audio-7B-Instruct",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "Compare these two audio clips:"},
+                    {
+                        "type": "input_audio",
+                        "input_audio": {"data": audio1_b64, "format": "wav"},
+                    },
+                    {
+                        "type": "input_audio",
+                        "input_audio": {"data": audio2_b64, "format": "wav"},
+                    },
+                ],
+            }
+        ],
+        max_completion_tokens=256,
+    )
+
+    print(response.choices[0].message.content)
+    ```
+
+### Image Embedding Inputs
+
+You can pass pre-computed image embeddings directly to the API server. This is useful when you have already processed images through a vision encoder and want to avoid re-encoding them.
+
+??? code
+
+    ```python
+    import torch
+    from openai import OpenAI
+
+    openai_api_key = "EMPTY"
+    openai_api_base = "http://localhost:8000/v1"
+    model = "llava-hf/llava-1.5-7b-hf"
 
     client = OpenAI(
-        # defaults to os.environ.get("OPENAI_API_KEY")
         api_key=openai_api_key,
         base_url=openai_api_base,
     )
 
-    # Basic usage - this is equivalent to the LLaVA example for offline inference
-    model = "llava-hf/llava-1.5-7b-hf"
+    # Load pre-computed image embeddings
+    image_embeds = torch.load("image_embeds.pt")
+    image_url = "https://example.com/image.jpg"  # Optional, for UUID
+
     embeds = {
         "type": "image_embeds",
-        "image_embeds": tensor2base64(torch.load(...)),  # Shape: (image_feature_size, hidden_size)
-        "uuid": image_url,  # Optional
-    }
-
-
-    # Additional examples for models that require extra fields
-    model = "Qwen/Qwen2-VL-2B-Instruct"
-    embeds = {
-        "type": "image_embeds",
-        "image_embeds": {
-            "image_embeds": tensor2base64(torch.load(...)),  # Shape: (image_feature_size, hidden_size)
-            "image_grid_thw": tensor2base64(torch.load(...)),  # Shape: (3,)
-        },
-        "uuid": image_url,  # Optional
-    }
-
-    model = "openbmb/MiniCPM-V-2_6"
-    embeds = {
-        "type": "image_embeds",
-        "image_embeds": {
-            "image_embeds": tensor2base64(torch.load(...)),  # Shape: (num_slices, hidden_size)
-            "image_sizes": tensor2base64(torch.load(...)),  # Shape: (2,)
-        },
+        "image_embeds": image_embeds.tolist(),
         "uuid": image_url,  # Optional
     }
 

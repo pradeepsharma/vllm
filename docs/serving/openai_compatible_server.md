@@ -40,6 +40,185 @@ To call the server, in your preferred text editor, create a script that uses an 
 
     To disable this behavior, please pass `--generation-config vllm` when launching the server.
 
+## Server Configuration
+
+### Network Settings
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--host` | `null` (all interfaces) | Host to bind the server |
+| `--port` | `8000` | Port to listen on |
+| `--uds` | `null` | Unix domain socket path (overrides host/port) |
+| `--root-path` | `null` | FastAPI root path for reverse proxy deployments |
+
+```bash
+# Bind to a specific interface
+vllm serve meta-llama/Llama-3.1-8B-Instruct --host 127.0.0.1 --port 8080
+
+# Use a Unix domain socket
+vllm serve meta-llama/Llama-3.1-8B-Instruct --uds /tmp/vllm.sock
+
+# Behind a reverse proxy at /api/v1
+vllm serve meta-llama/Llama-3.1-8B-Instruct --root-path /api/v1
+```
+
+### Authentication
+
+vLLM supports API key authentication via Bearer tokens. Set one or more API keys using `--api-key` or the `VLLM_API_KEY` environment variable:
+
+```bash
+# Single API key
+vllm serve meta-llama/Llama-3.1-8B-Instruct --api-key my-secret-key
+
+# Multiple API keys (any key is accepted)
+vllm serve meta-llama/Llama-3.1-8B-Instruct \
+  --api-key key-for-alice \
+  --api-key key-for-bob
+
+# Via environment variable
+VLLM_API_KEY=my-secret-key vllm serve meta-llama/Llama-3.1-8B-Instruct
+```
+
+When authentication is enabled, all `/v1/*` endpoints require:
+
+```
+Authorization: Bearer <your-api-key>
+```
+
+!!! note
+    Health endpoints (`/health`, `/ping`) and OPTIONS requests do not require authentication.
+    The `--api-key` flag takes precedence over `VLLM_API_KEY`.
+
+### CORS Configuration
+
+Configure Cross-Origin Resource Sharing for browser-based clients:
+
+```bash
+vllm serve meta-llama/Llama-3.1-8B-Instruct \
+  --allowed-origins '["https://myapp.example.com"]' \
+  --allowed-methods '["GET", "POST", "OPTIONS"]' \
+  --allowed-headers '["Content-Type", "Authorization"]' \
+  --allow-credentials
+```
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--allowed-origins` | `["*"]` | Allowed CORS origins (JSON array) |
+| `--allowed-methods` | `["*"]` | Allowed HTTP methods (JSON array) |
+| `--allowed-headers` | `["*"]` | Allowed HTTP headers (JSON array) |
+| `--allow-credentials` | `false` | Allow cookies/credentials |
+
+### SSL/TLS
+
+Enable HTTPS for secure connections:
+
+```bash
+vllm serve meta-llama/Llama-3.1-8B-Instruct \
+  --ssl-keyfile /path/to/server.key \
+  --ssl-certfile /path/to/server.crt \
+  --ssl-ca-certs /path/to/ca.crt
+```
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--ssl-keyfile` | `null` | Path to SSL private key file |
+| `--ssl-certfile` | `null` | Path to SSL certificate file |
+| `--ssl-ca-certs` | `null` | Path to CA certificates file |
+| `--ssl-cert-reqs` | `0` | Client certificate requirement (stdlib ssl module) |
+| `--ssl-ciphers` | `null` | SSL cipher suites (TLS 1.2 and below) |
+| `--enable-ssl-refresh` | `false` | Auto-refresh SSL context when cert files change |
+
+### Logging
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--uvicorn-log-level` | `"info"` | Uvicorn log level (`critical`, `error`, `warning`, `info`, `debug`, `trace`) |
+| `--disable-uvicorn-access-log` | `false` | Disable HTTP access logs |
+| `--disable-access-log-for-endpoints` | `null` | Comma-separated endpoints to exclude from access logs (e.g., `"/health,/metrics"`) |
+| `--log-config-file` | `null` | Path to JSON logging config file |
+| `--max-log-len` | `null` | Max characters of prompt/ID to log |
+| `--enable-log-outputs` | `false` | Log model outputs (requires `--enable-log-requests`) |
+| `--enable-log-deltas` | `true` | Log output deltas (when `--enable-log-outputs` is set) |
+| `--log-error-stack` | `false` | Log stack traces for error responses |
+
+### Request ID Headers
+
+Enable `X-Request-Id` headers for request tracing:
+
+```bash
+vllm serve meta-llama/Llama-3.1-8B-Instruct --enable-request-id-headers
+```
+
+Clients can then pass a custom request ID:
+
+```python
+completion = client.chat.completions.create(
+    model="meta-llama/Llama-3.1-8B-Instruct",
+    messages=[{"role": "user", "content": "Hello!"}],
+    extra_headers={"x-request-id": "my-trace-id-001"},
+)
+print(completion._request_id)
+```
+
+### Custom Middleware
+
+Add custom ASGI middleware to the server:
+
+```bash
+# Add a middleware class
+vllm serve meta-llama/Llama-3.1-8B-Instruct \
+  --middleware mypackage.middleware.RateLimitMiddleware
+
+# Add a middleware function
+vllm serve meta-llama/Llama-3.1-8B-Instruct \
+  --middleware mypackage.middleware.log_requests
+```
+
+Multiple `--middleware` arguments can be provided.
+
+### HTTP Parser Settings
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--h11-max-incomplete-event-size` | `4194304` (4 MB) | Max size of incomplete HTTP event |
+| `--h11-max-header-count` | `256` | Max number of HTTP headers per request |
+
+### API Documentation
+
+| Argument | Description |
+|----------|-------------|
+| `--disable-fastapi-docs` | Disable Swagger UI, ReDoc, and OpenAPI schema |
+| `--enable-offline-docs` | Enable offline API docs (for air-gapped environments) |
+
+### Multi-Process Configuration
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--api-server-count` | `null` | Number of API server processes (defaults to `data_parallel_size`) |
+| `--disable-frontend-multiprocessing` | `false` | Run frontend in the same process as the engine |
+
+### Config File
+
+Load server arguments from a YAML config file:
+
+```bash
+vllm serve --config serve_config.yaml
+```
+
+```yaml
+# serve_config.yaml
+model: meta-llama/Llama-3.1-8B-Instruct
+host: 0.0.0.0
+port: 8000
+api_key: my-secret-key
+tensor_parallel_size: 2
+max_model_len: 8192
+```
+
+See [serve_args.md](../configuration/serve_args.md) for the full list of configuration options.
+
+---
+
 ## Supported APIs
 
 We currently support the following OpenAI APIs:

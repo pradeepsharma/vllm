@@ -317,7 +317,7 @@ Supported models:
 
 Flags: `--tool-call-parser deepseek_v31 --chat-template {see_above}`
 
-### OpenAI OSS Models ('openai`)
+### OpenAI OSS Models (`openai`)
 
 Supported models:
 
@@ -459,6 +459,292 @@ Flags: `--tool-call-parser pythonic --chat-template {see_above}`
 !!! warning
     Llama's smaller models frequently fail to emit tool calls in the correct format. Results may vary depending on the model.
 
+## Parallel Tool Calls
+
+Many parsers support parallel tool calls — the model generates multiple function calls in a single response. This is useful for queries that require fetching data from multiple sources simultaneously.
+
+### Example: Parallel Tool Calls
+
+```bash
+vllm serve meta-llama/Llama-4-Scout-17B-16E-Instruct \
+    --enable-auto-tool-choice \
+    --tool-call-parser llama4_pythonic \
+    --chat-template examples/tool_chat_template_llama4_pythonic.jinja
+```
+
+??? code
+
+    ```python
+    from openai import OpenAI
+    import json
+
+    client = OpenAI(base_url="http://localhost:8000/v1", api_key="dummy")
+
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "get_weather",
+                "description": "Get the current weather in a given location",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "city": {"type": "string"},
+                        "metric": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+                    },
+                    "required": ["city", "metric"],
+                },
+            },
+        },
+    ]
+
+    response = client.chat.completions.create(
+        model=client.models.list().data[0].id,
+        messages=[
+            {
+                "role": "user",
+                "content": "What's the weather in San Francisco and Seattle? Use celsius.",
+            }
+        ],
+        tools=tools,
+        tool_choice="auto",
+        parallel_tool_calls=True,
+    )
+
+    # The model may return multiple tool calls in one response
+    for tool_call in response.choices[0].message.tool_calls:
+        func = tool_call.function
+        args = json.loads(func.arguments)
+        print(f"Call: {func.name}({args})")
+    ```
+
+### Parsers with Parallel Tool Call Support
+
+| Parser | Parallel Tool Calls |
+|--------|-------------------|
+| `hermes` | ✅ |
+| `mistral` | ⚠️ (unreliable on 7B) |
+| `llama3_json` | ❌ (Llama 3) / ✅ (Llama 4) |
+| `llama4_pythonic` | ✅ |
+| `pythonic` | ✅ |
+| `granite` | ✅ |
+| `granite-20b-fc` | ✅ |
+| `xlam` | ✅ |
+| `olmo3` | ✅ |
+| `deepseek_v3` | ✅ |
+| `deepseek_v31` | ✅ |
+
+## Streaming Tool Calls
+
+vLLM supports streaming tool calls via the standard OpenAI streaming API. When streaming is enabled, tool call arguments are delivered incrementally as they are generated.
+
+### Basic Streaming Example
+
+```bash
+vllm serve meta-llama/Llama-3.1-8B-Instruct \
+    --enable-auto-tool-choice \
+    --tool-call-parser llama3_json \
+    --chat-template examples/tool_chat_template_llama3.1_json.jinja
+```
+
+??? code
+
+    ```python
+    from openai import OpenAI
+    import json
+
+    client = OpenAI(base_url="http://localhost:8000/v1", api_key="dummy")
+
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "get_weather",
+                "description": "Get the current weather in a given location",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "location": {"type": "string"},
+                        "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+                    },
+                    "required": ["location", "unit"],
+                },
+            },
+        },
+    ]
+
+    stream = client.chat.completions.create(
+        model=client.models.list().data[0].id,
+        messages=[{"role": "user", "content": "What's the weather in Paris?"}],
+        tools=tools,
+        tool_choice="auto",
+        stream=True,
+    )
+
+    # Accumulate tool call arguments from stream chunks
+    tool_calls_accumulator: dict[int, dict] = {}
+
+    for chunk in stream:
+        delta = chunk.choices[0].delta
+
+        if delta.tool_calls:
+            for tc_delta in delta.tool_calls:
+                idx = tc_delta.index
+                if idx not in tool_calls_accumulator:
+                    tool_calls_accumulator[idx] = {
+                        "id": tc_delta.id or "",
+                        "name": tc_delta.function.name or "" if tc_delta.function else "",
+                        "arguments": "",
+                    }
+                if tc_delta.function and tc_delta.function.arguments:
+                    tool_calls_accumulator[idx]["arguments"] += tc_delta.function.arguments
+
+        if chunk.choices[0].finish_reason == "tool_calls":
+            break
+
+    # Process completed tool calls
+    for idx, tc in tool_calls_accumulator.items():
+        print(f"Tool call #{idx}: {tc['name']}")
+        args = json.loads(tc["arguments"])
+        print(f"  Arguments: {args}")
+    ```
+
+### Streaming with Parallel Tool Calls
+
+When the model generates multiple tool calls in parallel, each call is streamed with a separate `index` field in the delta:
+
+??? code
+
+    ```python
+    from openai import OpenAI
+    import json
+
+    client = OpenAI(base_url="http://localhost:8000/v1", api_key="dummy")
+
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "search_web",
+                "description": "Search the web for information",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {"type": "string"},
+                    },
+                    "required": ["query"],
+                },
+            },
+        },
+    ]
+
+    stream = client.chat.completions.create(
+        model=client.models.list().data[0].id,
+        messages=[
+            {
+                "role": "user",
+                "content": "Search for 'vLLM performance' and 'vLLM features' simultaneously.",
+            }
+        ],
+        tools=tools,
+        tool_choice="auto",
+        parallel_tool_calls=True,
+        stream=True,
+    )
+
+    # Each parallel tool call has a unique index
+    accumulated: dict[int, dict] = {}
+
+    for chunk in stream:
+        delta = chunk.choices[0].delta
+        if delta.tool_calls:
+            for tc in delta.tool_calls:
+                i = tc.index
+                if i not in accumulated:
+                    accumulated[i] = {"name": "", "arguments": ""}
+                if tc.function:
+                    if tc.function.name:
+                        accumulated[i]["name"] += tc.function.name
+                    if tc.function.arguments:
+                        accumulated[i]["arguments"] += tc.function.arguments
+
+    for i, tc in accumulated.items():
+        print(f"[{i}] {tc['name']}({json.loads(tc['arguments'])})")
+    ```
+
+### Streaming with Tool Results (Multi-Turn)
+
+After receiving tool calls from the model, you can send back the results and continue the conversation:
+
+??? code
+
+    ```python
+    from openai import OpenAI
+    import json
+
+    client = OpenAI(base_url="http://localhost:8000/v1", api_key="dummy")
+
+    def get_weather(location: str, unit: str) -> str:
+        # Simulate a weather API call
+        return f"72°F (22°C), sunny in {location}"
+
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "get_weather",
+                "description": "Get the current weather in a given location",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "location": {"type": "string"},
+                        "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+                    },
+                    "required": ["location", "unit"],
+                },
+            },
+        },
+    ]
+
+    messages = [{"role": "user", "content": "What's the weather in Tokyo?"}]
+
+    # Step 1: Get tool calls from the model (non-streaming for simplicity)
+    response = client.chat.completions.create(
+        model=client.models.list().data[0].id,
+        messages=messages,
+        tools=tools,
+        tool_choice="auto",
+    )
+
+    assistant_message = response.choices[0].message
+    messages.append(assistant_message.model_dump())
+
+    # Step 2: Execute tool calls and add results to messages
+    for tool_call in assistant_message.tool_calls or []:
+        args = json.loads(tool_call.function.arguments)
+        result = get_weather(**args)
+        messages.append({
+            "role": "tool",
+            "tool_call_id": tool_call.id,
+            "content": result,
+        })
+
+    # Step 3: Stream the final response
+    stream = client.chat.completions.create(
+        model=client.models.list().data[0].id,
+        messages=messages,
+        tools=tools,
+        stream=True,
+    )
+
+    print("Final response: ", end="", flush=True)
+    for chunk in stream:
+        delta = chunk.choices[0].delta
+        if delta.content:
+            print(delta.content, end="", flush=True)
+    print()
+    ```
+
 ## How to Write a Tool Parser Plugin
 
 A tool parser plugin is a Python file containing one or more ToolParser implementations. You can write a ToolParser similar to the `Hermes2ProToolParser` in [vllm/tool_parsers/hermes_tool_parser.py](../../vllm/tool_parsers/hermes_tool_parser.py).
@@ -523,3 +809,33 @@ Then you can use this plugin in the command line like this.
     --tool-call-parser example \
     --chat-template <your chat template> \
 ```
+
+## Quick Reference: Parser and Template Matrix
+
+The following table summarizes all supported tool call parsers, their recommended chat templates, and key capabilities:
+
+| Parser | Models | Chat Template | Parallel | Notes |
+|--------|--------|---------------|----------|-------|
+| `hermes` | Hermes 2 Pro+, Qwen2.5, Granite 4.0 | Built-in | ✅ | Most widely compatible |
+| `mistral` | Mistral 7B v0.3+ | Built-in / `tool_chat_template_mistral*.jinja` | ⚠️ | Use parallel template for reliability |
+| `llama3_json` | Llama 3.1, 3.2 | `tool_chat_template_llama3.1_json.jinja` | ❌ | JSON-based |
+| `llama4_pythonic` | Llama 4 | `tool_chat_template_llama4_pythonic.jinja` | ✅ | Pythonic format |
+| `pythonic` | Llama 3.2, ToolACE | `tool_chat_template_llama3.2_pythonic.jinja` | ✅ | Python list format |
+| `granite` | Granite 3.0, 3.1 | `tool_chat_template_granite.jinja` | ✅ | |
+| `granite-20b-fc` | Granite 20B FC | `tool_chat_template_granite_20b_fc.jinja` | ✅ | |
+| `internlm` | InternLM 2.5 | `tool_chat_template_internlm2_tool.jinja` | ❌ | |
+| `jamba` | Jamba 1.5 | Built-in | ❌ | |
+| `xlam` | xLAM models | `tool_chat_template_xlam_*.jinja` | ✅ | Multi-format detection |
+| `deepseek_v3` | DeepSeek-V3, R1 | `tool_chat_template_deepseekv3.jinja` | ✅ | |
+| `deepseek_v31` | DeepSeek-V3.1 | `tool_chat_template_deepseekv31.jinja` | ✅ | |
+| `openai` | OpenAI OSS | Built-in | ✅ | |
+| `kimi_k2` | Kimi-K2 | Built-in | ✅ | |
+| `hunyuan_a13b` | Hunyuan A13B | Built-in | ✅ | Supports reasoning |
+| `longcat` | LongCat Flash | Built-in | ❌ | |
+| `glm45` | GLM-4.5, 4.6 | Built-in | ✅ | |
+| `glm47` | GLM-4.7 | Built-in | ✅ | |
+| `functiongemma` | FunctionGemma 270M | `tool_chat_template_functiongemma.jinja` | ❌ | Lightweight, fine-tune recommended |
+| `qwen3_xml` | Qwen3-Coder | Built-in | ✅ | XML-based format |
+| `olmo3` | OLMo 3 | Built-in | ✅ | XML-wrapped pythonic |
+| `gigachat3` | GigaChat 3 | Built-in | ✅ | |
+| `minimax_m1` | MiniMax M1 | `tool_chat_template_minimax_m1.jinja` | ✅ | |

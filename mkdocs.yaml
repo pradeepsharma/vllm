@@ -108,8 +108,315 @@ plugins:
           - https://psutil.readthedocs.io/en/stable/objects.inv
   - redirects:
       redirect_maps:
+        # Speculative decoding renames
         features/spec_decode/README.md: features/speculative_decoding/README.md
         features/spec_decode/speculators.md: features/speculative_decoding/speculators.md
+        # Legacy path redirects
+        getting_started/installation/README.md: getting_started/installation/index.md
+        configuration/README.md: configuration/index.md
+        features/README.md: features/quantization/index.md
+        contributing/README.md: contributing/index.md
+        benchmarking/README.md: benchmarking/index.md
+        api/README.md: api/index.md
+        # Renamed pages
+        usage/offline_inference.md: usage/offline_inference.md
+        serving/offline_inference.md: usage/offline_inference.md
+
+nav:
+  - Home: index.md
+
+  - Getting Started:
+    - getting_started/index.md
+    - Quickstart: getting_started/quickstart.md
+    - First Inference: getting_started/first-inference.md
+    - Installation:
+      - getting_started/installation/index.md
+      - NVIDIA CUDA: getting_started/installation/gpu-cuda.md
+      - AMD ROCm: getting_started/installation/gpu-rocm.md
+      - Intel XPU: getting_started/installation/xpu.md
+      - CPU (x86 / ARM / s390x): getting_started/installation/cpu.md
+      - Google TPU: getting_started/installation/tpu.md
+      - Intel Gaudi (HPU): getting_started/installation/hpu.md
+      - Ascend NPU: getting_started/installation/npu.md
+      - Apple macOS: getting_started/installation/macos.md
+      - Build from Source: getting_started/installation/from-source.md
+
+  - Usage:
+    - usage/index.md
+    - Offline Inference: usage/offline_inference.md
+    - Sampling Parameters: usage/sampling_params.md
+    - Pooling Parameters: usage/pooling_params.md
+    - Output Types: usage/output_types.md
+    - Beam Search: usage/beam_search.md
+    - Log Probabilities: usage/logprobs.md
+    - Tokenization: usage/tokenization.md
+    - Chat Templates: usage/chat_templates.md
+    - Tool Call Templates: usage/tool_templates.md
+    - V1 Engine Guide: usage/v1_guide.md
+    - Reproducibility: usage/reproducibility.md
+    - Usage Statistics: usage/usage_stats.md
+    - Troubleshooting: usage/troubleshooting.md
+    - FAQ: usage/faq.md
+
+  - Serving:
+    - serving/index.md
+    - OpenAI-Compatible Server: serving/openai_compatible_server.md
+    - Chat Completions: serving/chat_completions.md
+    - Completions: serving/completions.md
+    - Embeddings: serving/embeddings.md
+    - Responses API: serving/responses_api.md
+    - Realtime API: serving/realtime_api.md
+    - Speech to Text: serving/speech_to_text.md
+    - Anthropic API: serving/anthropic_api.md
+    - gRPC Server: serving/grpc_server.md
+    - Multimodal Serving: serving/multimodal_serving.md
+    - Batch Inference: serving/batch_inference.md
+    - Streaming: serving/streaming.md
+    - Parallelism & Scaling: serving/parallelism_scaling.md
+    - Data Parallel Deployment: serving/data_parallel_deployment.md
+    - Context Parallel Deployment: serving/context_parallel_deployment.md
+    - Expert Parallel Deployment: serving/expert_parallel_deployment.md
+    - Distributed Troubleshooting: serving/distributed_troubleshooting.md
+    - Amazon SageMaker: serving/sagemaker.md
+    - Integrations:
+      - LangChain: serving/integrations/langchain.md
+      - LlamaIndex: serving/integrations/llamaindex.md
+      - Claude Code: serving/integrations/claude_code.md
+
+  - Models:
+    - models/index.md
+    - Supported Models: models/supported_models.md
+    - Generative Models: models/generative_models.md
+    - Embedding Models: models/embedding_models.md
+    - Pooling Models: models/pooling_models.md
+    - Multimodal Models: models/multimodal_models.md
+    - Encoder-Decoder Models: models/encoder_decoder_models.md
+    - Adding a Model: models/adding_model.md
+    - Model Registry: models/model_registry.md
+    - Hardware Support:
+      - CPU Models: models/hardware_supported_models/cpu.md
+      - XPU Models: models/hardware_supported_models/xpu.md
+    - Model Extensions:
+      - Tensorizer: models/extensions/tensorizer.md
+      - RunAI Model Streamer: models/extensions/runai_model_streamer.md
+      - FastSafetensor: models/extensions/fastsafetensor.md
+
+  - Features:
+    - Quantization:
+      - features/quantization/index.md
+      - GPTQ: features/quantization/gptq.md
+      - AWQ: features/quantization/awq.md
+      - FP8: features/quantization/fp8.md
+      - INT8 (SmoothQuant / W8A8): features/quantization/int8.md
+      - INT4: features/quantization/int4.md
+      - GGUF: features/quantization/gguf.md
+      - BitsAndBytes: features/quantization/bitsandbytes.md
+      - TorchAO: features/quantization/torchao.md
+      - MXFP4: features/quantization/mxfp4.md
+      - KV Cache Quantization: features/quantization/kv_cache_quantization.md
+      - GPTQModel: features/quantization/gptqmodel.md
+      - LLM Compressor: features/quantization/llm_compressor.md
+      - ModelOpt: features/quantization/modelopt.md
+      - Quark: features/quantization/quark.md
+      - INC: features/quantization/inc.md
+      - AutoAWQ: features/quantization/auto_awq.md
+    - Speculative Decoding:
+      - features/speculative_decoding/README.md
+      - EAGLE: features/speculative_decoding/eagle.md
+      - Medusa: features/speculative_decoding/medusa.md
+      - N-gram: features/speculative_decoding/ngram.md
+      - Draft Model: features/speculative_decoding/draft_model.md
+      - Parallel Draft Model: features/speculative_decoding/parallel_draft_model.md
+      - MLP Speculator: features/speculative_decoding/mlp.md
+      - MTP: features/speculative_decoding/mtp.md
+      - Suffix Decoding: features/speculative_decoding/suffix.md
+      - Speculators Hub: features/speculative_decoding/speculators.md
+    - LoRA Adapters: features/lora.md
+    - Multimodal Inputs: features/multimodal_inputs.md
+    - Structured Outputs: features/structured_outputs.md
+    - Tool Calling: features/tool_calling.md
+    - Disaggregated Prefill: features/disagg_prefill.md
+    - Disaggregated Encoder: features/disagg_encoder.md
+    - Automatic Prefix Caching: features/automatic_prefix_caching.md
+    - Custom Logits Processors: features/custom_logitsprocs.md
+    - Reasoning Outputs: features/reasoning_outputs.md
+    - Interleaved Thinking: features/interleaved_thinking.md
+    - Prompt Embeddings: features/prompt_embeds.md
+    - Sleep Mode: features/sleep_mode.md
+    - Batch Invariance: features/batch_invariance.md
+    - Custom Arguments: features/custom_arguments.md
+    - Mooncake Connector: features/mooncake_connector_usage.md
+    - NIXL Connector: features/nixl_connector_usage.md
+
+  - Configuration:
+    - configuration/index.md
+    - Engine Arguments: configuration/engine_args.md
+    - Serve Arguments: configuration/serve_args.md
+    - Model Config: configuration/model_config.md
+    - Parallel Config: configuration/parallel_config.md
+    - Scheduler Config: configuration/scheduler_config.md
+    - Cache Config: configuration/cache_config.md
+    - Quantization Config: configuration/quantization_config.md
+    - LoRA Config: configuration/lora_config.md
+    - Speculative Config: configuration/speculative_config.md
+    - Compilation Config: configuration/compilation_config.md
+    - Observability Config: configuration/observability_config.md
+    - Model Resolution: configuration/model_resolution.md
+    - Optimization: configuration/optimization.md
+    - Conserving Memory: configuration/conserving_memory.md
+    - Environment Variables: configuration/environment_variables.md
+
+  - Deployment:
+    - deployment/index.md
+    - Docker: deployment/docker.md
+    - Kubernetes: deployment/kubernetes.md
+    - Multi-Node: deployment/multi_node.md
+    - Ray Cluster: deployment/ray_cluster.md
+    - Elastic Expert Parallelism: deployment/elastic_ep.md
+    - Load Balancing: deployment/load_balancing.md
+    - SSL / TLS: deployment/ssl_tls.md
+    - Security: deployment/security.md
+    - Production Checklist: deployment/production_checklist.md
+    - Monitoring: deployment/monitoring.md
+    - Frameworks:
+      - Helm: deployment/frameworks/helm.md
+      - SkyPilot: deployment/frameworks/skypilot.md
+      - HF Inference Endpoints: deployment/frameworks/hf_inference_endpoints.md
+      - dStack: deployment/frameworks/dstack.md
+      - BentoML: deployment/frameworks/bentoml.md
+      - Cerebrium: deployment/frameworks/cerebrium.md
+      - RunPod: deployment/frameworks/runpod.md
+      - Modal: deployment/frameworks/modal.md
+      - Anyscale: deployment/frameworks/anyscale.md
+      - LiteLLM: deployment/frameworks/litellm.md
+      - Dify: deployment/frameworks/dify.md
+      - Haystack: deployment/frameworks/haystack.md
+      - AutoGen: deployment/frameworks/autogen.md
+      - Open WebUI: deployment/frameworks/open-webui.md
+      - Streamlit: deployment/frameworks/streamlit.md
+      - Chatbox: deployment/frameworks/chatbox.md
+      - Lobe Chat: deployment/frameworks/lobe-chat.md
+      - Anything LLM: deployment/frameworks/anything-llm.md
+      - Triton: deployment/frameworks/triton.md
+      - LWS: deployment/frameworks/lws.md
+      - RAG: deployment/frameworks/retrieval_augmented_generation.md
+    - Integrations:
+      - KubeRay: deployment/integrations/kuberay.md
+      - KServe: deployment/integrations/kserve.md
+      - KAITO: deployment/integrations/kaito.md
+      - KubeAI: deployment/integrations/kubeai.md
+      - AIBrix: deployment/integrations/aibrix.md
+      - Dynamo: deployment/integrations/dynamo.md
+      - LlamaStack: deployment/integrations/llamastack.md
+      - llm-d: deployment/integrations/llm-d.md
+      - llmaz: deployment/integrations/llmaz.md
+      - Kthena: deployment/integrations/kthena.md
+      - Production Stack: deployment/integrations/production-stack.md
+
+  - Design & Architecture:
+    - Architecture Overview: design/arch_overview.md
+    - V1 Engine: design/v1_engine.md
+    - Scheduler: design/scheduler.md
+    - KV Cache Management: design/kv_cache_management.md
+    - Distributed Inference: design/distributed_inference.md
+    - Speculative Decoding Design: design/speculative_decoding_design.md
+    - PagedAttention: design/paged_attention.md
+    - Prefix Caching: design/prefix_caching.md
+    - Hybrid KV Cache Manager: design/hybrid_kv_cache_manager.md
+    - Attention Backends: design/attention_backends.md
+    - CUDA Graphs: design/cuda_graphs.md
+    - torch.compile: design/torch_compile.md
+    - torch.compile (Multimodal): design/torch_compile_multimodal.md
+    - Optimization Levels: design/optimization_levels.md
+    - Fusions: design/fusions.md
+    - Custom Ops: design/custom_op.md
+    - Multiprocessing: design/multiprocessing.md
+    - Model Runner V2: design/model_runner_v2.md
+    - Multimodal Processing: design/mm_processing.md
+    - Logits Processors: design/logits_processors.md
+    - Metrics: design/metrics.md
+    - MoE Kernel Features: design/moe_kernel_features.md
+    - Fused MoE Modular Kernel: design/fused_moe_modular_kernel.md
+    - DBO: design/dbo.md
+    - HuggingFace Integration: design/huggingface_integration.md
+    - P2P NCCL Connector: design/p2p_nccl_connector.md
+    - Plugin System: design/plugin_system.md
+    - I/O Processor Plugins: design/io_processor_plugins.md
+    - LoRA Resolver Plugins: design/lora_resolver_plugins.md
+    - Debug vLLM Compile: design/debug_vllm_compile.md
+
+  - CLI Reference:
+    - cli/index.md
+    - vllm serve: cli/vllm_serve.md
+    - vllm run-batch: cli/vllm_run_batch.md
+    - vllm bench: cli/vllm_bench.md
+    - vllm collect-env: cli/vllm_collect_env.md
+
+  - API Reference:
+    - api/index.md
+    - LLM: api/llm.md
+    - AsyncLLMEngine: api/async_llm_engine.md
+    - LLMEngine: api/llm_engine.md
+    - EngineArgs: api/engine_args.md
+    - SamplingParams: api/sampling_params.md
+    - PoolingParams: api/pooling_params.md
+    - Outputs: api/outputs.md
+    - OpenAI Protocol: api/openai_protocol.md
+
+  - Benchmarking:
+    - benchmarking/index.md
+    - Performance Benchmarks: benchmarking/performance_benchmarks.md
+    - Latency Benchmarks: benchmarking/latency_benchmarks.md
+    - Throughput Benchmarks: benchmarking/throughput_benchmarks.md
+    - LM Eval Harness: benchmarking/lm_eval_harness.md
+    - Profiling: benchmarking/profiling.md
+    - Benchmark CLI: benchmarking/cli.md
+    - Dashboard: benchmarking/dashboard.md
+    - Sweeps: benchmarking/sweeps.md
+
+  - Examples:
+    - examples/index.md
+    - Offline Inference: examples/offline_inference/index.md
+    - Online Serving: examples/online_serving/index.md
+    - Pooling: examples/pooling/index.md
+    - Other Examples: examples/others/index.md
+
+  - Training Integration:
+    - training/index.md
+    - Weight Transfer API: training/weight_transfer_api.md
+    - RLHF: training/rlhf.md
+    - TRL: training/trl.md
+
+  - Contributing:
+    - contributing/index.md
+    - Development Setup: contributing/development_setup.md
+    - Code Style: contributing/code_style.md
+    - Testing: contributing/testing.md
+    - CI/CD: contributing/ci_cd.md
+    - Release Process: contributing/release_process.md
+    - Adding a Model: contributing/adding_model.md
+    - Adding Quantization: contributing/adding_quantization.md
+    - Adding a Platform: contributing/adding_platform.md
+    - Incremental Build: contributing/incremental_build.md
+    - Profiling: contributing/profiling.md
+    - Deprecation Policy: contributing/deprecation_policy.md
+    - Vulnerability Management: contributing/vulnerability_management.md
+
+  - Community:
+    - community/index.md
+    - Support: community/support.md
+    - RFCs: community/rfcs.md
+    - Meetups: community/meetups.md
+    - Sponsors: community/sponsors.md
+    - Contact Us: community/contact_us.md
+
+  - Governance:
+    - governance/index.md
+    - Process: governance/process.md
+    - Committers: governance/committers.md
+    - Collaboration: governance/collaboration.md
+
+  - Sitemap: sitemap.md
 
 markdown_extensions:
   - attr_list
@@ -118,7 +425,11 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   # For content tabs
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       slugify: !!python/object/apply:pymdownx.slugs.slugify
         kwds:
@@ -152,3 +463,4 @@ extra_javascript:
   - https://unpkg.com/mathjax@3.2.2/es5/tex-mml-chtml.js
   - mkdocs/javascript/edit_and_feedback.js
   - mkdocs/javascript/slack_and_forum.js
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js

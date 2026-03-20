@@ -1,14 +1,27 @@
 # Quickstart
 
-This guide will help you quickly get started with vLLM to perform:
+This guide will help you quickly get started with vLLM. Choose your path:
 
-- [Offline batched inference](#offline-batched-inference)
-- [Online serving using OpenAI-compatible server](#openai-compatible-server)
+=== "Offline Inference"
+
+    Run models directly in Python — no server required. Best for batch processing, research, and pipelines.
+
+    **Jump to:** [Installation](#installation) → [Offline Batched Inference](#offline-batched-inference)
+
+=== "Online Serving"
+
+    Deploy an OpenAI-compatible API server. Best for production applications and real-time use.
+
+    **Jump to:** [Installation](#installation) → [OpenAI-Compatible Server](#openai-compatible-server)
+
+---
 
 ## Prerequisites
 
-- OS: Linux
-- Python: 3.10 -- 3.13
+- **OS:** Linux (Windows/macOS via CPU or Docker)
+- **Python:** 3.10 – 3.13
+
+---
 
 ## Installation
 
@@ -56,13 +69,13 @@ This guide will help you quickly get started with vLLM to perform:
     !!! note
         It currently supports Python 3.12, ROCm 7.0 and `glibc >= 2.35`.
 
-    !!! note    
+    !!! note
         Note that, previously, docker images were published using AMD's docker release pipeline and were located `rocm/vllm-dev`. This is being deprecated by using vLLM's docker release pipeline.
 
 === "Google TPU"
 
     To run vLLM on Google TPUs, you need to install the `vllm-tpu` package.
-    
+
     ```bash
     uv pip install vllm-tpu
     ```
@@ -71,11 +84,13 @@ This guide will help you quickly get started with vLLM to perform:
         For more detailed instructions, including Docker, installing from source, and troubleshooting, please refer to the [vLLM on TPU documentation](https://docs.vllm.ai/projects/tpu/en/latest/).
 
 !!! note
-    For more detail and non-CUDA platforms, please refer to the [installation guide](installation/README.md) for specific instructions on how to install vLLM.
+    For more detail and non-CUDA platforms, please refer to the [installation guide](installation/index.md) for specific instructions on how to install vLLM.
+
+---
 
 ## Offline Batched Inference
 
-With vLLM installed, you can start generating texts for list of input prompts (i.e. offline batch inferencing). See the example script: [examples/offline_inference/basic/basic.py](../../examples/offline_inference/basic/basic.py)
+With vLLM installed, you can start generating texts for a list of input prompts (i.e., offline batch inference). See the example script: [examples/offline_inference/basic/basic.py](../../examples/offline_inference/basic/basic.py)
 
 The first line of this example imports the classes [LLM][vllm.LLM] and [SamplingParams][vllm.SamplingParams]:
 
@@ -86,10 +101,10 @@ The first line of this example imports the classes [LLM][vllm.LLM] and [Sampling
 from vllm import LLM, SamplingParams
 ```
 
-The next section defines a list of input prompts and sampling parameters for text generation. The [sampling temperature](https://arxiv.org/html/2402.05201v1) is set to `0.8` and the [nucleus sampling probability](https://en.wikipedia.org/wiki/Top-p_sampling) is set to `0.95`. You can find more information about the sampling parameters [here](../api/README.md#inference-parameters).
+The next section defines a list of input prompts and sampling parameters for text generation. The [sampling temperature](https://arxiv.org/html/2402.05201v1) is set to `0.8` and the [nucleus sampling probability](https://en.wikipedia.org/wiki/Top-p_sampling) is set to `0.95`. You can find more information about the sampling parameters [here](../usage/sampling_params.md).
 
 !!! important
-    By default, vLLM will use sampling parameters recommended by model creator by applying the `generation_config.json` from the Hugging Face model repository if it exists. In most cases, this will provide you with the best results by default if [SamplingParams][vllm.SamplingParams] is not specified.
+    By default, vLLM will use sampling parameters recommended by the model creator by applying the `generation_config.json` from the Hugging Face model repository if it exists. In most cases, this will provide you with the best results by default if [SamplingParams][vllm.SamplingParams] is not specified.
 
     However, if vLLM's default sampling parameters are preferred, please set `generation_config="vllm"` when creating the [LLM][vllm.LLM] instance.
 
@@ -131,11 +146,11 @@ for output in outputs:
     The `llm.generate` method does not automatically apply the model's chat template to the input prompt. Therefore, if you are using an Instruct model or Chat model, you should manually apply the corresponding chat template to ensure the expected behavior. Alternatively, you can use the `llm.chat` method and pass a list of messages which have the same format as those passed to OpenAI's `client.chat.completions`:
 
     ??? code
-    
+
         ```python
         # Using tokenizer to apply chat template
         from transformers import AutoTokenizer
-    
+
         tokenizer = AutoTokenizer.from_pretrained("/path/to/chat_model")
         messages_list = [
             [{"role": "user", "content": prompt}]
@@ -146,16 +161,16 @@ for output in outputs:
             tokenize=False,
             add_generation_prompt=True,
         )
-        
+
         # Generate outputs
         outputs = llm.generate(texts, sampling_params)
-        
+
         # Print the outputs.
         for output in outputs:
             prompt = output.prompt
             generated_text = output.outputs[0].text
             print(f"Prompt: {prompt!r}, Generated text: {generated_text!r}")
-    
+
         # Using chat interface.
         outputs = llm.chat(messages_list, sampling_params)
         for idx, output in enumerate(outputs):
@@ -163,6 +178,129 @@ for output in outputs:
             generated_text = output.outputs[0].text
             print(f"Prompt: {prompt!r}, Generated text: {generated_text!r}")
         ```
+
+### More Offline Inference Examples
+
+=== "Chat (Instruct Models)"
+
+    Use `llm.chat()` for instruction-tuned and chat models — it applies the chat template automatically:
+
+    ```python
+    from vllm import LLM, SamplingParams
+
+    llm = LLM(model="meta-llama/Llama-3.2-1B-Instruct")
+
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Explain quantum entanglement in simple terms."},
+    ]
+
+    outputs = llm.chat(messages, SamplingParams(temperature=0.7, max_tokens=256))
+    print(outputs[0].outputs[0].text)
+    ```
+
+    For batch chat inference, pass a list of conversations:
+
+    ```python
+    conversations = [
+        [{"role": "user", "content": "Tell me a joke."}],
+        [{"role": "user", "content": "What is the capital of Japan?"}],
+        [{"role": "user", "content": "Write a haiku about autumn."}],
+    ]
+
+    outputs = llm.chat(conversations, SamplingParams(temperature=0.8, max_tokens=128))
+    for conv, output in zip(conversations, outputs):
+        print(f"Q: {conv[0]['content']}")
+        print(f"A: {output.outputs[0].text}")
+        print()
+    ```
+
+=== "Embeddings"
+
+    Use `llm.embed()` with a pooling model to generate embedding vectors:
+
+    ```python
+    from vllm import LLM
+
+    llm = LLM(model="intfloat/e5-small", runner="pooling")
+
+    texts = [
+        "The quick brown fox jumps over the lazy dog.",
+        "A fast auburn fox leaps above a sleepy canine.",
+        "The stock market fell sharply today.",
+    ]
+
+    outputs = llm.embed(texts)
+
+    for text, output in zip(texts, outputs):
+        embedding = output.outputs.embedding  # list[float]
+        print(f"Text: {text!r}")
+        print(f"Embedding dim: {len(embedding)}, first 4: {embedding[:4]}")
+        print()
+    ```
+
+=== "Scoring / Reranking"
+
+    Use `llm.score()` with a cross-encoder model to rank documents by relevance:
+
+    ```python
+    from vllm import LLM
+
+    llm = LLM(model="BAAI/bge-reranker-v2-m3", runner="pooling")
+
+    query = "What is the capital of France?"
+    documents = [
+        "The capital of Brazil is Brasilia.",
+        "The capital of France is Paris.",
+        "Paris is known for the Eiffel Tower.",
+    ]
+
+    outputs = llm.score(query, documents)
+
+    ranked = sorted(
+        zip(documents, outputs),
+        key=lambda x: x[1].outputs.score,
+        reverse=True,
+    )
+    for rank, (doc, output) in enumerate(ranked, 1):
+        print(f"[{rank}] score={output.outputs.score:.4f} | {doc}")
+    ```
+
+=== "Greedy Decoding"
+
+    For deterministic, reproducible outputs, use `temperature=0.0`:
+
+    ```python
+    from vllm import LLM, SamplingParams
+
+    llm = LLM(model="facebook/opt-125m")
+
+    params = SamplingParams(temperature=0.0, max_tokens=100)
+    outputs = llm.generate(
+        "Explain the theory of relativity in one paragraph:",
+        params,
+    )
+    print(outputs[0].outputs[0].text)
+    ```
+
+=== "Multiple Outputs"
+
+    Generate `n` independent completions per prompt:
+
+    ```python
+    from vllm import LLM, SamplingParams
+
+    llm = LLM(model="facebook/opt-125m")
+
+    params = SamplingParams(n=4, temperature=1.0, max_tokens=50)
+    outputs = llm.generate("Once upon a time", params)
+
+    print("4 different continuations:")
+    for i, completion in enumerate(outputs[0].outputs):
+        print(f"  [{i+1}] {completion.text!r}")
+    ```
+
+---
 
 ## OpenAI-Compatible Server
 
@@ -273,6 +411,96 @@ Alternatively, you can use the `openai` Python package:
     print("Chat response:", chat_response)
     ```
 
+### More Server Examples
+
+=== "Streaming"
+
+    Enable streaming to receive tokens as they are generated:
+
+    ```python
+    from openai import OpenAI
+
+    client = OpenAI(api_key="EMPTY", base_url="http://localhost:8000/v1")
+
+    stream = client.chat.completions.create(
+        model="Qwen/Qwen2.5-1.5B-Instruct",
+        messages=[{"role": "user", "content": "Write a short poem about the sea."}],
+        stream=True,
+        max_tokens=200,
+    )
+
+    for chunk in stream:
+        if chunk.choices[0].delta.content:
+            print(chunk.choices[0].delta.content, end="", flush=True)
+    print()
+    ```
+
+=== "Embeddings"
+
+    Use the `/v1/embeddings` endpoint with an embedding model:
+
+    ```bash
+    # Start the server with an embedding model
+    vllm serve intfloat/e5-small --runner pooling
+    ```
+
+    ```python
+    from openai import OpenAI
+
+    client = OpenAI(api_key="EMPTY", base_url="http://localhost:8000/v1")
+
+    response = client.embeddings.create(
+        model="intfloat/e5-small",
+        input=["Hello world", "Goodbye world"],
+    )
+
+    for item in response.data:
+        print(f"Index {item.index}: dim={len(item.embedding)}")
+    ```
+
+=== "Structured Output (JSON)"
+
+    Constrain the model to output valid JSON:
+
+    ```python
+    from openai import OpenAI
+    import json
+
+    client = OpenAI(api_key="EMPTY", base_url="http://localhost:8000/v1")
+
+    response = client.chat.completions.create(
+        model="Qwen/Qwen2.5-1.5B-Instruct",
+        messages=[{
+            "role": "user",
+            "content": "Generate a JSON object for a person named Alice, age 30, city Paris.",
+        }],
+        response_format={"type": "json_object"},
+        max_tokens=200,
+    )
+
+    result = json.loads(response.choices[0].message.content)
+    print(result)
+    ```
+
+=== "With API Key"
+
+    Secure your server with an API key:
+
+    ```bash
+    vllm serve Qwen/Qwen2.5-1.5B-Instruct --api-key my-secret-key
+    ```
+
+    ```python
+    from openai import OpenAI
+
+    client = OpenAI(
+        api_key="my-secret-key",
+        base_url="http://localhost:8000/v1",
+    )
+    ```
+
+---
+
 ## On Attention Backends
 
 Currently, vLLM supports multiple backends for efficient Attention computation across different platforms and accelerator architectures. It automatically selects the most performant backend compatible with your system and model specifications.
@@ -294,3 +522,43 @@ Some of the available backend options include:
 
 !!! warning
     There are no pre-built vllm wheels containing Flash Infer, so you must install it in your environment first. Refer to the [Flash Infer official docs](https://docs.flashinfer.ai/) or see [docker/Dockerfile](../../docker/Dockerfile) for instructions on how to install it.
+
+---
+
+## Next Steps
+
+<div class="grid cards" markdown>
+
+-   :material-server-off: **Offline Inference**
+
+    ---
+
+    Deep dive into the `LLM` class: all methods, prompt formats, LoRA, prefix caching, and more.
+
+    [:octicons-arrow-right-24: Offline Inference Guide](../usage/offline_inference.md)
+
+-   :material-tune: **SamplingParams**
+
+    ---
+
+    Complete reference for every generation parameter: temperature, penalties, stop conditions, structured outputs.
+
+    [:octicons-arrow-right-24: SamplingParams Reference](../usage/sampling_params.md)
+
+-   :material-server: **OpenAI-Compatible Server**
+
+    ---
+
+    Full server documentation: endpoints, authentication, chat templates, and advanced configuration.
+
+    [:octicons-arrow-right-24: Server Guide](../serving/openai_compatible_server.md)
+
+-   :material-chip: **Supported Models**
+
+    ---
+
+    Browse all supported model architectures and find the right model for your task.
+
+    [:octicons-arrow-right-24: Supported Models](../models/supported_models.md)
+
+</div>

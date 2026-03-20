@@ -1,48 +1,87 @@
+---
+description: >
+  Complete guide to INT8 W8A8 quantization in vLLM using compressed-tensors,
+  covering static and dynamic activation schemes, SmoothQuant, and calibration
+  with LLM Compressor.
+---
+
 # INT8 W8A8
 
-vLLM supports quantizing weights and activations to INT8 for memory savings and inference acceleration.
-This quantization method is particularly useful for reducing model size while maintaining good performance.
+**INT8 W8A8** quantization stores both model weights and activations in 8-bit
+integers. It delivers a **2× memory reduction** compared to BF16 and enables
+hardware-accelerated integer matrix multiplications on NVIDIA GPUs with
+compute capability ≥ 7.5 (Turing and newer).
 
-Please visit the HF collection of [quantized INT8 checkpoints of popular LLMs ready to use with vLLM](https://huggingface.co/collections/neuralmagic/int8-llms-for-vllm-668ec32c049dca0369816415).
+vLLM implements INT8 W8A8 through the **compressed-tensors** format, which is
+produced by [LLM Compressor](llm_compressor.md). Pre-quantized INT8 checkpoints
+are available on Hugging Face:
+[neuralmagic/int8-llms-for-vllm](https://huggingface.co/collections/neuralmagic/int8-llms-for-vllm-668ec32c049dca0369816415).
 
-!!! note
-    INT8 computation is supported on NVIDIA GPUs with compute capability > 7.5 (Turing, Ampere, Ada Lovelace, Hopper).
+---
+
+## Hardware requirements
+
+| Platform | Supported | Notes |
+|---|---|---|
+| NVIDIA Turing (SM 7.5) | ✅ | |
+| NVIDIA Ampere (SM 8.x) | ✅ | |
+| NVIDIA Ada Lovelace (SM 8.9) | ✅ | |
+| NVIDIA Hopper (SM 9.0) | ✅ | |
+| NVIDIA Blackwell (SM 10.x) | ❌ | Use [FP8](fp8.md) instead |
+| x86 CPU | ✅ | Via Intel Extension for PyTorch |
+| AMD GPU | ❌ | |
 
 !!! warning
-    **Blackwell GPU Limitation**: INT8 is not supported on compute capability >= 10.0 (e.g., RTX 6000 Blackwell).
-    Use [FP8 quantization](fp8.md) instead, or run on Hopper/Ada/Ampere architectures.
+    INT8 W8A8 is **not supported on Blackwell GPUs** (compute capability ≥ 10.0,
+    e.g., RTX 6000 Blackwell). Use [FP8 quantization](fp8.md) on Blackwell,
+    or run on Hopper / Ada / Ampere.
 
-## Prerequisites
+---
 
-To use INT8 quantization with vLLM, you'll need to install the [llm-compressor](https://github.com/vllm-project/llm-compressor/) library:
+## Quick start
+
+### Serving a pre-quantized INT8 model
+
+```bash
+# Quantization is auto-detected from the checkpoint config
+vllm serve neuralmagic/Meta-Llama-3-8B-Instruct-quantized.w8a8
+```
+
+### Python API
+
+```python
+from vllm import LLM, SamplingParams
+
+llm = LLM(model="neuralmagic/Meta-Llama-3-8B-Instruct-quantized.w8a8")
+
+sampling_params = SamplingParams(temperature=0.7, top_p=0.9, max_tokens=256)
+outputs = llm.generate(["Tell me about quantization."], sampling_params)
+print(outputs[0].outputs[0].text)
+```
+
+---
+
+## Quantizing a model with LLM Compressor
+
+[LLM Compressor](https://github.com/vllm-project/llm-compressor) is the
+recommended tool for producing INT8 W8A8 checkpoints. It combines
+**SmoothQuant** (to balance quantization difficulty between weights and
+activations) with **GPTQ** (to minimize weight quantization error).
+
+### Installation
 
 ```bash
 pip install llmcompressor
-```
-
-Additionally, install `vllm` and `lm-evaluation-harness` for evaluation:
-
-```bash
 pip install vllm "lm-eval[api]>=0.4.11"
 ```
 
-## Quantization Process
-
-The quantization process involves four main steps:
-
-1. Loading the model
-2. Preparing calibration data
-3. Applying quantization
-4. Evaluating accuracy in vLLM
-
-### 1. Loading the Model
-
-Load your model and tokenizer using the standard `transformers` AutoModel classes:
+### Step 1: Load the model
 
 ```python
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 MODEL_ID = "meta-llama/Meta-Llama-3-8B-Instruct"
+
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_ID,
     device_map="auto",
@@ -51,100 +90,211 @@ model = AutoModelForCausalLM.from_pretrained(
 tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
 ```
 
-### 2. Preparing Calibration Data
+### Step 2: Prepare calibration data
 
-When quantizing activations to INT8, you need sample data to estimate the activation scales.
-It's best to use calibration data that closely matches your deployment data.
-For a general-purpose instruction-tuned model, you can use a dataset like `ultrachat`:
-
-??? code
-
-    ```python
-    from datasets import load_dataset
-
-    NUM_CALIBRATION_SAMPLES = 512
-    MAX_SEQUENCE_LENGTH = 2048
-
-    # Load and preprocess the dataset
-    ds = load_dataset("HuggingFaceH4/ultrachat_200k", split="train_sft")
-    ds = ds.shuffle(seed=42).select(range(NUM_CALIBRATION_SAMPLES))
-
-    def preprocess(example):
-        return {"text": tokenizer.apply_chat_template(example["messages"], tokenize=False)}
-    ds = ds.map(preprocess)
-
-    def tokenize(sample):
-        return tokenizer(sample["text"], padding=False, max_length=MAX_SEQUENCE_LENGTH, truncation=True, add_special_tokens=False)
-    ds = ds.map(tokenize, remove_columns=ds.column_names)
-    ```
-
-</details>
-
-### 3. Applying Quantization
-
-Now, apply the quantization algorithms:
-
-??? code
-
-    ```python
-    from llmcompressor import oneshot
-    from llmcompressor.modifiers.quantization import GPTQModifier
-    from llmcompressor.modifiers.smoothquant import SmoothQuantModifier
-
-    # Configure the quantization algorithms
-    recipe = [
-        SmoothQuantModifier(smoothing_strength=0.8),
-        GPTQModifier(targets="Linear", scheme="W8A8", ignore=["lm_head"]),
-    ]
-
-    # Apply quantization
-    oneshot(
-        model=model,
-        dataset=ds,
-        recipe=recipe,
-        max_seq_length=MAX_SEQUENCE_LENGTH,
-        num_calibration_samples=NUM_CALIBRATION_SAMPLES,
-    )
-
-    # Save the compressed model: Meta-Llama-3-8B-Instruct-W8A8-Dynamic-Per-Token
-    SAVE_DIR = MODEL_ID.split("/")[1] + "-W8A8-Dynamic-Per-Token"
-    model.save_pretrained(SAVE_DIR, save_compressed=True)
-    tokenizer.save_pretrained(SAVE_DIR)
-    ```
-
-This process creates a W8A8 model with weights and activations quantized to 8-bit integers.
-
-### 4. Evaluating Accuracy
-
-After quantization, you can load and run the model in vLLM:
+INT8 activation quantization requires calibration data to estimate activation
+scales. Use data that closely matches your deployment distribution.
 
 ```python
-from vllm import LLM
+from datasets import load_dataset
 
-llm = LLM("./Meta-Llama-3-8B-Instruct-W8A8-Dynamic-Per-Token")
+NUM_CALIBRATION_SAMPLES = 512
+MAX_SEQUENCE_LENGTH = 2048
+
+ds = load_dataset("HuggingFaceH4/ultrachat_200k", split="train_sft")
+ds = ds.shuffle(seed=42).select(range(NUM_CALIBRATION_SAMPLES))
+
+def preprocess(example):
+    return {"text": tokenizer.apply_chat_template(example["messages"], tokenize=False)}
+
+def tokenize(sample):
+    return tokenizer(
+        sample["text"],
+        padding=False,
+        max_length=MAX_SEQUENCE_LENGTH,
+        truncation=True,
+        add_special_tokens=False,
+    )
+
+ds = ds.map(preprocess).map(tokenize, remove_columns=ds.column_names)
 ```
 
-To evaluate accuracy, you can use `lm_eval`:
+### Step 3: Apply quantization
+
+The recommended recipe combines SmoothQuant with GPTQ W8A8:
+
+```python
+from llmcompressor import oneshot
+from llmcompressor.modifiers.quantization import GPTQModifier
+from llmcompressor.modifiers.smoothquant import SmoothQuantModifier
+
+SAVE_DIR = MODEL_ID.split("/")[1] + "-W8A8-Dynamic-Per-Token"
+
+recipe = [
+    # SmoothQuant migrates quantization difficulty from activations to weights
+    SmoothQuantModifier(smoothing_strength=0.8),
+    # GPTQ minimizes weight quantization error using second-order optimization
+    GPTQModifier(targets="Linear", scheme="W8A8", ignore=["lm_head"]),
+]
+
+oneshot(
+    model=model,
+    dataset=ds,
+    recipe=recipe,
+    max_seq_length=MAX_SEQUENCE_LENGTH,
+    num_calibration_samples=NUM_CALIBRATION_SAMPLES,
+)
+
+model.save_pretrained(SAVE_DIR, save_compressed=True)
+tokenizer.save_pretrained(SAVE_DIR)
+```
+
+### Step 4: Evaluate accuracy
 
 ```bash
-lm_eval --model vllm \
-  --model_args pretrained="./Meta-Llama-3-8B-Instruct-W8A8-Dynamic-Per-Token",add_bos_token=true \
-  --tasks gsm8k \
-  --num_fewshot 5 \
-  --limit 250 \
-  --batch_size 'auto'
+MODEL=./Meta-Llama-3-8B-Instruct-W8A8-Dynamic-Per-Token
+
+lm_eval \
+    --model vllm \
+    --model_args pretrained=$MODEL,add_bos_token=True \
+    --tasks gsm8k \
+    --num_fewshot 5 \
+    --limit 250 \
+    --batch_size auto
 ```
 
 !!! note
-    Quantized models can be sensitive to the presence of the `bos` token. Make sure to include the `add_bos_token=True` argument when running evaluations.
+    Always include `add_bos_token=True` when evaluating quantized models.
+    Quantized models can be sensitive to the presence of the `bos` token.
 
-## Best Practices
+---
 
-- Start with 512 samples for calibration data (increase if accuracy drops)
-- Use a sequence length of 2048 as a starting point
-- Employ the chat template or instruction template that the model was trained with
-- If you've fine-tuned a model, consider using a sample of your training data for calibration
+## Understanding the compressed-tensors format
 
-## Troubleshooting and Support
+vLLM's INT8 implementation uses the **compressed-tensors** format, which
+supports multiple quantization schemes:
 
-If you encounter any issues or have feature requests, please open an issue on the [vllm-project/llm-compressor](https://github.com/vllm-project/llm-compressor/issues) GitHub repository.
+| Scheme | Weights | Activations | Notes |
+|---|---|---|---|
+| `W8A8` | INT8, per-channel | INT8, per-token (dynamic) | Recommended |
+| `W8A8` static | INT8, per-channel | INT8, per-tensor (static) | Faster, less accurate |
+| `W8A16` | INT8, per-channel | FP16 (unquantized) | Weight-only |
+
+The scheme is stored in the checkpoint's `quantization_config` and is
+automatically detected by vLLM.
+
+---
+
+## SmoothQuant explained
+
+Activations in transformer models often have **outliers** — a small number of
+channels with very large values. These outliers make activation quantization
+difficult because they force a large quantization range, reducing precision
+for the majority of values.
+
+**SmoothQuant** addresses this by mathematically migrating the quantization
+difficulty from activations to weights. It multiplies activations by a
+per-channel smoothing factor $s$ and divides weights by the same factor:
+
+$$
+Y = (X \cdot \text{diag}(s)^{-1}) \cdot (\text{diag}(s) \cdot W^T)
+$$
+
+This makes activations easier to quantize while keeping the mathematical
+equivalence of the computation. The `smoothing_strength` parameter (0–1)
+controls how aggressively the difficulty is migrated. A value of 0.8 is a
+good default for most models.
+
+---
+
+## Running a quantized model
+
+### Command line
+
+```bash
+# Auto-detect quantization from config
+vllm serve ./Meta-Llama-3-8B-Instruct-W8A8-Dynamic-Per-Token
+
+# With tensor parallelism
+vllm serve ./Meta-Llama-3-8B-Instruct-W8A8-Dynamic-Per-Token \
+    --tensor-parallel-size 2
+```
+
+### Python API
+
+```python
+from vllm import LLM, SamplingParams
+
+llm = LLM(model="./Meta-Llama-3-8B-Instruct-W8A8-Dynamic-Per-Token")
+
+prompts = [
+    "Hello, my name is",
+    "The capital of France is",
+    "The future of AI is",
+]
+sampling_params = SamplingParams(temperature=0.8, top_p=0.95, max_tokens=128)
+outputs = llm.generate(prompts, sampling_params)
+
+for output in outputs:
+    print(f"Prompt: {output.prompt!r}")
+    print(f"Output: {output.outputs[0].text!r}")
+    print()
+```
+
+---
+
+## Best practices
+
+- **Use 512+ calibration samples.** More samples generally improve accuracy.
+  Increase to 1024 if you observe accuracy degradation.
+- **Match calibration data to your deployment use case.** For a code model,
+  calibrate on code data. For a chat model, use chat-formatted data.
+- **Use the chat template.** Apply the model's chat template when preparing
+  calibration data to match the format used during fine-tuning.
+- **Use `smoothing_strength=0.8` as a starting point.** Adjust between 0.5
+  and 0.9 if accuracy is unsatisfactory.
+- **Do not quantize `lm_head`.** The language model head is sensitive to
+  quantization and is typically excluded.
+- **Consider FP8 for Hopper/Ada GPUs.** FP8 W8A8 delivers higher throughput
+  than INT8 on Ada Lovelace and Hopper hardware.
+
+---
+
+## INT8 vs. FP8 comparison
+
+| Feature | INT8 W8A8 | FP8 W8A8 |
+|---|---|---|
+| Min. GPU | Turing (SM 7.5) | Ada (SM 8.9) |
+| Memory reduction | ~2× vs. BF16 | ~2× vs. BF16 |
+| Throughput gain | Up to 1.3× | Up to 1.6× |
+| Calibration required | Yes | Optional (dynamic mode) |
+| Blackwell support | ❌ | ✅ |
+| AMD support | ❌ | ✅ (MI300X) |
+
+For Hopper and Ada GPUs, FP8 is generally preferred due to higher throughput.
+For Turing and Ampere GPUs, INT8 is the best option for W8A8 quantization.
+
+---
+
+## Troubleshooting
+
+**`INT8 is not supported on compute capability >= 10.0`**
+: Blackwell GPUs do not support INT8 W8A8. Use [FP8](fp8.md) instead.
+
+**Low accuracy after quantization**
+: Try increasing `NUM_CALIBRATION_SAMPLES` to 1024 or more. Also ensure the
+  calibration data matches your deployment distribution.
+
+**`SmoothQuantModifier` fails with NaN**
+: Reduce `smoothing_strength` to 0.5 or 0.6. Some models are sensitive to
+  aggressive smoothing.
+
+---
+
+## Related pages
+
+- [FP8](fp8.md) — higher-throughput 8-bit quantization for Ada/Hopper GPUs
+- [INT4 W4A16](int4.md) — 4-bit weight-only quantization for maximum memory
+  savings
+- [LLM Compressor](llm_compressor.md) — recommended quantization toolkit
+- [Quantization overview](index.md) — method comparison and hardware matrix

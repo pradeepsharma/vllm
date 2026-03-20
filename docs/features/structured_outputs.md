@@ -1,8 +1,10 @@
 # Structured Outputs
 
 vLLM supports the generation of structured outputs using
-[xgrammar](https://github.com/mlc-ai/xgrammar) or
-[guidance](https://github.com/guidance-ai/llguidance) as backends.
+[xgrammar](https://github.com/mlc-ai/xgrammar),
+[outlines](https://github.com/dottxt-ai/outlines-core),
+[guidance / llguidance](https://github.com/guidance-ai/llguidance), or
+[lm-format-enforcer](https://github.com/noamgat/lm-format-enforcer) as backends.
 This document shows you some examples of the different options that are
 available to generate structured outputs.
 
@@ -16,6 +18,166 @@ available to generate structured outputs.
     - `guided_whitespace_pattern` -> `{"structured_outputs": {"whitespace_pattern": ...}}` or `StructuredOutputsParams(whitespace_pattern=...)`
     - `structural_tag` -> `{"structured_outputs": {"structural_tag": ...}}` or `StructuredOutputsParams(structural_tag=...)`
     - `guided_decoding_backend` -> Remove this field from your request
+
+## Backends
+
+vLLM supports four structured output backends. The default is `auto`, which selects the most appropriate backend based on the request type and available packages.
+
+### Choosing a Backend
+
+Set the backend globally when starting the server:
+
+```bash
+# Use xgrammar (default for most requests)
+vllm serve meta-llama/Llama-3.1-8B-Instruct \
+  --structured-outputs-config.backend xgrammar
+
+# Use outlines
+vllm serve meta-llama/Llama-3.1-8B-Instruct \
+  --structured-outputs-config.backend outlines
+
+# Use guidance (llguidance)
+vllm serve meta-llama/Llama-3.1-8B-Instruct \
+  --structured-outputs-config.backend guidance
+
+# Use lm-format-enforcer
+vllm serve meta-llama/Llama-3.1-8B-Instruct \
+  --structured-outputs-config.backend lm-format-enforcer
+
+# Let vLLM choose automatically (default)
+vllm serve meta-llama/Llama-3.1-8B-Instruct \
+  --structured-outputs-config.backend auto
+```
+
+!!! note
+    vLLM uses a **single backend per engine instance**. You cannot mix backends across requests in the same server process.
+
+### Backend Comparison
+
+| Feature | xgrammar | outlines | guidance (llguidance) | lm-format-enforcer |
+|---------|----------|----------|----------------------|-------------------|
+| JSON schema | ✅ | ✅ | ✅ | ✅ |
+| Regex | ✅ | ✅ | ✅ | ✅ |
+| Choice | ✅ | ✅ | ✅ | ✅ |
+| EBNF grammar | ✅ | ❌ | ✅ | ❌ |
+| Structural tag | ✅ | ❌ | ✅ | ❌ |
+| Speculative decoding | ✅ | ✅ | ✅ | ❌ |
+| Async compilation | ✅ | ✅ | ✅ | ✅ |
+| Regex syntax | Rust-style | Rust-style | Rust-style | Python `re` |
+| Install | `pip install xgrammar` | `pip install outlines-core` | `pip install llguidance` | `pip install lm-format-enforcer` |
+
+### xgrammar
+
+[xgrammar](https://github.com/mlc-ai/xgrammar) is the **default backend** for most requests. It uses a compiled grammar approach with a finite-state machine (FSM) that is cached across requests. xgrammar supports the full range of structured output types including JSON schema, regex, EBNF grammar, and structural tags.
+
+**Key features:**
+- Fast grammar compilation with an LRU cache (configurable via `VLLM_XGRAMMAR_CACHE_MB`)
+- Supports speculative decoding with rollback
+- Handles Mistral tokenizers with special byte-fallback vocabulary
+- Supports `any_whitespace` mode for flexible JSON formatting
+
+**Configuration options:**
+
+```bash
+vllm serve meta-llama/Llama-3.1-8B-Instruct \
+  --structured-outputs-config.backend xgrammar \
+  --structured-outputs-config.disable_any_whitespace true
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `disable_any_whitespace` | `false` | Restrict whitespace in JSON to exact schema-specified positions |
+| `disable_additional_properties` | `false` | Disallow extra JSON keys not in the schema |
+
+**Cache size:**
+
+```bash
+# Set xgrammar cache to 512 MB (default: 128 MB)
+export VLLM_XGRAMMAR_CACHE_MB=512
+```
+
+### outlines
+
+[outlines-core](https://github.com/dottxt-ai/outlines-core) uses a deterministic finite automaton (DFA) approach. It converts JSON schemas and regex patterns into a DFA index over the model vocabulary, enabling efficient token-level masking.
+
+**Key features:**
+- DFA-based approach with vocabulary-level index caching
+- Supports JSON schema, regex, and choice
+- Does **not** support EBNF grammar or structural tags
+- Regex syntax follows Rust-style regex
+
+**Supported request types:**
+
+| Type | Supported |
+|------|-----------|
+| `json` | ✅ |
+| `regex` | ✅ |
+| `choice` | ✅ |
+| `grammar` (EBNF) | ❌ |
+| `structural_tag` | ❌ |
+
+**Installation:**
+
+```bash
+pip install outlines-core
+```
+
+### guidance (llguidance)
+
+[llguidance](https://github.com/guidance-ai/llguidance) is the backend library from the [guidance](https://github.com/guidance-ai/guidance) project. It uses a parser-based approach that supports the full range of structured output types.
+
+**Key features:**
+- Supports JSON schema, regex, choice, EBNF grammar, and structural tags
+- Automatically adds `additionalProperties: false` to JSON schemas for stricter validation
+- Detects and rejects JSON schemas with unsupported features (e.g., `patternProperties`)
+- Supports speculative decoding with rollback
+
+**Configuration options:**
+
+```bash
+vllm serve meta-llama/Llama-3.1-8B-Instruct \
+  --structured-outputs-config.backend guidance \
+  --structured-outputs-config.disable_any_whitespace true \
+  --structured-outputs-config.disable_additional_properties true
+```
+
+**Log level:**
+
+```bash
+# Set llguidance log level (0=silent, 1=warnings, 2=info, 3=debug)
+export LLGUIDANCE_LOG_LEVEL=1
+```
+
+**Installation:**
+
+```bash
+pip install llguidance
+```
+
+### lm-format-enforcer
+
+[lm-format-enforcer](https://github.com/noamgat/lm-format-enforcer) is a token-level enforcement library that uses Python's `re` module for regex patterns.
+
+**Key features:**
+- Uses Python `re` syntax for regex (not Rust-style)
+- Supports JSON schema, regex, and choice
+- Does **not** support EBNF grammar, structural tags, or speculative decoding
+
+**Supported request types:**
+
+| Type | Supported |
+|------|-----------|
+| `json` | ✅ |
+| `regex` | ✅ |
+| `choice` | ✅ |
+| `grammar` (EBNF) | ❌ |
+| `structural_tag` | ❌ |
+
+**Installation:**
+
+```bash
+pip install lm-format-enforcer
+```
 
 ## Online Serving (OpenAI API)
 
@@ -134,6 +296,9 @@ Finally we have the `grammar` option, which is probably the most
 difficult to use, but it's really powerful. It allows us to define complete
 languages like SQL queries. It works by using a context free EBNF grammar.
 As an example, we can use to define a specific format of simplified SQL queries:
+
+!!! note
+    EBNF grammar is supported by `xgrammar` and `guidance` backends only. It is **not** supported by `outlines` or `lm-format-enforcer`.
 
 ??? code
 
@@ -339,4 +504,181 @@ shown below:
     print(outputs[0].outputs[0].text)
     ```
 
+### Specifying a Backend in Offline Inference
+
+You can specify the backend per-request in offline inference by setting the `_backend` field on `StructuredOutputsParams`:
+
+??? code
+
+    ```python
+    from vllm import LLM, SamplingParams
+    from vllm.sampling_params import StructuredOutputsParams
+
+    llm = LLM(model="HuggingFaceTB/SmolLM2-1.7B-Instruct")
+
+    # Use xgrammar backend explicitly
+    structured_outputs_params = StructuredOutputsParams(
+        choice=["Positive", "Negative"],
+        _backend="xgrammar",
+    )
+    sampling_params = SamplingParams(structured_outputs=structured_outputs_params)
+    outputs = llm.generate(
+        prompts="Classify this sentiment: vLLM is wonderful!",
+        sampling_params=sampling_params,
+    )
+    print(outputs[0].outputs[0].text)
+    ```
+
+!!! note
+    In the V1 engine, all requests in a single engine instance share the same backend. The backend is initialized on the first structured output request and cannot be changed afterward.
+
+### JSON Schema Example
+
+??? code
+
+    ```python
+    import json
+    from vllm import LLM, SamplingParams
+    from vllm.sampling_params import StructuredOutputsParams
+    from pydantic import BaseModel
+
+    class Person(BaseModel):
+        name: str
+        age: int
+        occupation: str
+
+    llm = LLM(model="meta-llama/Llama-3.1-8B-Instruct")
+
+    structured_outputs_params = StructuredOutputsParams(
+        json=Person.model_json_schema()
+    )
+    sampling_params = SamplingParams(
+        temperature=0.0,
+        structured_outputs=structured_outputs_params,
+    )
+
+    outputs = llm.generate(
+        prompts="Generate a JSON object for a fictional software engineer.",
+        sampling_params=sampling_params,
+    )
+
+    result = json.loads(outputs[0].outputs[0].text)
+    person = Person(**result)
+    print(f"Name: {person.name}, Age: {person.age}, Occupation: {person.occupation}")
+    ```
+
+### Regex Example
+
+??? code
+
+    ```python
+    from vllm import LLM, SamplingParams
+    from vllm.sampling_params import StructuredOutputsParams
+
+    llm = LLM(model="meta-llama/Llama-3.1-8B-Instruct")
+
+    # Generate a date in YYYY-MM-DD format
+    structured_outputs_params = StructuredOutputsParams(
+        regex=r"\d{4}-\d{2}-\d{2}"
+    )
+    sampling_params = SamplingParams(
+        temperature=0.0,
+        max_tokens=20,
+        structured_outputs=structured_outputs_params,
+    )
+
+    outputs = llm.generate(
+        prompts="What is today's date?",
+        sampling_params=sampling_params,
+    )
+    print(outputs[0].outputs[0].text)
+    ```
+
+### EBNF Grammar Example
+
+EBNF grammar is supported by `xgrammar` and `guidance` backends:
+
+??? code
+
+    ```python
+    from vllm import LLM, SamplingParams
+    from vllm.sampling_params import StructuredOutputsParams
+
+    llm = LLM(model="meta-llama/Llama-3.1-8B-Instruct")
+
+    # Define a grammar for arithmetic expressions
+    arithmetic_grammar = """
+        root   ::= expr
+        expr   ::= term (("+" | "-") term)*
+        term   ::= factor (("*" | "/") factor)*
+        factor ::= number | "(" expr ")"
+        number ::= [0-9]+
+    """
+
+    structured_outputs_params = StructuredOutputsParams(grammar=arithmetic_grammar)
+    sampling_params = SamplingParams(
+        temperature=0.0,
+        max_tokens=64,
+        structured_outputs=structured_outputs_params,
+    )
+
+    outputs = llm.generate(
+        prompts="Write an arithmetic expression for the sum of 3 and 4 multiplied by 2:",
+        sampling_params=sampling_params,
+    )
+    print(outputs[0].outputs[0].text)
+    ```
+
 See also: [full example](../examples/online_serving/structured_outputs.md)
+
+## Advanced Configuration
+
+### Disabling Whitespace Flexibility
+
+By default, xgrammar and guidance allow flexible whitespace in JSON output (e.g., extra spaces or newlines between fields). To enforce strict whitespace matching:
+
+```bash
+vllm serve meta-llama/Llama-3.1-8B-Instruct \
+  --structured-outputs-config.disable_any_whitespace true
+```
+
+### Disabling Additional Properties
+
+By default, guidance automatically adds `additionalProperties: false` to JSON schemas. To disable this behavior:
+
+```bash
+vllm serve meta-llama/Llama-3.1-8B-Instruct \
+  --structured-outputs-config.backend guidance \
+  --structured-outputs-config.disable_additional_properties true
+```
+
+### Async Grammar Compilation
+
+Grammar compilation happens asynchronously by default, allowing the engine to continue processing other requests while a new grammar is being compiled. This is disabled automatically in `external_launcher` mode to preserve determinism across tensor-parallel ranks.
+
+### xgrammar Cache Size
+
+The xgrammar backend caches compiled grammars in an LRU cache. Increase the cache size for workloads with many distinct schemas:
+
+```bash
+# Set cache to 512 MB (default: 128 MB)
+export VLLM_XGRAMMAR_CACHE_MB=512
+```
+
+## Troubleshooting
+
+### Grammar Compilation Failures
+
+If grammar compilation fails, check:
+
+1. **JSON schema validity** — ensure the schema is valid JSON Schema (Draft 7 or later).
+2. **Backend compatibility** — EBNF grammar requires `xgrammar` or `guidance`; `outlines` and `lm-format-enforcer` do not support it.
+3. **Unsupported JSON features** — `guidance` does not support `patternProperties`. Use `xgrammar` for schemas with `patternProperties`.
+
+### Slow First Request
+
+The first request with a new grammar incurs compilation overhead. Subsequent requests with the same grammar are served from the cache. To pre-warm the cache, send a dummy request at startup.
+
+### Speculative Decoding Compatibility
+
+All backends except `lm-format-enforcer` support speculative decoding. If you use speculative decoding with structured outputs, ensure you are not using `lm-format-enforcer`.

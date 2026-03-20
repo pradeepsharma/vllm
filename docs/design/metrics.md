@@ -21,24 +21,96 @@ The mental model is that server-level metrics help explain the values of request
 
 ### v1 Metrics
 
-In v1, an extensive set of metrics are exposed via a Prometheus-compatible `/metrics` endpoint using the `vllm:` prefix, for example:
+In v1, an extensive set of metrics are exposed via a Prometheus-compatible
+`/metrics` endpoint using the `vllm:` prefix. Every metric carries a
+`model_name` label and an `engine` label (for data-parallel deployments).
 
-- `vllm:num_requests_running` (Gauge) - Number of requests currently running.
-- `vllm:kv_cache_usage_perc` (Gauge) - Fraction of used KV cache blocks (0–1).
-- `vllm:prefix_cache_queries` (Counter) - Number of prefix cache queries.
-- `vllm:prefix_cache_hits` (Counter) - Number of prefix cache hits.
-- `vllm:prompt_tokens_total` (Counter) - Total number of prompt tokens processed.
-- `vllm:generation_tokens_total` (Counter) - Total number of generated tokens.
-- `vllm:request_success_total` (Counter) - Number of finished requests (by finish reason).
-- `vllm:request_prompt_tokens` (Histogram) - Histogram of input prompt token counts.
-- `vllm:request_generation_tokens` (Histogram) - Histogram of generation token counts.
-- `vllm:time_to_first_token_seconds` (Histogram) - Time to first token (TTFT).
-- `vllm:inter_token_latency_seconds` (Histogram) - Inter-token latency.
-- `vllm:e2e_request_latency_seconds` (Histogram) - End-to-end request latency.
-- `vllm:request_prefill_time_seconds` (Histogram) - Request prefill time.
-- `vllm:request_decode_time_seconds` (Histogram) - Request decode time.
+#### Scheduler state (Gauges)
 
-These are documented under [Inferencing and Serving -> Production Metrics](../usage/metrics.md).
+| Metric | Description |
+|---|---|
+| `vllm:num_requests_running` | Number of requests currently in model execution batches |
+| `vllm:num_requests_waiting` | Number of requests waiting to be scheduled |
+| `vllm:kv_cache_usage_perc` | Fraction of KV cache blocks in use (0–1) |
+| `vllm:engine_sleep_state` | Engine sleep state: `awake`, `weights_offloaded`, or `discard_all` |
+
+#### Cache counters (Counters)
+
+| Metric | Description |
+|---|---|
+| `vllm:prefix_cache_queries` | Prefix cache queries (in tokens) |
+| `vllm:prefix_cache_hits` | Prefix cache hits (in tokens) |
+| `vllm:external_prefix_cache_queries` | External (KV connector) prefix cache queries |
+| `vllm:external_prefix_cache_hits` | External prefix cache hits |
+| `vllm:mm_cache_queries` | Multi-modal cache queries (in items) |
+| `vllm:mm_cache_hits` | Multi-modal cache hits (in items) |
+
+#### Token throughput counters (Counters)
+
+| Metric | Description |
+|---|---|
+| `vllm:prompt_tokens` | Prompt tokens processed (computed, excludes cache hits) |
+| `vllm:prompt_tokens_by_source` | Prompt tokens broken down by source: `local_compute`, `local_cache_hit`, `external_kv_transfer` |
+| `vllm:prompt_tokens_cached` | Cached prompt tokens (local + external) |
+| `vllm:prompt_tokens_recomputed` | Cached tokens recomputed for the forward pass |
+| `vllm:generation_tokens` | Generation tokens produced |
+| `vllm:request_success` | Finished requests by finish reason: `stop`, `length`, `abort` |
+| `vllm:num_preemptions` | Cumulative number of request preemptions |
+
+#### Request size histograms (Histograms)
+
+| Metric | Description |
+|---|---|
+| `vllm:request_prompt_tokens` | Distribution of prompt token counts per request |
+| `vllm:request_generation_tokens` | Distribution of generation token counts per request |
+| `vllm:request_max_num_generation_tokens` | Distribution of maximum requested generation tokens |
+| `vllm:request_params_n` | Distribution of the `n` (parallel sampling) parameter |
+| `vllm:request_params_max_tokens` | Distribution of the `max_tokens` parameter |
+| `vllm:iteration_tokens_total` | Distribution of total tokens per engine step |
+| `vllm:request_prefill_kv_computed_tokens` | New KV tokens computed during prefill (excluding cached tokens) |
+
+#### Latency histograms (Histograms)
+
+| Metric | Description |
+|---|---|
+| `vllm:time_to_first_token_seconds` | Time to first token (TTFT) — from request arrival to first generated token |
+| `vllm:inter_token_latency_seconds` | Inter-token latency (TPOT) — time between successive generated tokens |
+| `vllm:request_time_per_output_token_seconds` | Mean time per output token across the full request |
+| `vllm:e2e_request_latency_seconds` | End-to-end request latency — from arrival to final token |
+| `vllm:request_queue_time_seconds` | Time spent in the WAITING queue before first scheduling |
+| `vllm:request_inference_time_seconds` | Time spent in the RUNNING phase (scheduled to last token) |
+| `vllm:request_prefill_time_seconds` | Time spent in the PREFILL phase |
+| `vllm:request_decode_time_seconds` | Time spent in the DECODE phase |
+
+#### KV cache residency histograms (Histograms, optional)
+
+These metrics are enabled with `--kv-cache-metrics`. They use sampling
+(controlled by `--kv-cache-metrics-sample`) to keep overhead minimal.
+
+| Metric | Description |
+|---|---|
+| `vllm:kv_block_lifetime_seconds` | Time from KV block allocation to eviction |
+| `vllm:kv_block_idle_before_evict_seconds` | Idle time between last access and eviction |
+| `vllm:kv_block_reuse_gap_seconds` | Time between consecutive accesses to the same block |
+
+#### Model FLOPs Utilization counters (Counters, optional)
+
+These metrics are enabled with `--enable-mfu-metrics`.
+
+| Metric | Description |
+|---|---|
+| `vllm:estimated_flops_per_gpu_total` | Estimated FLOPs per GPU (for MFU calculation) |
+| `vllm:estimated_read_bytes_per_gpu_total` | Estimated bytes read from GPU memory |
+| `vllm:estimated_write_bytes_per_gpu_total` | Estimated bytes written to GPU memory |
+
+#### Configuration info (Gauge)
+
+| Metric | Description |
+|---|---|
+| `vllm:cache_config_info` | Static KV cache configuration (block size, dtype, GPU memory utilisation, etc.) exposed as label values on a gauge permanently set to 1 |
+| `vllm:lora_requests_info` | Running and waiting LoRA adapter counts (only when LoRA is enabled) |
+
+These are documented under [Inferencing and Serving → Production Metrics](../usage/metrics.md).
 
 ### Grafana Dashboard
 
@@ -699,3 +771,77 @@ higher-resolution timings to justify the overhead.
 
 Since we are going to treat the question of OpenTelemetry support
 separately, we will include these particular metrics under that topic.
+
+### OTLP export architecture
+
+The OpenTelemetry integration in vLLM is implemented in `vllm/tracing/` and
+follows a pluggable backend design.
+
+#### Tracer initialisation
+
+When `--otlp-traces-endpoint` is set, `init_tracer()` is called during server
+startup. It:
+
+1. Creates an OTel `Resource` with `vllm.instrumenting_module_name` and
+   `vllm.process_id` attributes.
+1. Instantiates a `TracerProvider` backed by a `BatchSpanProcessor`.
+1. Selects the span exporter based on `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL`:
+   - `grpc` (default) → `OTLPGrpcExporter` with `insecure=True`
+   - `http/protobuf` → `OTLPHttpExporter`
+1. Stores the endpoint in `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` so that worker
+   processes can inherit it and initialise their own tracers via
+   `maybe_init_worker_tracer()`.
+
+#### Trace context propagation
+
+vLLM uses the W3C TraceContext format (`traceparent` / `tracestate` headers)
+for distributed context propagation. The `_get_smart_context()` helper
+implements a two-step lookup:
+
+1. If a span is already active in the current process, use it as the parent.
+1. Otherwise, extract context from `os.environ` (which worker processes
+   inherit from the API server via `propagate_trace_to_env()`).
+
+This means trace context flows correctly from the API server to GPU worker
+processes without any explicit inter-process communication.
+
+#### Span attributes
+
+Per-request span attributes are defined in `SpanAttributes` in
+`vllm/tracing/utils.py` and follow the
+[OpenTelemetry Semantic Conventions for Gen AI](https://github.com/open-telemetry/semantic-conventions/tree/main/docs/gen-ai):
+
+| Attribute | Convention |
+|---|---|
+| `gen_ai.usage.prompt_tokens` | Standard OTel Gen AI |
+| `gen_ai.usage.completion_tokens` | Standard OTel Gen AI |
+| `gen_ai.request.max_tokens` | Standard OTel Gen AI |
+| `gen_ai.request.temperature` | Standard OTel Gen AI |
+| `gen_ai.request.top_p` | Standard OTel Gen AI |
+| `gen_ai.request.id` | vLLM custom (pending standardisation) |
+| `gen_ai.latency.time_in_queue` | vLLM custom |
+| `gen_ai.latency.time_to_first_token` | vLLM custom |
+| `gen_ai.latency.e2e` | vLLM custom |
+| `gen_ai.latency.time_in_model_forward` | vLLM custom (requires `--collect-detailed-traces=model`) |
+| `gen_ai.latency.time_in_model_execute` | vLLM custom (requires `--collect-detailed-traces=worker`) |
+
+#### Instrumentation decorators
+
+The `@instrument` decorator in `vllm/tracing/__init__.py` wraps both sync and
+async functions. It pre-computes static code attributes (`code.function`,
+`code.namespace`, `code.filepath`, `code.lineno`) at decoration time to
+minimise per-call overhead.
+
+The `instrument_manual()` function allows creating spans with explicit
+start/end timestamps — used for recording events that span multiple async
+iterations (for example, the full decode phase of a request).
+
+## User-facing documentation
+
+For operator-facing guides, see:
+
+- [Observability configuration](../configuration/observability_config.md) —
+  complete reference for all `ObservabilityConfig` options
+- [Monitoring setup](../deployment/monitoring.md) — Prometheus + Grafana setup,
+  PromQL queries, alert rules, and Jaeger tracing walkthrough
+- [Production metrics](../usage/metrics.md) — full list of all `vllm:` metrics

@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multimodal Inputs</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+<style>
+:root{--bg:#0d1117;--bg-card:#161b22;--bg-sidebar:#0d1117;--text:#e6edf3;--text-dim:#8b949e;--border:#30363d;--accent:#58a6ff;--accent-dim:#1f6feb;--code-bg:#1c2128;--hover:#21262d}*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;display:flex;min-height:100vh}main{flex:1;max-width:900px;padding:40px 48px;overflow-x:auto}h1{font-size:2rem;font-weight:700;margin-bottom:8px;padding-bottom:12px;border-bottom:1px solid var(--border)}h2{font-size:1.5rem;font-weight:600;margin-top:32px;margin-bottom:12px;color:var(--text)}h3{font-size:1.2rem;font-weight:600;margin-top:24px;margin-bottom:8px}h4{font-size:1rem;font-weight:600;margin-top:20px;margin-bottom:6px}p{margin-bottom:12px}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}code{background:var(--code-bg);padding:2px 6px;border-radius:4px;font-size:0.875em;font-family:"SFMono-Regular",Consolas,monospace}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:16px;overflow-x:auto;margin:16px 0;position:relative}pre code{background:none;padding:0}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{padding:8px 12px;border:1px solid var(--border);text-align:left}th{background:var(--bg-card);font-weight:600}tr:nth-child(even){background:rgba(255,255,255,0.02)}blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:16px 0;color:var(--text-dim);background:rgba(88,166,255,0.04)}ul,ol{margin:8px 0 12px 24px}li{margin-bottom:4px}.breadcrumb{font-size:0.85rem;color:var(--text-dim);margin-bottom:20px}.breadcrumb a{color:var(--text-dim)}.mermaid,pre.mermaid{background:var(--bg-card);border-radius:8px;padding:16px;margin:16px 0;text-align:center;border:none}.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:600}.badge-info{background:rgba(88,166,255,0.15);color:var(--accent)}.last-updated{font-size:0.8rem;color:var(--text-dim);margin-top:40px;padding-top:16px;border-top:1px solid var(--border)}.hero{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:24px;margin:24px 0}.section-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:24px 0}.section-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px;transition:border-color 0.2s}.section-card:hover{border-color:var(--accent)}.section-card h3{margin-top:0;font-size:1.1rem}.section-card p{font-size:0.9rem;color:var(--text-dim);margin-bottom:8px}.tech-stack{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.tech-badge{background:var(--code-bg);border:1px solid var(--border);padding:4px 12px;border-radius:16px;font-size:0.85rem}.toc-aside{width:200px;min-width:200px;padding:16px 0 16px 16px;position:sticky;top:0;height:100vh;overflow-y:auto;border-left:1px solid var(--border);font-size:0.8rem;scroll-behavior:smooth}.toc-aside .toc-title{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-dim);font-weight:600;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid var(--border)}.toc-aside a{display:block;padding:3px 0;color:var(--text-dim);text-decoration:none;transition:color 0.15s}.toc-aside a:hover{color:var(--text)}.toc-aside a.toc-active{color:var(--accent);font-weight:500}.toc-aside a.toc-h3{padding-left:12px;font-size:0.75rem}.page-nav{display:flex;justify-content:space-between;margin-top:40px;padding-top:20px;border-top:1px solid var(--border);gap:16px}.page-nav a{display:block;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;text-decoration:none;transition:border-color 0.2s;flex:1;max-width:48%}.page-nav a:hover{border-color:var(--accent)}.page-nav .nav-label{font-size:0.75rem;color:var(--text-dim);margin-bottom:4px}.page-nav .nav-title{color:var(--accent);font-weight:500}.page-nav .nav-next{text-align:right}.code-copy{position:absolute;top:8px;right:8px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-dim);padding:4px 8px;border-radius:4px;font-size:0.7rem;cursor:pointer;opacity:0;transition:opacity 0.2s}pre:hover .code-copy{opacity:1}.code-copy:hover{color:var(--text);border-color:var(--accent)}.mermaid-expand{position:absolute;top:8px;right:8px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-dim);padding:4px 8px;border-radius:4px;font-size:0.7rem;cursor:pointer;opacity:0;transition:opacity 0.2s;z-index:10}div:hover>.mermaid-expand{opacity:1}.mermaid-expand:hover{color:var(--accent);border-color:var(--accent)}.mermaid-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out}.mermaid-overlay.open{display:flex}.mermaid-overlay-inner{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:32px;max-width:95vw;max-height:95vh;overflow:auto;position:relative}.mermaid-overlay-close{position:absolute;top:12px;right:16px;background:none;border:none;color:var(--text-dim);font-size:1.5rem;cursor:pointer;line-height:1}.mermaid-overlay-close:hover{color:var(--text)}.back-to-top{position:fixed;bottom:24px;right:24px;width:36px;height:36px;background:var(--bg-card);border:1px solid var(--border);border-radius:50%;color:var(--text-dim);font-size:1rem;cursor:pointer;display:none;align-items:center;justify-content:center;transition:all 0.2s;z-index:100}.back-to-top:hover{color:var(--accent);border-color:var(--accent)}h2 .heading-anchor,h3 .heading-anchor{opacity:0;color:var(--text-dim);text-decoration:none;margin-left:6px;font-size:0.8em;transition:opacity 0.15s}h2:hover .heading-anchor,h3:hover .heading-anchor{opacity:1}h2:hover .heading-anchor:hover,h3:hover .heading-anchor:hover{color:var(--accent)}@media print{nav.sidebar,.toc-aside,.back-to-top,.code-copy,.breadcrumb,.page-nav{display:none!important}body{display:block!important}main{max-width:100%!important;padding:20px!important}pre{white-space:pre-wrap!important;word-break:break-all}a{color:#000!important}h1,h2,h3{page-break-after:avoid}}@media(max-width:1200px){.toc-aside{display:none}}@media(max-width:768px){nav.sidebar{display:none}main{padding:20px}}
+nav.sidebar{width:280px;min-width:280px;background:var(--bg-sidebar,var(--bg,#0d1117));border-right:1px solid var(--border,#30363d);padding:16px 0;overflow-y:auto;position:sticky;top:0;height:100vh}nav.sidebar .logo{padding:12px 20px;font-size:1.1rem;font-weight:700;color:var(--accent,#58a6ff);border-bottom:1px solid var(--border,#30363d);margin-bottom:8px}nav.sidebar a{display:block;padding:6px 20px;color:var(--text-dim,#8b949e);text-decoration:none;font-size:0.85rem;transition:all 0.15s}nav.sidebar a:hover{background:var(--hover,#21262d);color:var(--text,#e6edf3)}nav.sidebar a.active{color:var(--accent,#58a6ff);background:rgba(88,166,255,0.08);border-left:2px solid var(--accent,#58a6ff)}nav.sidebar .section-title{padding:14px 20px 6px;margin-top:8px;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--accent,#58a6ff);font-weight:700;border-top:1px solid var(--border,#30363d)}.sidebar-search{padding:8px 12px;border-bottom:1px solid var(--border,#30363d);margin-bottom:8px}.sidebar-search input{width:100%;padding:8px 10px;background:var(--code-bg,#1c2128);border:1px solid var(--border,#30363d);border-radius:6px;color:var(--text,#e6edf3);font-size:0.85rem;outline:none}.sidebar-search input:focus{border-color:var(--accent,#58a6ff)}.search-results{max-height:300px;overflow-y:auto}.search-results a{padding:4px 8px;font-size:0.8rem;border-radius:4px}.search-results .search-heading{font-size:0.75rem;color:var(--text-dim,#8b949e);padding-left:16px}.search-results:empty{display:none}@media(max-width:768px){nav.sidebar{display:none}}
+
+</style>
+</head>
+<body>
+<nav class="sidebar">
+<div class="logo">Documentation</div>
+<div class="sidebar-search">
+<input type="text" id="doc-search" placeholder="Search docs..." autocomplete="off">
+<div id="search-results" class="search-results"></div>
+</div>
+<div id="sidebar-nav-links">
+<a href="../README.html" class="nav-root">Welcome to vLLM</a>
+<a href="../index.html" class="nav-root">Welcome to vLLM</a>
+<a href="../sitemap.html" class="nav-root">Documentation Sitemap</a>
+<div class="section-title">Api</div>
+<a href="../api/README.html">Summary</a>
+<a href="../api/async_llm_engine.html">AsyncLLMEngine</a>
+<a href="../api/engine_args.html">EngineArgs / AsyncEngineArgs</a>
+<a href="../api/index.html">Python API Reference</a>
+<a href="../api/llm.html">LLM</a>
+<a href="../api/llm_engine.html">LLMEngine</a>
+<a href="../api/openai_protocol.html">OpenAI Protocol Types</a>
+<a href="../api/outputs.html">Output Types</a>
+<a href="../api/pooling_params.html">PoolingParams</a>
+<a href="../api/sampling_params.html">SamplingParams</a>
+<div class="section-title">Benchmarking</div>
+<a href="../benchmarking/README.html">Benchmark Suites</a>
+<a href="../benchmarking/cli.html">Benchmark CLI</a>
+<a href="../benchmarking/dashboard.html">Performance Dashboard</a>
+<a href="../benchmarking/index.html">Benchmarking Overview</a>
+<a href="../benchmarking/latency_benchmarks.html">Latency Benchmarks</a>
+<a href="../benchmarking/lm_eval_harness.html">LM Evaluation Harness Integration</a>
+<a href="../benchmarking/performance_benchmarks.html">Performance Benchmarks</a>
+<a href="../benchmarking/profiling.html">Profiling with vLLM</a>
+<a href="../benchmarking/sweeps.html">Parameter Sweeps</a>
+<a href="../benchmarking/throughput_benchmarks.html">Throughput Benchmarks</a>
+<div class="section-title">Cli</div>
+<a href="../cli/README.html">vLLM CLI Guide</a>
+<a href="../cli/chat.html">vllm chat</a>
+<a href="../cli/complete.html">vllm complete</a>
+<a href="../cli/index.html">vLLM CLI Reference</a>
+<a href="../cli/json_tip.inc.html">Json Tip.Inc</a>
+<a href="../cli/run-batch.html">vllm run-batch</a>
+<a href="../cli/serve.html">vllm serve</a>
+<a href="../cli/vllm_bench.html">`vllm bench` — Benchmarking Reference</a>
+<a href="../cli/vllm_collect_env.html">`vllm collect-env` — Environment Diagnostics Reference</a>
+<a href="../cli/vllm_run_batch.html">`vllm run-batch` — Batch Inference Reference</a>
+<a href="../cli/vllm_serve.html">`vllm serve` — API Server Reference</a>
+<div class="section-title">Bench</div>
+<a href="../cli/bench/latency.html">vllm bench latency</a>
+<a href="../cli/bench/mm_processor.html">vllm bench mm-processor</a>
+<a href="../cli/bench/serve.html">vllm bench serve</a>
+<a href="../cli/bench/throughput.html">vllm bench throughput</a>
+<div class="section-title">Sweep</div>
+<a href="../cli/bench/sweep/plot.html">vllm bench sweep plot</a>
+<a href="../cli/bench/sweep/plot_pareto.html">vllm bench sweep plot_pareto</a>
+<a href="../cli/bench/sweep/serve.html">vllm bench sweep serve</a>
+<a href="../cli/bench/sweep/serve_workload.html">vllm bench sweep serve_workload</a>
+<div class="section-title">Community</div>
+<a href="../community/contact_us.html">Contact Us</a>
+<a href="../community/index.html">Community</a>
+<a href="../community/meetups.html">Meetups</a>
+<a href="../community/rfcs.html">RFC process</a>
+<a href="../community/sponsors.html">Sponsors</a>
+<a href="../community/support.html">Getting support</a>
+<div class="section-title">Configuration</div>
+<a href="../configuration/README.html">Configuration Options</a>
+<a href="../configuration/cache_config.html">KV Cache Configuration</a>
+<a href="../configuration/compilation_config.html">Compilation Configuration</a>
+<a href="../configuration/conserving_memory.html">Conserving Memory</a>
+<a href="../configuration/engine_args.html">EngineArgs Reference</a>
+<a href="../configuration/env_vars.html">Environment Variables</a>
+<a href="../configuration/environment_variables.html">Environment Variables</a>
+<a href="../configuration/index.html">Configuration Overview</a>
+<a href="../configuration/lora_config.html">LoRA Configuration</a>
+<a href="../configuration/model_config.html">Model Configuration</a>
+<a href="../configuration/model_resolution.html">Model Resolution</a>
+<a href="../configuration/observability_config.html">Observability Configuration</a>
+<a href="../configuration/optimization.html">Optimization and Tuning</a>
+<a href="../configuration/parallel_config.html">Parallel Configuration</a>
+<a href="../configuration/quantization_config.html">Quantization Configuration</a>
+<a href="../configuration/scheduler_config.html">Scheduler Configuration</a>
+<a href="../configuration/serve_args.html">Server Arguments</a>
+<a href="../configuration/speculative_config.html">Speculative Decoding Configuration</a>
+<div class="section-title">Contributing</div>
+<a href="../contributing/README.html">Contributing to vLLM</a>
+<a href="../contributing/adding_model.html">Contributing a New Model</a>
+<a href="../contributing/adding_platform.html">Contributing a Hardware Platform</a>
+<a href="../contributing/adding_quantization.html">Contributing a Quantization Backend</a>
+<a href="../contributing/ci_cd.html">CI/CD Pipeline</a>
+<a href="../contributing/code_style.html">Code Style</a>
+<a href="../contributing/deprecation_policy.html">Deprecation Policy</a>
+<a href="../contributing/development_setup.html">Development Environment Setup</a>
+<a href="../contributing/incremental_build.html">Incremental Compilation Workflow</a>
+<a href="../contributing/index.html">Contributing to vLLM</a>
+<a href="../contributing/profiling.html">Profiling vLLM</a>
+<a href="../contributing/release_process.html">Release Process</a>
+<a href="../contributing/testing.html">Testing Guide</a>
+<a href="../contributing/vulnerability_management.html">Vulnerability Management</a>
+<div class="section-title">Ci</div>
+<a href="../contributing/ci/failures.html">CI Failures</a>
+<a href="../contributing/ci/nightly_builds.html">Nightly Builds of vLLM Wheels</a>
+<a href="../contributing/ci/update_pytorch_version.html">Update PyTorch version on vLLM OSS CI/CD</a>
+<div class="section-title">Dockerfile</div>
+<a href="../contributing/dockerfile/dockerfile.html">Dockerfile</a>
+<div class="section-title">Model</div>
+<a href="../contributing/model/README.html">Summary</a>
+<a href="../contributing/model/basic.html">Basic Model</a>
+<a href="../contributing/model/multimodal.html">Multi-Modal Support</a>
+<a href="../contributing/model/registration.html">Registering a Model</a>
+<a href="../contributing/model/tests.html">Unit Testing</a>
+<a href="../contributing/model/transcription.html">Speech-to-Text (Transcription/Translation) Support</a>
+<div class="section-title">Deployment</div>
+<a href="../deployment/docker.html">Docker deployment</a>
+<a href="../deployment/elastic_ep.html">Elastic Expert Parallelism</a>
+<a href="../deployment/index.html">Deployment</a>
+<a href="../deployment/k8s.html">Using Kubernetes</a>
+<a href="../deployment/kubernetes.html">Kubernetes deployment</a>
+<a href="../deployment/load_balancing.html">Load balancing</a>
+<a href="../deployment/monitoring.html">Monitoring setup</a>
+<a href="../deployment/multi_node.html">Multi-Node Deployment</a>
+<a href="../deployment/nginx.html">Using Nginx</a>
+<a href="../deployment/production_checklist.html">Production readiness checklist</a>
+<a href="../deployment/ray_cluster.html">Ray Cluster Configuration</a>
+<a href="../deployment/security.html">Security best practices</a>
+<a href="../deployment/ssl_tls.html">SSL/TLS configuration</a>
+<div class="section-title">Frameworks</div>
+<a href="../deployment/frameworks/anyscale.html">Anyscale</a>
+<a href="../deployment/frameworks/anything-llm.html">AnythingLLM</a>
+<a href="../deployment/frameworks/autogen.html">AutoGen</a>
+<a href="../deployment/frameworks/bentoml.html">BentoML</a>
+<a href="../deployment/frameworks/cerebrium.html">Cerebrium</a>
+<a href="../deployment/frameworks/chatbox.html">Chatbox</a>
+<a href="../deployment/frameworks/dify.html">Dify</a>
+<a href="../deployment/frameworks/dstack.html">dstack</a>
+<a href="../deployment/frameworks/haystack.html">Haystack</a>
+<a href="../deployment/frameworks/helm.html">Helm</a>
+<a href="../deployment/frameworks/hf_inference_endpoints.html">Hugging Face Inference Endpoints</a>
+<a href="../deployment/frameworks/litellm.html">LiteLLM</a>
+<a href="../deployment/frameworks/lobe-chat.html">Lobe Chat</a>
+<a href="../deployment/frameworks/lws.html">LWS</a>
+<a href="../deployment/frameworks/modal.html">Modal</a>
+<a href="../deployment/frameworks/open-webui.html">Open WebUI</a>
+<a href="../deployment/frameworks/retrieval_augmented_generation.html">Retrieval-Augmented Generation</a>
+<a href="../deployment/frameworks/runpod.html">RunPod</a>
+<a href="../deployment/frameworks/skypilot.html">SkyPilot</a>
+<a href="../deployment/frameworks/streamlit.html">Streamlit</a>
+<a href="../deployment/frameworks/triton.html">NVIDIA Triton</a>
+<div class="section-title">Integrations</div>
+<a href="../deployment/integrations/aibrix.html">AIBrix</a>
+<a href="../deployment/integrations/dynamo.html">NVIDIA Dynamo</a>
+<a href="../deployment/integrations/kaito.html">KAITO</a>
+<a href="../deployment/integrations/kserve.html">KServe</a>
+<a href="../deployment/integrations/kthena.html">Kthena</a>
+<a href="../deployment/integrations/kubeai.html">KubeAI</a>
+<a href="../deployment/integrations/kuberay.html">KubeRay</a>
+<a href="../deployment/integrations/llamastack.html">Llama Stack</a>
+<a href="../deployment/integrations/llm-d.html">llm-d</a>
+<a href="../deployment/integrations/llmaz.html">llmaz</a>
+<a href="../deployment/integrations/production-stack.html">Production stack</a>
+<div class="section-title">Design</div>
+<a href="../design/arch_overview.html">Architecture Overview</a>
+<a href="../design/attention_backends.html">Attention Backend Feature Support</a>
+<a href="../design/cuda_graphs.html">CUDA Graphs</a>
+<a href="../design/custom_op.html">CustomOp</a>
+<a href="../design/dbo.html">Dual Batch Overlap</a>
+<a href="../design/debug_vllm_compile.html">How to debug the vLLM-torch.compile integration</a>
+<a href="../design/distributed_inference.html">Distributed Inference Design</a>
+<a href="../design/fused_moe_modular_kernel.html">Fused MoE Modular Kernel</a>
+<a href="../design/fusions.html">Fusion torch.compile passes</a>
+<a href="../design/huggingface_integration.html">Integration with Hugging Face</a>
+<a href="../design/hybrid_kv_cache_manager.html">Hybrid KV Cache Manager</a>
+<a href="../design/io_processor_plugins.html">IO Processor Plugins</a>
+<a href="../design/kv_cache_management.html">KV Cache Management</a>
+<a href="../design/logits_processors.html">Logits Processors</a>
+<a href="../design/lora_resolver_plugins.html">LoRA Resolver Plugins</a>
+<a href="../design/metrics.html">Metrics</a>
+<a href="../design/mm_processing.html">Multi-Modal Data Processing</a>
+<a href="../design/model_runner_v2.html">Model Runner V2 Design Document</a>
+<a href="../design/moe_kernel_features.html">Fused MoE Kernel Features</a>
+<a href="../design/multiprocessing.html">Python Multiprocessing</a>
+<a href="../design/optimization_levels.html">Optimization Levels</a>
+<a href="../design/p2p_nccl_connector.html">P2P NCCL Connector</a>
+<a href="../design/paged_attention.html">Paged Attention</a>
+<a href="../design/plugin_system.html">Plugin System</a>
+<a href="../design/prefix_caching.html">Automatic Prefix Caching</a>
+<a href="../design/scheduler.html">Scheduler Design</a>
+<a href="../design/speculative_decoding_design.html">Speculative decoding — internal design</a>
+<a href="../design/torch_compile.html">`torch.compile` integration</a>
+<a href="../design/torch_compile_multimodal.html">torch.compile with Multimodal Encoders</a>
+<a href="../design/v1_engine.html">V1 Engine Architecture</a>
+<div class="section-title">Examples</div>
+<a href="../examples/README.html">Examples</a>
+<a href="../examples/index.html">Examples Overview</a>
+<div class="section-title">Offline Inference</div>
+<a href="../examples/offline_inference/index.html">Offline Inference Examples</a>
+<div class="section-title">Online Serving</div>
+<a href="../examples/online_serving/index.html">Online Serving Examples</a>
+<div class="section-title">Others</div>
+<a href="../examples/others/index.html">Other Examples</a>
+<div class="section-title">Pooling</div>
+<a href="../examples/pooling/index.html">Pooling & Embedding Examples</a>
+<div class="section-title">Features</div>
+<a href="../features/README.html">Features</a>
+<a href="../features/automatic_prefix_caching.html">Automatic Prefix Caching</a>
+<a href="../features/batch_invariance.html">Batch Invariance</a>
+<a href="../features/custom_arguments.html">Custom Arguments</a>
+<a href="../features/custom_logitsprocs.html">Custom Logits Processors</a>
+<a href="../features/disagg_encoder.html">Disaggregated Encoder</a>
+<a href="../features/disagg_prefill.html">Disaggregated Prefilling</a>
+<a href="../features/interleaved_thinking.html">Interleaved Thinking</a>
+<a href="../features/lora.html">LoRA Adapters</a>
+<a href="../features/mooncake_connector_usage.html">MooncakeConnector Usage Guide</a>
+<a href="../features/multimodal_inputs.html">Multimodal Inputs</a>
+<a href="../features/nixl_connector_usage.html">NixlConnector Usage Guide</a>
+<a href="../features/prompt_embeds.html">Prompt Embedding Inputs</a>
+<a href="../features/reasoning_outputs.html">Reasoning Outputs</a>
+<a href="../features/sleep_mode.html">Sleep Mode</a>
+<a href="../features/structured_outputs.html">Structured Outputs</a>
+<a href="../features/tool_calling.html">Tool Calling</a>
+<div class="section-title">Quantization</div>
+<a href="../features/quantization/README.html">Quantization</a>
+<a href="../features/quantization/auto_awq.html">AutoAWQ</a>
+<a href="../features/quantization/awq.html">AWQ</a>
+<a href="../features/quantization/bitsandbytes.html">BitsAndBytes</a>
+<a href="../features/quantization/bnb.html">BitsAndBytes</a>
+<a href="../features/quantization/fp8.html">FP8</a>
+<a href="../features/quantization/gguf.html">GGUF</a>
+<a href="../features/quantization/gptq.html">GPTQ</a>
+<a href="../features/quantization/gptqmodel.html">GPTQModel</a>
+<a href="../features/quantization/inc.html">Intel Quantization Support</a>
+<a href="../features/quantization/index.html">Quantization overview</a>
+<a href="../features/quantization/int4.html">INT4 W4A16</a>
+<a href="../features/quantization/int8.html">INT8 W8A8</a>
+<a href="../features/quantization/kv_cache_quantization.html">KV cache quantization</a>
+<a href="../features/quantization/llm_compressor.html">LLM Compressor</a>
+<a href="../features/quantization/modelopt.html">NVIDIA Model Optimizer</a>
+<a href="../features/quantization/mxfp4.html">MXFP4</a>
+<a href="../features/quantization/quantized_kvcache.html">Quantized KV Cache</a>
+<a href="../features/quantization/quark.html">AMD Quark</a>
+<a href="../features/quantization/torchao.html">TorchAO</a>
+<div class="section-title">Speculative Decoding</div>
+<a href="../features/speculative_decoding/README.html">Speculative decoding</a>
+<a href="../features/speculative_decoding/draft_model.html">Draft Models</a>
+<a href="../features/speculative_decoding/eagle.html">EAGLE draft models</a>
+<a href="../features/speculative_decoding/medusa.html">Medusa</a>
+<a href="../features/speculative_decoding/mlp.html">MLP Draft Models</a>
+<a href="../features/speculative_decoding/mtp.html">MTP (Multi-Token Prediction)</a>
+<a href="../features/speculative_decoding/n_gram.html">N-Gram Speculation</a>
+<a href="../features/speculative_decoding/ngram.html">N-gram speculation (prompt lookup decoding)</a>
+<a href="../features/speculative_decoding/parallel_draft_model.html">Parallel Draft Models</a>
+<a href="../features/speculative_decoding/speculators.html">vllm-project/speculators</a>
+<a href="../features/speculative_decoding/suffix.html">Suffix Decoding</a>
+<div class="section-title">Getting Started</div>
+<a href="../getting_started/first-inference.html">First Inference Walkthrough</a>
+<a href="../getting_started/index.html">Getting Started with vLLM</a>
+<a href="../getting_started/quickstart.html">Quickstart</a>
+<div class="section-title">Installation</div>
+<a href="../getting_started/installation/README.html">Installation</a>
+<a href="../getting_started/installation/cpu.apple.inc.html">--8&lt;-- [start:installation]</a>
+<a href="../getting_started/installation/cpu.arm.inc.html">--8&lt;-- [start:installation]</a>
+<a href="../getting_started/installation/cpu.html">CPU-Only Installation</a>
+<a href="../getting_started/installation/cpu.s390x.inc.html">--8&lt;-- [start:installation]</a>
+<a href="../getting_started/installation/cpu.x86.inc.html">--8&lt;-- [start:installation]</a>
+<a href="../getting_started/installation/device.template.html">Installation</a>
+<a href="../getting_started/installation/from-source.html">Building vLLM from Source</a>
+<a href="../getting_started/installation/gpu-cuda.html">NVIDIA GPU (CUDA) Installation</a>
+<a href="../getting_started/installation/gpu-rocm.html">AMD GPU (ROCm) Installation</a>
+<a href="../getting_started/installation/gpu.cuda.inc.html">--8&lt;-- [start:installation]</a>
+<a href="../getting_started/installation/gpu.html">GPU</a>
+<a href="../getting_started/installation/gpu.rocm.inc.html">--8&lt;-- [start:installation]</a>
+<a href="../getting_started/installation/gpu.xpu.inc.html">--8&lt;-- [start:installation]</a>
+<a href="../getting_started/installation/hpu.html">Intel Gaudi HPU Installation</a>
+<a href="../getting_started/installation/index.html">Installation Overview</a>
+<a href="../getting_started/installation/macos.html">macOS Apple Silicon Installation</a>
+<a href="../getting_started/installation/npu.html">Huawei Ascend NPU Installation</a>
+<a href="../getting_started/installation/python_env_setup.inc.html">Python Env Setup.Inc</a>
+<a href="../getting_started/installation/tpu.html">Google TPU Installation</a>
+<a href="../getting_started/installation/xpu.html">Intel GPU (XPU) Installation</a>
+<div class="section-title">Governance</div>
+<a href="../governance/collaboration.html">Collaboration Policy</a>
+<a href="../governance/committers.html">Committers</a>
+<a href="../governance/index.html">Governance</a>
+<a href="../governance/process.html">Governance Process</a>
+<div class="section-title">Overrides</div>
+<a href="../mkdocs/overrides/main.html">Main</a>
+<div class="section-title">Partials</div>
+<a href="../mkdocs/overrides/partials/toc-item.html">Toc Item</a>
+<div class="section-title">Models</div>
+<a href="../models/adding_model.html">Adding a New Model</a>
+<a href="../models/embedding_models.html">Embedding Models</a>
+<a href="../models/encoder_decoder_models.html">Encoder-Decoder Models</a>
+<a href="../models/generative_models.html">Generative Models</a>
+<a href="../models/index.html">Models Overview</a>
+<a href="../models/model_registry.html">ModelRegistry API</a>
+<a href="../models/multimodal_models.html">Multimodal Models</a>
+<a href="../models/pooling_models.html">Pooling Models</a>
+<a href="../models/supported_models.html">Supported Models</a>
+<div class="section-title">Extensions</div>
+<a href="../models/extensions/fastsafetensor.html">Fastsafetensor</a>
+<a href="../models/extensions/runai_model_streamer.html">Loading models with Run:ai Model Streamer</a>
+<a href="../models/extensions/tensorizer.html">Loading models with CoreWeave's Tensorizer</a>
+<div class="section-title">Hardware Supported Models</div>
+<a href="../models/hardware_supported_models/cpu.html">CPU - Intel® Xeon®</a>
+<a href="../models/hardware_supported_models/xpu.html">XPU - Intel® GPUs</a>
+<div class="section-title">Serving</div>
+<a href="../serving/anthropic_api.html">Anthropic-Compatible API</a>
+<a href="../serving/api_reference.html">API Reference</a>
+<a href="../serving/batch_inference.html">Batch Inference</a>
+<a href="../serving/chat_completions.html">Chat Completions</a>
+<a href="../serving/completions.html">Text Completions</a>
+<a href="../serving/context_parallel_deployment.html">Context Parallel Deployment</a>
+<a href="../serving/data_parallel_deployment.html">Data Parallel Deployment</a>
+<a href="../serving/distributed_troubleshooting.html">Troubleshooting distributed deployments</a>
+<a href="../serving/embeddings.html">Embeddings</a>
+<a href="../serving/expert_parallel_deployment.html">Expert Parallel Deployment</a>
+<a href="../serving/grpc_server.html">gRPC Server</a>
+<a href="../serving/index.html">Serving Overview</a>
+<a href="../serving/multimodal_serving.html">Serving Multimodal Models</a>
+<a href="../serving/offline_inference.html">Offline Inference</a>
+<a href="../serving/openai_compatible_server.html">OpenAI-Compatible Server</a>
+<a href="../serving/parallelism_scaling.html">Parallelism and Scaling</a>
+<a href="../serving/realtime_api.html">Realtime API (WebSocket)</a>
+<a href="../serving/responses_api.html">Responses API</a>
+<a href="../serving/sagemaker.html">AWS SageMaker Integration</a>
+<a href="../serving/speech_to_text.html">Speech-to-Text</a>
+<a href="../serving/streaming.html">Streaming Responses</a>
+<div class="section-title">Integrations</div>
+<a href="../serving/integrations/claude_code.html">Claude Code</a>
+<a href="../serving/integrations/langchain.html">LangChain</a>
+<a href="../serving/integrations/llamaindex.html">LlamaIndex</a>
+<div class="section-title">Training</div>
+<a href="../training/index.html">Training Integration</a>
+<a href="../training/rlhf.html">Reinforcement Learning from Human Feedback</a>
+<a href="../training/trl.html">Transformers Reinforcement Learning</a>
+<a href="../training/weight_transfer_api.html">Weight Transfer API</a>
+<div class="section-title">Usage</div>
+<a href="../usage/README.html">Using vLLM</a>
+<a href="../usage/beam_search.html">Beam Search Decoding</a>
+<a href="../usage/chat_templates.html">Chat Templates</a>
+<a href="../usage/faq.html">Frequently Asked Questions</a>
+<a href="../usage/index.html">Usage Guide</a>
+<a href="../usage/logprobs.html">Log Probabilities Guide</a>
+<a href="../usage/metrics.html">Production Metrics</a>
+<a href="../usage/offline_inference.html">Offline Inference</a>
+<a href="../usage/output_types.html">Output Types Reference</a>
+<a href="../usage/pooling_params.html">PoolingParams Reference</a>
+<a href="../usage/reproducibility.html">Reproducibility</a>
+<a href="../usage/sampling_params.html">SamplingParams Reference</a>
+<a href="../usage/security.html">Security</a>
+<a href="../usage/tokenization.html">Tokenization</a>
+<a href="../usage/tool_templates.html">Tool Calling Jinja Templates</a>
+<a href="../usage/troubleshooting.html">Troubleshooting</a>
+<a href="../usage/usage_stats.html">Usage Stats Collection</a>
+<a href="../usage/v1_guide.html">vLLM V1</a>
+</div>
+</nav>
+<main>
+<div class="breadcrumb"><a href="../index.html">Home</a> &rsaquo; <a href="../features/README.html">Features</a> &rsaquo; Multimodal Inputs</div>
+<h1>Multimodal Inputs</h1>
+<h1 id="multimodal-inputs">Multimodal Inputs</h1>
+<p>This page teaches you how to pass multi-modal inputs to <a href="../models/supported_models.html#list-of-multimodal-language-models">multi-modal models</a> in vLLM.</p>
+<p>!!! note
+    We are actively iterating on multi-modal support. See <a href="https://github.com/vllm-project/vllm/issues/4194">this RFC</a> for upcoming changes,
+    and <a href="https://github.com/vllm-project/vllm/issues/new/choose">open an issue on GitHub</a> if you have any feedback or feature requests.</p>
+<p>!!! tip
+    When serving multi-modal models, consider setting <code>--allowed-media-domains</code> to restrict domain that vLLM can access to prevent it from accessing arbitrary endpoints that can potentially be vulnerable to Server-Side Request Forgery (SSRF) attacks. You can provide a list of domains for this arg. For example: <code>--allowed-media-domains upload.wikimedia.org github.com www.bogotobogo.com</code></p>
+<pre class="highlight"><code>Also, consider setting `VLLM_MEDIA_URL_ALLOW_REDIRECTS=0` to prevent HTTP redirects from being followed to bypass domain restrictions.
+
+This restriction is especially important if you run vLLM in a containerized environment where the vLLM pods may have unrestricted access to internal networks.
+</code></pre>
+
+<h2 id="offline-inference">Offline Inference<a href="#offline-inference" class="heading-anchor" aria-label="Link">#</a></h2>
+<p>To input multi-modal data, follow this schema in [vllm.inputs.PromptType][]:</p>
+<ul>
+<li><code>prompt</code>: The prompt should follow the format that is documented on HuggingFace.</li>
+<li><code>multi_modal_data</code>: This is a dictionary that follows the schema defined in [vllm.multimodal.inputs.MultiModalDataDict][].</li>
+</ul>
+<h3 id="image-inputs">Image Inputs<a href="#image-inputs" class="heading-anchor" aria-label="Link">#</a></h3>
+<p>You can pass a single image to the <code>'image'</code> field of the multi-modal dictionary, as shown in the following examples:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+from vllm import LLM
+
+llm = LLM(model=&quot;llava-hf/llava-1.5-7b-hf&quot;)
+
+# Refer to the HuggingFace repo for the correct format to use
+prompt = &quot;USER: &lt;image&gt;\nWhat is the content of this image?\nASSISTANT:&quot;
+
+# Load the image using PIL.Image
+image = PIL.Image.open(...)
+
+# Single prompt inference
+outputs = llm.generate({
+    &quot;prompt&quot;: prompt,
+    &quot;multi_modal_data&quot;: {&quot;image&quot;: image},
+})
+
+for o in outputs:
+    generated_text = o.outputs[0].text
+    print(generated_text)
+
+# Batch inference
+image_1 = PIL.Image.open(...)
+image_2 = PIL.Image.open(...)
+outputs = llm.generate(
+    [
+        {
+            &quot;prompt&quot;: &quot;USER: &lt;image&gt;\nWhat is the content of this image?\nASSISTANT:&quot;,
+            &quot;multi_modal_data&quot;: {&quot;image&quot;: image_1},
+        },
+        {
+            &quot;prompt&quot;: &quot;USER: &lt;image&gt;\nWhat's the color of this image?\nASSISTANT:&quot;,
+            &quot;multi_modal_data&quot;: {&quot;image&quot;: image_2},
+        }
+    ]
+)
+
+for o in outputs:
+    generated_text = o.outputs[0].text
+    print(generated_text)
+```
+</code></pre>
+
+<p>Full example: <a href="../../examples/offline_inference/vision_language.py">examples/offline_inference/vision_language.py</a></p>
+<p>To substitute multiple images inside the same text prompt, you can pass in a list of images instead:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+from vllm import LLM
+
+llm = LLM(
+    model=&quot;microsoft/Phi-3.5-vision-instruct&quot;,
+    trust_remote_code=True,  # Required to load Phi-3.5-vision
+    max_model_len=4096,  # Otherwise, it may not fit in smaller GPUs
+    limit_mm_per_prompt={&quot;image&quot;: 2},  # The maximum number to accept
+)
+
+# Refer to the HuggingFace repo for the correct format to use
+prompt = &quot;&lt;|user|&gt;\n&lt;|image_1|&gt;\n&lt;|image_2|&gt;\nWhat is the content of each image?&lt;|end|&gt;\n&lt;|assistant|&gt;\n&quot;
+
+# Load the images using PIL.Image
+image1 = PIL.Image.open(...)
+image2 = PIL.Image.open(...)
+
+outputs = llm.generate({
+    &quot;prompt&quot;: prompt,
+    &quot;multi_modal_data&quot;: {&quot;image&quot;: [image1, image2]},
+})
+
+for o in outputs:
+    generated_text = o.outputs[0].text
+    print(generated_text)
+```
+</code></pre>
+
+<p>Full example: <a href="../../examples/offline_inference/vision_language_multi_image.py">examples/offline_inference/vision_language_multi_image.py</a></p>
+<p>If using the <a href="../models/generative_models.html#llmchat">LLM.chat</a> method, you can pass images directly in the message content using various formats: image URLs, PIL Image objects, or pre-computed embeddings:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+from vllm import LLM
+from vllm.assets.image import ImageAsset
+
+llm = LLM(model=&quot;llava-hf/llava-1.5-7b-hf&quot;)
+image_url = &quot;https://picsum.photos/id/32/512/512&quot;
+image_pil = ImageAsset('cherry_blossom').pil_image
+image_embeds = torch.load(...)
+
+conversation = [
+    {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;You are a helpful assistant&quot;},
+    {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Hello&quot;},
+    {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;Hello! How can I assist you today?&quot;},
+    {
+        &quot;role&quot;: &quot;user&quot;,
+        &quot;content&quot;: [
+            {
+                &quot;type&quot;: &quot;image_url&quot;,
+                &quot;image_url&quot;: {&quot;url&quot;: image_url},
+            },
+            {
+                &quot;type&quot;: &quot;image_pil&quot;,
+                &quot;image_pil&quot;: image_pil,
+            },
+            {
+                &quot;type&quot;: &quot;image_embeds&quot;,
+                &quot;image_embeds&quot;: image_embeds,
+            },
+            {
+                &quot;type&quot;: &quot;text&quot;,
+                &quot;text&quot;: &quot;What's in these images?&quot;,
+            },
+        ],
+    },
+]
+
+# Perform inference and log output.
+outputs = llm.chat(conversation)
+
+for o in outputs:
+    generated_text = o.outputs[0].text
+    print(generated_text)
+```
+</code></pre>
+
+<p>Multi-image input can be extended to perform video captioning. We show this with <a href="https://huggingface.co/Qwen/Qwen2-VL-2B-Instruct">Qwen2-VL</a> as it supports videos:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+from vllm import LLM
+
+# Specify the maximum number of frames per video to be 4. This can be changed.
+llm = LLM(&quot;Qwen/Qwen2-VL-2B-Instruct&quot;, limit_mm_per_prompt={&quot;image&quot;: 4})
+
+# Create the request payload.
+video_frames = ... # load your video making sure it only has the number of frames specified earlier.
+message = {
+    &quot;role&quot;: &quot;user&quot;,
+    &quot;content&quot;: [
+        {
+            &quot;type&quot;: &quot;text&quot;,
+            &quot;text&quot;: &quot;Describe this set of frames. Consider the frames to be a part of the same video.&quot;,
+        },
+    ],
+}
+for i in range(len(video_frames)):
+    base64_image = encode_image(video_frames[i]) # base64 encoding.
+    new_image = {&quot;type&quot;: &quot;image_url&quot;, &quot;image_url&quot;: {&quot;url&quot;: f&quot;data:image/jpeg;base64,{base64_image}&quot;}}
+    message[&quot;content&quot;].append(new_image)
+
+# Perform inference and log output.
+outputs = llm.chat([message])
+
+for o in outputs:
+    generated_text = o.outputs[0].text
+    print(generated_text)
+```
+</code></pre>
+
+<h4 id="custom-rgba-background-color">Custom RGBA Background Color</h4>
+<p>When loading RGBA images (images with transparency), vLLM converts them to RGB format. By default, transparent pixels are replaced with white background. You can customize this background color using the <code>rgba_background_color</code> parameter in <code>media_io_kwargs</code>.</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+from vllm import LLM
+
+# Default white background (no configuration needed)
+llm = LLM(model=&quot;llava-hf/llava-1.5-7b-hf&quot;)
+
+# Custom black background for dark theme
+llm = LLM(
+    model=&quot;llava-hf/llava-1.5-7b-hf&quot;,
+    media_io_kwargs={&quot;image&quot;: {&quot;rgba_background_color&quot;: [0, 0, 0]}},
+)
+
+# Custom brand color background (e.g., blue)
+llm = LLM(
+    model=&quot;llava-hf/llava-1.5-7b-hf&quot;,
+    media_io_kwargs={&quot;image&quot;: {&quot;rgba_background_color&quot;: [0, 0, 255]}},
+)
+```
+</code></pre>
+
+<p>!!! note
+    - The <code>rgba_background_color</code> accepts RGB values as a list <code>[R, G, B]</code> or tuple <code>(R, G, B)</code> where each value is 0-255
+    - This setting only affects RGBA images with transparency; RGB images are unchanged
+    - If not specified, the default white background <code>(255, 255, 255)</code> is used for backward compatibility</p>
+<h3 id="video-inputs">Video Inputs<a href="#video-inputs" class="heading-anchor" aria-label="Link">#</a></h3>
+<p>vLLM supports native video input through the <code>'video'</code> field of the multi-modal dictionary. You can pass video data as NumPy arrays, PyTorch tensors, raw bytes, or a URL/file path.</p>
+<h4 id="numpy-array-input">NumPy Array Input</h4>
+<p>Pass a list of NumPy arrays (one per frame) or a 4-D array of shape <code>(num_frames, height, width, channels)</code>:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+import numpy as np
+from vllm import LLM, SamplingParams
+
+# Load video frames as a NumPy array: (num_frames, H, W, 3)
+# Each frame should be in RGB format with uint8 dtype
+video_frames = np.stack([...])  # shape: (16, 480, 640, 3)
+
+llm = LLM(
+    model=&quot;llava-hf/llava-onevision-qwen2-0.5b-ov-hf&quot;,
+    limit_mm_per_prompt={&quot;video&quot;: 1},
+)
+
+sampling_params = SamplingParams(temperature=0.0, max_tokens=256)
+
+outputs = llm.generate(
+    {
+        &quot;prompt&quot;: &quot;&lt;video&gt;\nDescribe what is happening in this video.&quot;,
+        &quot;multi_modal_data&quot;: {&quot;video&quot;: video_frames},
+    },
+    sampling_params=sampling_params,
+)
+
+print(outputs[0].outputs[0].text)
+```
+</code></pre>
+
+<h4 id="pytorch-tensor-input">PyTorch Tensor Input</h4>
+<p>You can also pass <code>torch.Tensor</code> instances, as shown in this example using Qwen2.5-VL:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+from transformers import AutoProcessor
+from vllm import LLM, SamplingParams
+from qwen_vl_utils import process_vision_info
+
+model_path = &quot;Qwen/Qwen2.5-VL-3B-Instruct&quot;
+video_path = &quot;https://content.pexels.com/videos/free-videos.mp4&quot;
+
+llm = LLM(
+    model=model_path,
+    gpu_memory_utilization=0.8,
+    enforce_eager=True,
+    limit_mm_per_prompt={&quot;video&quot;: 1},
+)
+
+sampling_params = SamplingParams(max_tokens=1024)
+
+video_messages = [
+    {
+        &quot;role&quot;: &quot;system&quot;,
+        &quot;content&quot;: &quot;You are a helpful assistant.&quot;,
+    },
+    {
+        &quot;role&quot;: &quot;user&quot;,
+        &quot;content&quot;: [
+            {&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: &quot;describe this video.&quot;},
+            {
+                &quot;type&quot;: &quot;video&quot;,
+                &quot;video&quot;: video_path,
+                &quot;total_pixels&quot;: 20480 * 28 * 28,
+                &quot;min_pixels&quot;: 16 * 28 * 28,
+            },
+        ]
+    },
+]
+
+messages = video_messages
+processor = AutoProcessor.from_pretrained(model_path)
+prompt = processor.apply_chat_template(
+    messages,
+    tokenize=False,
+    add_generation_prompt=True,
+)
+
+image_inputs, video_inputs = process_vision_info(messages)
+mm_data = {}
+if video_inputs is not None:
+    mm_data[&quot;video&quot;] = video_inputs
+
+llm_inputs = {
+    &quot;prompt&quot;: prompt,
+    &quot;multi_modal_data&quot;: mm_data,
+}
+
+outputs = llm.generate([llm_inputs], sampling_params=sampling_params)
+for o in outputs:
+    generated_text = o.outputs[0].text
+    print(generated_text)
+```
+
+!!! note
+    'process_vision_info' is only applicable to Qwen2.5-VL and similar models.
+</code></pre>
+
+<h4 id="video-with-metadata">Video with Metadata</h4>
+<p>For models that support video metadata (such as FPS and duration), you can pass a tuple of <code>(frames, metadata_dict)</code>:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+import numpy as np
+from vllm import LLM, SamplingParams
+
+# Load video frames
+video_frames = np.stack([...])  # shape: (32, 480, 640, 3)
+
+# Provide metadata alongside the frames
+video_metadata = {
+    &quot;fps&quot;: 2.0,
+    &quot;duration&quot;: 16.0,
+    &quot;total_num_frames&quot;: 32,
+}
+
+llm = LLM(
+    model=&quot;Qwen/Qwen2.5-VL-7B-Instruct&quot;,
+    limit_mm_per_prompt={&quot;video&quot;: 1},
+)
+
+sampling_params = SamplingParams(temperature=0.0, max_tokens=512)
+
+outputs = llm.generate(
+    {
+        &quot;prompt&quot;: &quot;&lt;video&gt;\nSummarize the key events in this video.&quot;,
+        &quot;multi_modal_data&quot;: {&quot;video&quot;: (video_frames, video_metadata)},
+    },
+    sampling_params=sampling_params,
+)
+
+print(outputs[0].outputs[0].text)
+```
+</code></pre>
+
+<h4 id="multiple-videos-in-one-prompt">Multiple Videos in One Prompt</h4>
+<p>Some models support multiple videos in a single prompt. Use a list in the <code>'video'</code> field:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+import numpy as np
+from vllm import LLM, SamplingParams
+
+video_a = np.stack([...])  # shape: (16, 480, 640, 3)
+video_b = np.stack([...])  # shape: (24, 480, 640, 3)
+
+llm = LLM(
+    model=&quot;llava-hf/llava-onevision-qwen2-7b-ov-hf&quot;,
+    limit_mm_per_prompt={&quot;video&quot;: 2},
+)
+
+sampling_params = SamplingParams(temperature=0.0, max_tokens=512)
+
+outputs = llm.generate(
+    {
+        &quot;prompt&quot;: &quot;&lt;video&gt;&lt;video&gt;\nCompare the two videos and describe the differences.&quot;,
+        &quot;multi_modal_data&quot;: {&quot;video&quot;: [video_a, video_b]},
+    },
+    sampling_params=sampling_params,
+)
+
+print(outputs[0].outputs[0].text)
+```
+</code></pre>
+
+<h4 id="loading-video-from-file-with-opencv">Loading Video from File with OpenCV</h4>
+<p>vLLM includes built-in video loading utilities using OpenCV. You can use the <code>VideoLoader</code> registry to load video bytes directly:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+import numpy as np
+from vllm import LLM, SamplingParams
+from vllm.multimodal.video import VIDEO_LOADER_REGISTRY
+
+# Load video bytes from a file
+with open(&quot;my_video.mp4&quot;, &quot;rb&quot;) as f:
+    video_bytes = f.read()
+
+# Use the registered OpenCV dynamic loader
+loader_cls = VIDEO_LOADER_REGISTRY.get(&quot;opencv_dynamic&quot;)
+frames, metadata = loader_cls.load_bytes(
+    video_bytes,
+    fps=2,            # Sample at 2 frames per second
+    max_duration=60,  # Process at most 60 seconds
+)
+
+llm = LLM(
+    model=&quot;Qwen/Qwen2.5-VL-3B-Instruct&quot;,
+    limit_mm_per_prompt={&quot;video&quot;: 1},
+)
+
+sampling_params = SamplingParams(temperature=0.0, max_tokens=256)
+
+outputs = llm.generate(
+    {
+        &quot;prompt&quot;: &quot;&lt;video&gt;\nWhat is happening in this video?&quot;,
+        &quot;multi_modal_data&quot;: {&quot;video&quot;: (frames, metadata)},
+    },
+    sampling_params=sampling_params,
+)
+
+print(outputs[0].outputs[0].text)
+```
+</code></pre>
+
+<p>Full example: <a href="../../examples/offline_inference/vision_language.py">examples/offline_inference/vision_language.py</a></p>
+<h3 id="audio-inputs">Audio Inputs<a href="#audio-inputs" class="heading-anchor" aria-label="Link">#</a></h3>
+<p>You can pass a tuple <code>(array, sampling_rate)</code> to the <code>'audio'</code> field of the multi-modal dictionary.</p>
+<h4 id="basic-audio-input">Basic Audio Input</h4>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+import librosa
+from vllm import LLM, SamplingParams
+
+# Load audio file — librosa returns a float32 numpy array and sample rate
+audio_array, sampling_rate = librosa.load(&quot;speech.wav&quot;, sr=16000)
+
+llm = LLM(model=&quot;fixie-ai/ultravox-v0_5-llama-3_2-1b&quot;)
+sampling_params = SamplingParams(temperature=0.0, max_tokens=256)
+
+outputs = llm.generate(
+    {
+        &quot;prompt&quot;: &quot;&lt;|audio|&gt;\nWhat is being said in this audio?&quot;,
+        &quot;multi_modal_data&quot;: {&quot;audio&quot;: (audio_array, sampling_rate)},
+    },
+    sampling_params=sampling_params,
+)
+
+print(outputs[0].outputs[0].text)
+```
+</code></pre>
+
+<h4 id="audio-transcription-with-whisper">Audio Transcription with Whisper</h4>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+import librosa
+from vllm import LLM, SamplingParams
+
+audio, sr = librosa.load(&quot;speech.wav&quot;, sr=16000)
+
+llm = LLM(model=&quot;openai/whisper-large-v3-turbo&quot;)
+sampling_params = SamplingParams(temperature=0, max_tokens=256)
+
+outputs = llm.generate(
+    {
+        # Whisper uses a special prompt format with language/task tokens
+        &quot;prompt&quot;: &quot;&lt;|startoftranscript|&gt;&lt;|en|&gt;&lt;|transcribe|&gt;&lt;|notimestamps|&gt;&quot;,
+        &quot;multi_modal_data&quot;: {&quot;audio&quot;: (audio, sr)},
+    },
+    sampling_params=sampling_params,
+)
+
+print(outputs[0].outputs[0].text)
+```
+</code></pre>
+
+<h4 id="multiple-audio-inputs">Multiple Audio Inputs</h4>
+<p>Some models accept multiple audio clips in a single prompt. Pass a list to the <code>'audio'</code> field:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+import librosa
+from vllm import LLM, SamplingParams
+
+audio1, sr1 = librosa.load(&quot;clip1.wav&quot;, sr=16000)
+audio2, sr2 = librosa.load(&quot;clip2.wav&quot;, sr=16000)
+
+llm = LLM(
+    model=&quot;Qwen/Qwen2-Audio-7B-Instruct&quot;,
+    limit_mm_per_prompt={&quot;audio&quot;: 2},
+)
+
+sampling_params = SamplingParams(temperature=0.0, max_tokens=512)
+
+outputs = llm.generate(
+    {
+        &quot;prompt&quot;: &quot;&lt;|audio_bos|&gt;&lt;|AUDIO|&gt;&lt;|audio_eos|&gt;&lt;|audio_bos|&gt;&lt;|AUDIO|&gt;&lt;|audio_eos|&gt;\nCompare these two audio clips.&quot;,
+        &quot;multi_modal_data&quot;: {&quot;audio&quot;: [(audio1, sr1), (audio2, sr2)]},
+    },
+    sampling_params=sampling_params,
+)
+
+print(outputs[0].outputs[0].text)
+```
+</code></pre>
+
+<h4 id="chunking-long-audio-for-transcription">Chunking Long Audio for Transcription</h4>
+<p>Speech-to-text models like Whisper have a maximum audio length they can process (typically 30 seconds). For longer audio files, vLLM provides a utility to intelligently split audio into chunks at quiet points to minimize cutting through speech.</p>
+<pre class="highlight"><code class="language-python">import librosa
+from vllm import LLM, SamplingParams
+from vllm.multimodal.audio import split_audio
+
+# Load long audio file
+audio, sr = librosa.load("long_audio.wav", sr=16000)
+
+# Split into chunks at low-energy (quiet) regions
+chunks = split_audio(
+    audio_data=audio,
+    sample_rate=sr,
+    max_clip_duration_s=30.0,      # Maximum chunk length in seconds
+    overlap_duration_s=1.0,         # Search window for finding quiet split points
+    min_energy_window_size=1600,    # Window size for energy calculation (~100ms at 16kHz)
+)
+
+# Initialize Whisper model
+llm = LLM(model="openai/whisper-large-v3-turbo")
+sampling_params = SamplingParams(temperature=0, max_tokens=256)
+
+# Transcribe each chunk
+transcriptions = []
+for chunk in chunks:
+    outputs = llm.generate({
+        "prompt": "&lt;|startoftranscript|&gt;&lt;|en|&gt;&lt;|transcribe|&gt;&lt;|notimestamps|&gt;",
+        "multi_modal_data": {"audio": (chunk, sr)},
+    }, sampling_params)
+    transcriptions.append(outputs[0].outputs[0].text)
+
+# Combine results
+full_transcription = " ".join(transcriptions)</code></pre>
+<p>The <code>split_audio</code> function:</p>
+<ul>
+<li>Splits audio at quiet points to avoid cutting through speech</li>
+<li>Uses RMS energy to find low-amplitude regions within the overlap window</li>
+<li>Preserves all audio samples (no data loss)</li>
+<li>Supports any sample rate</li>
+</ul>
+<h4 id="automatic-audio-channel-normalization">Automatic Audio Channel Normalization</h4>
+<p>vLLM automatically normalizes audio channels for models that require specific audio formats. When loading audio with libraries like <code>torchaudio</code>, stereo files return shape <code>[channels, time]</code>, but many audio models (particularly Whisper-based models) expect mono audio with shape <code>[time]</code>.</p>
+<p><strong>Supported models with automatic mono conversion:</strong></p>
+<ul>
+<li><strong>Whisper</strong> and all Whisper-based models</li>
+<li><strong>Qwen2-Audio</strong></li>
+<li><strong>Qwen2.5-Omni</strong> / <strong>Qwen3-Omni</strong> (inherits from Qwen2.5-Omni)</li>
+<li><strong>Ultravox</strong></li>
+</ul>
+<p>For these models, vLLM automatically:</p>
+<ol>
+<li>Detects if the model requires mono audio via the feature extractor</li>
+<li>Converts multi-channel audio to mono using channel averaging</li>
+<li>Handles both <code>(channels, time)</code> format (torchaudio) and <code>(time, channels)</code> format (soundfile)</li>
+</ol>
+<p><strong>Example with stereo audio:</strong></p>
+<pre class="highlight"><code class="language-python">import torchaudio
+from vllm import LLM
+
+# Load stereo audio file - returns (channels, time) shape
+audio, sr = torchaudio.load("stereo_audio.wav")
+print(f"Original shape: {audio.shape}")  # e.g., torch.Size([2, 16000])
+
+# vLLM automatically converts to mono for Whisper-based models
+llm = LLM(model="openai/whisper-large-v3")
+
+outputs = llm.generate({
+    "prompt": "",
+    "multi_modal_data": {"audio": (audio.numpy(), sr)},
+})</code></pre>
+<p>No manual conversion is needed - vLLM handles the channel normalization automatically based on the model's requirements.</p>
+<p>Full example: <a href="../../examples/offline_inference/audio_language.py">examples/offline_inference/audio_language.py</a></p>
+<h3 id="mixed-modality-inputs">Mixed Modality Inputs<a href="#mixed-modality-inputs" class="heading-anchor" aria-label="Link">#</a></h3>
+<p>Some models support combining multiple modalities in a single prompt. For example, Qwen2.5-Omni and Qwen3-Omni can process both images and audio simultaneously:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+import librosa
+from PIL import Image
+from vllm import LLM, SamplingParams
+
+llm = LLM(
+    model=&quot;Qwen/Qwen2.5-Omni-7B&quot;,
+    limit_mm_per_prompt={&quot;image&quot;: 1, &quot;audio&quot;: 1},
+)
+
+image = Image.open(&quot;scene.jpg&quot;)
+audio, sr = librosa.load(&quot;narration.wav&quot;, sr=16000)
+
+sampling_params = SamplingParams(temperature=0.0, max_tokens=512)
+
+outputs = llm.generate(
+    {
+        &quot;prompt&quot;: &quot;&lt;image&gt;&lt;audio&gt;\nDescribe what you see and hear.&quot;,
+        &quot;multi_modal_data&quot;: {
+            &quot;image&quot;: image,
+            &quot;audio&quot;: (audio, sr),
+        },
+    },
+    sampling_params=sampling_params,
+)
+
+print(outputs[0].outputs[0].text)
+```
+</code></pre>
+
+<h3 id="embedding-inputs">Embedding Inputs<a href="#embedding-inputs" class="heading-anchor" aria-label="Link">#</a></h3>
+<p>To input pre-computed embeddings belonging to a data type (i.e. image, video, or audio) directly to the language model,
+pass a tensor of shape <code>(..., hidden_size of LM)</code> to the corresponding field of the multi-modal dictionary.
+The exact shape depends on the model being used.</p>
+<p>You must enable this feature via <code>enable_mm_embeds=True</code>.</p>
+<p>!!! warning
+    The vLLM engine may crash if incorrect shape of embeddings is passed.
+    Only enable this flag for trusted users!</p>
+<h4 id="image-embeddings">Image Embeddings</h4>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+from vllm import LLM
+
+# Inference with image embeddings as input
+llm = LLM(model=&quot;llava-hf/llava-1.5-7b-hf&quot;, enable_mm_embeds=True)
+
+# Refer to the HuggingFace repo for the correct format to use
+prompt = &quot;USER: &lt;image&gt;\nWhat is the content of this image?\nASSISTANT:&quot;
+
+# For most models, `image_embeds` has shape: (num_images, image_feature_size, hidden_size)
+image_embeds = torch.load(...)
+
+outputs = llm.generate({
+    &quot;prompt&quot;: prompt,
+    &quot;multi_modal_data&quot;: {&quot;image&quot;: image_embeds},
+})
+
+for o in outputs:
+    generated_text = o.outputs[0].text
+    print(generated_text)
+
+# Additional examples for models that require extra fields
+llm = LLM(
+    &quot;Qwen/Qwen2-VL-2B-Instruct&quot;,
+    limit_mm_per_prompt={&quot;image&quot;: 4},
+    enable_mm_embeds=True,
+)
+mm_data = {
+    &quot;image&quot;: {
+        # Shape: (total_feature_size, hidden_size)
+        # total_feature_size = sum(image_feature_size for image in images)
+        &quot;image_embeds&quot;: torch.load(...),
+        # Shape: (num_images, 3)
+        # image_grid_thw is needed to calculate positional encoding.
+        &quot;image_grid_thw&quot;: torch.load(...),
+    }
+}
+
+llm = LLM(
+    &quot;openbmb/MiniCPM-V-2_6&quot;,
+    trust_remote_code=True,
+    limit_mm_per_prompt={&quot;image&quot;: 4},
+    enable_mm_embeds=True,
+)
+mm_data = {
+    &quot;image&quot;: {
+        # Shape: (num_images, num_slices, hidden_size)
+        # num_slices can differ for each image
+        &quot;image_embeds&quot;: [torch.load(...) for image in images],  
+        # Shape: (num_images, 2)
+        # image_sizes is needed to calculate details of the sliced image.
+        &quot;image_sizes&quot;: [image.size for image in images],
+    }
+}
+```
+</code></pre>
+
+<p>For Qwen3-VL, the <code>image_embeds</code> should contain both the base image embedding and deepstack features.</p>
+<h4 id="audio-embedding-inputs">Audio Embedding Inputs</h4>
+<p>You can pass pre-computed audio embeddings similar to image embeddings:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+from vllm import LLM
+import torch
+
+# Enable audio embeddings support
+llm = LLM(model=&quot;fixie-ai/ultravox-v0_5-llama-3_2-1b&quot;, enable_mm_embeds=True)
+
+# Refer to the HuggingFace repo for the correct format to use
+prompt = &quot;USER: &lt;audio&gt;\nWhat is in this audio?\nASSISTANT:&quot;
+
+# Load pre-computed audio embeddings, usually with shape:
+# (num_audios, audio_feature_size, hidden_size of LM)
+audio_embeds = torch.load(...)
+
+outputs = llm.generate({
+    &quot;prompt&quot;: prompt,
+    &quot;multi_modal_data&quot;: {&quot;audio&quot;: audio_embeds},
+})
+
+for o in outputs:
+    generated_text = o.outputs[0].text
+    print(generated_text)
+```
+</code></pre>
+
+<h3 id="cached-inputs">Cached Inputs<a href="#cached-inputs" class="heading-anchor" aria-label="Link">#</a></h3>
+<p>When using multi-modal inputs, vLLM normally hashes each media item by content to enable caching across requests. You can optionally pass <code>multi_modal_uuids</code> to provide your own stable IDs for each item so caching can reuse work across requests without rehashing the raw content.</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+from vllm import LLM
+from PIL import Image
+
+# Qwen2.5-VL example with two images
+llm = LLM(model=&quot;Qwen/Qwen2.5-VL-3B-Instruct&quot;)
+
+prompt = &quot;USER: &lt;image&gt;&lt;image&gt;\nDescribe the differences.\nASSISTANT:&quot;
+img_a = Image.open(&quot;/path/to/a.jpg&quot;)
+img_b = Image.open(&quot;/path/to/b.jpg&quot;)
+
+outputs = llm.generate({
+    &quot;prompt&quot;: prompt,
+    &quot;multi_modal_data&quot;: {&quot;image&quot;: [img_a, img_b]},
+    # Provide stable IDs for caching.
+    # Requirements (matched by this example):
+    #  - Include every modality present in multi_modal_data.
+    #  - For lists, provide the same number of entries.
+    #  - Use None to fall back to content hashing for that item.
+    &quot;multi_modal_uuids&quot;: {&quot;image&quot;: [&quot;sku-1234-a&quot;, None]},
+})
+
+for o in outputs:
+    print(o.outputs[0].text)
+```
+</code></pre>
+
+<p>Using UUIDs, you can also skip sending media data entirely if you expect cache hits for respective items. Note that the request will fail if the skipped media doesn't have a corresponding UUID, or if the UUID fails to hit the cache.</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+from vllm import LLM
+from PIL import Image
+
+# Qwen2.5-VL example with two images
+llm = LLM(model=&quot;Qwen/Qwen2.5-VL-3B-Instruct&quot;)
+
+prompt = &quot;USER: &lt;image&gt;&lt;image&gt;\nDescribe the differences.\nASSISTANT:&quot;
+img_b = Image.open(&quot;/path/to/b.jpg&quot;)
+
+outputs = llm.generate({
+    &quot;prompt&quot;: prompt,
+    &quot;multi_modal_data&quot;: {&quot;image&quot;: [None, img_b]},
+    # Since img_a is expected to be cached, we can skip sending the actual
+    # image entirely.
+    &quot;multi_modal_uuids&quot;: {&quot;image&quot;: [&quot;sku-1234-a&quot;, None]},
+})
+
+for o in outputs:
+    print(o.outputs[0].text)
+```
+</code></pre>
+
+<p>!!! warning
+    If both multimodal processor caching and prefix caching are disabled, user-provided <code>multi_modal_uuids</code> are ignored.</p>
+<h2 id="online-serving">Online Serving<a href="#online-serving" class="heading-anchor" aria-label="Link">#</a></h2>
+<p>Our OpenAI-compatible server accepts multi-modal data via the <a href="https://platform.openai.com/docs/api-reference/chat">Chat Completions API</a>. Media inputs also support optional UUIDs users can provide to uniquely identify each media, which is used to cache the media results across requests.</p>
+<p>!!! important
+    A chat template is <strong>required</strong> to use Chat Completions API.
+    For HF format models, the default chat template is defined inside <code>chat_template.json</code> or <code>tokenizer_config.json</code>.</p>
+<pre class="highlight"><code>If no default chat template is available, we will first look for a built-in fallback in [vllm/transformers_utils/chat_templates/registry.py](../../vllm/transformers_utils/chat_templates/registry.py).
+If no fallback is available, an error is raised and you have to provide the chat template manually via the `--chat-template` argument.
+
+For certain models, we provide alternative chat templates inside [examples](../../examples).
+For example, VLM2Vec uses [examples/pooling/embed/template/vlm2vec_phi3v.jinja](../../examples/pooling/embed/template/vlm2vec_phi3v.jinja) which is different from the default one for Phi-3-Vision.
+</code></pre>
+
+<h3 id="image-inputs_1">Image Inputs<a href="#image-inputs_1" class="heading-anchor" aria-label="Link">#</a></h3>
+<p>Image input is supported according to <a href="https://platform.openai.com/docs/guides/vision">OpenAI Vision API</a>.
+Here is a simple example using Phi-3.5-Vision.</p>
+<p>First, launch the OpenAI-compatible server:</p>
+<pre class="highlight"><code class="language-bash">vllm serve microsoft/Phi-3.5-vision-instruct --runner generate \
+  --trust-remote-code --max-model-len 4096 --limit-mm-per-prompt.image 2</code></pre>
+<p>Then, you can use the OpenAI client as follows:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+import os
+from openai import OpenAI
+
+openai_api_key = &quot;EMPTY&quot;
+openai_api_base = &quot;http://localhost:8000/v1&quot;
+
+client = OpenAI(
+    api_key=openai_api_key,
+    base_url=openai_api_base,
+)
+
+# Single-image input inference
+
+# Public image URL for testing remote image processing
+image_url = &quot;https://vllm-public-assets.s3.us-west-2.amazonaws.com/vision_model_images/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg&quot;
+
+# Create chat completion with remote image
+chat_response = client.chat.completions.create(
+    model=&quot;microsoft/Phi-3.5-vision-instruct&quot;,
+    messages=[
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: [
+                {
+                    # NOTE: The prompt formatting with the image token `&lt;image&gt;` is not needed
+                    # since the prompt will be processed automatically by the API server.
+                    &quot;type&quot;: &quot;text&quot;,
+                    &quot;text&quot;: &quot;What's in this image?&quot;,
+                },
+                {
+                    &quot;type&quot;: &quot;image_url&quot;,
+                    &quot;image_url&quot;: {&quot;url&quot;: image_url},
+                    &quot;uuid&quot;: image_url,  # Optional
+                },
+            ],
+        }
+    ],
+)
+print(&quot;Chat completion output:&quot;, chat_response.choices[0].message.content)
+
+# Local image file path (update this to point to your actual image file)
+image_file = &quot;/path/to/image.jpg&quot;
+
+# Create chat completion with local image file
+# Launch the API server/engine with the --allowed-local-media-path argument.
+if os.path.exists(image_file):
+    chat_completion_from_local_image_url = client.chat.completions.create(
+        model=&quot;microsoft/Phi-3.5-vision-instruct&quot;,
+        messages=[
+            {
+                &quot;role&quot;: &quot;user&quot;,
+                &quot;content&quot;: [
+                    {
+                        &quot;type&quot;: &quot;text&quot;,
+                        &quot;text&quot;: &quot;What's in this image?&quot;,
+                    },
+                    {
+                        &quot;type&quot;: &quot;image_url&quot;,
+                        &quot;image_url&quot;: {&quot;url&quot;: f&quot;file://{image_file}&quot;},
+                    },
+                ],
+            }
+        ],
+    )
+    result = chat_completion_from_local_image_url.choices[0].message.content
+    print(&quot;Chat completion output from local image file:\n&quot;, result)
+else:
+    print(f&quot;Local image file not found at {image_file}, skipping local file test.&quot;)
+
+# Multi-image input inference
+image_url_duck = &quot;https://vllm-public-assets.s3.us-west-2.amazonaws.com/multimodal_asset/duck.jpg&quot;
+image_url_lion = &quot;https://vllm-public-assets.s3.us-west-2.amazonaws.com/multimodal_asset/lion.jpg&quot;
+
+chat_response = client.chat.completions.create(
+    model=&quot;microsoft/Phi-3.5-vision-instruct&quot;,
+    messages=[
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: [
+                {
+                    &quot;type&quot;: &quot;text&quot;,
+                    &quot;text&quot;: &quot;What are the animals in these images?&quot;,
+                },
+                {
+                    &quot;type&quot;: &quot;image_url&quot;,
+                    &quot;image_url&quot;: {&quot;url&quot;: image_url_duck},
+                    &quot;uuid&quot;: image_url_duck,  # Optional
+                },
+                {
+                    &quot;type&quot;: &quot;image_url&quot;,
+                    &quot;image_url&quot;: {&quot;url&quot;: image_url_lion},
+                    &quot;uuid&quot;: image_url_lion,  # Optional
+                },
+            ],
+        }
+    ],
+)
+print(&quot;Chat completion output:&quot;, chat_response.choices[0].message.content)
+```
+</code></pre>
+
+<p>Full example: <a href="../../examples/online_serving/openai_chat_completion_client_for_multimodal.py">examples/online_serving/openai_chat_completion_client_for_multimodal.py</a></p>
+<p>!!! tip
+    Loading from local file paths is also supported on vLLM: You can specify the allowed local media path via <code>--allowed-local-media-path</code> when launching the API server/engine,
+    and pass the file path as <code>url</code> in the API request.</p>
+<p>!!! tip
+    There is no need to place image placeholders in the text content of the API request - they are already represented by the image content.
+    In fact, you can place image placeholders in the middle of the text by interleaving text and image content.</p>
+<p>!!! note
+    By default, the timeout for fetching images through HTTP URL is <code>5</code> seconds.
+    You can override this by setting the environment variable:</p>
+<pre class="highlight"><code>```bash
+export VLLM_IMAGE_FETCH_TIMEOUT=&lt;timeout&gt;
+```
+</code></pre>
+
+<h3 id="video-inputs_1">Video Inputs<a href="#video-inputs_1" class="heading-anchor" aria-label="Link">#</a></h3>
+<p>Instead of <code>image_url</code>, you can pass a video file via <code>video_url</code>. Here is a simple example using <a href="https://huggingface.co/llava-hf/llava-onevision-qwen2-0.5b-ov-hf">LLaVA-OneVision</a>.</p>
+<p>First, launch the OpenAI-compatible server:</p>
+<pre class="highlight"><code class="language-bash">vllm serve llava-hf/llava-onevision-qwen2-0.5b-ov-hf --runner generate --max-model-len 8192</code></pre>
+<p>Then, you can use the OpenAI client as follows:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+from openai import OpenAI
+
+openai_api_key = &quot;EMPTY&quot;
+openai_api_base = &quot;http://localhost:8000/v1&quot;
+
+client = OpenAI(
+    api_key=openai_api_key,
+    base_url=openai_api_base,
+)
+
+video_url = &quot;http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4&quot;
+
+## Use video url in the payload
+chat_completion_from_url = client.chat.completions.create(
+    messages=[
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: [
+                {
+                    &quot;type&quot;: &quot;text&quot;,
+                    &quot;text&quot;: &quot;What's in this video?&quot;,
+                },
+                {
+                    &quot;type&quot;: &quot;video_url&quot;,
+                    &quot;video_url&quot;: {&quot;url&quot;: video_url},
+                    &quot;uuid&quot;: video_url,  # Optional
+                },
+            ],
+        }
+    ],
+    model=&quot;llava-hf/llava-onevision-qwen2-0.5b-ov-hf&quot;,
+    max_completion_tokens=64,
+)
+
+result = chat_completion_from_url.choices[0].message.content
+print(&quot;Chat completion output from video url:&quot;, result)
+```
+</code></pre>
+
+<p>Full example: <a href="../../examples/online_serving/openai_chat_completion_client_for_multimodal.py">examples/online_serving/openai_chat_completion_client_for_multimodal.py</a></p>
+<p>!!! note
+    By default, the timeout for fetching videos through HTTP URL is <code>30</code> seconds.
+    You can override this by setting the environment variable:</p>
+<pre class="highlight"><code>```bash
+export VLLM_VIDEO_FETCH_TIMEOUT=&lt;timeout&gt;
+```
+</code></pre>
+
+<h4 id="multiple-videos-via-api">Multiple Videos via API</h4>
+<p>To send multiple videos in a single request, include multiple <code>video_url</code> content items. The model must support multiple videos and the server must be started with an appropriate <code>--limit-mm-per-prompt.video</code> value:</p>
+<pre class="highlight"><code class="language-bash">vllm serve llava-hf/llava-onevision-qwen2-7b-ov-hf \
+  --runner generate \
+  --max-model-len 16384 \
+  --limit-mm-per-prompt.video 2</code></pre>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+from openai import OpenAI
+
+client = OpenAI(base_url=&quot;http://localhost:8000/v1&quot;, api_key=&quot;EMPTY&quot;)
+
+video_url_1 = &quot;https://example.com/video1.mp4&quot;
+video_url_2 = &quot;https://example.com/video2.mp4&quot;
+
+response = client.chat.completions.create(
+    model=&quot;llava-hf/llava-onevision-qwen2-7b-ov-hf&quot;,
+    messages=[
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: [
+                {&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: &quot;Compare these two videos:&quot;},
+                {
+                    &quot;type&quot;: &quot;video_url&quot;,
+                    &quot;video_url&quot;: {&quot;url&quot;: video_url_1},
+                    &quot;uuid&quot;: video_url_1,
+                },
+                {
+                    &quot;type&quot;: &quot;video_url&quot;,
+                    &quot;video_url&quot;: {&quot;url&quot;: video_url_2},
+                    &quot;uuid&quot;: video_url_2,
+                },
+            ],
+        }
+    ],
+    max_completion_tokens=256,
+)
+
+print(response.choices[0].message.content)
+```
+</code></pre>
+
+<h4 id="video-frame-recovery">Video Frame Recovery</h4>
+<p>For improved robustness when processing potentially corrupted or truncated video files, vLLM supports optional frame recovery using a dynamic window forward-scan approach. When enabled, if a target frame fails to load during sequential reading, the next successfully grabbed frame (before the next target frame) will be used in its place.</p>
+<p>To enable video frame recovery, pass the <code>frame_recovery</code> parameter via <code>--media-io-kwargs</code>:</p>
+<pre class="highlight"><code class="language-bash"># Example: Enable frame recovery
+vllm serve Qwen/Qwen3-VL-30B-A3B-Instruct \
+  --media-io-kwargs '{"video": {"frame_recovery": true}}'</code></pre>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>frame_recovery</code>: Boolean flag to enable forward-scan recovery. When <code>true</code>, failed frames are recovered using the next available frame within the dynamic window (up to the next target frame). Default is <code>false</code>.</li>
+</ul>
+<p><strong>How it works:</strong></p>
+<ol>
+<li>The system reads frames sequentially</li>
+<li>If a target frame fails to grab, it's marked as "failed"</li>
+<li>The next successfully grabbed frame (before reaching the next target) is used to recover the failed frame</li>
+<li>This approach handles both mid-video corruption and end-of-video truncation</li>
+</ol>
+<p>Works with common video formats like MP4 when using OpenCV backends.</p>
+<h4 id="custom-rgba-background-color_1">Custom RGBA Background Color</h4>
+<p>To use a custom background color for RGBA images, pass the <code>rgba_background_color</code> parameter via <code>--media-io-kwargs</code>:</p>
+<pre class="highlight"><code class="language-bash"># Example: Black background for dark theme
+vllm serve llava-hf/llava-1.5-7b-hf \
+  --media-io-kwargs '{"image": {"rgba_background_color": [0, 0, 0]}}'
+
+# Example: Custom gray background
+vllm serve llava-hf/llava-1.5-7b-hf \
+  --media-io-kwargs '{"image": {"rgba_background_color": [128, 128, 128]}}'</code></pre>
+<h3 id="audio-inputs_1">Audio Inputs<a href="#audio-inputs_1" class="heading-anchor" aria-label="Link">#</a></h3>
+<p>Audio input is supported according to <a href="https://platform.openai.com/docs/guides/audio?audio-generation-quickstart-example=audio-in">OpenAI Audio API</a>.
+Here is a simple example using Ultravox-v0.5-1B.</p>
+<p>First, launch the OpenAI-compatible server:</p>
+<pre class="highlight"><code class="language-bash">vllm serve fixie-ai/ultravox-v0_5-llama-3_2-1b</code></pre>
+<p>Then, you can use the OpenAI client as follows:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+import base64
+import requests
+from openai import OpenAI
+from vllm.assets.audio import AudioAsset
+
+def encode_base64_content_from_url(content_url: str) -&gt; str:
+    &quot;&quot;&quot;Encode a content retrieved from a remote url to base64 format.&quot;&quot;&quot;
+
+    with requests.get(content_url) as response:
+        response.raise_for_status()
+        result = base64.b64encode(response.content).decode('utf-8')
+
+    return result
+
+openai_api_key = &quot;EMPTY&quot;
+openai_api_base = &quot;http://localhost:8000/v1&quot;
+
+client = OpenAI(
+    api_key=openai_api_key,
+    base_url=openai_api_base,
+)
+
+# Any format supported by librosa is supported
+audio_url = AudioAsset(&quot;winning_call&quot;).url
+audio_base64 = encode_base64_content_from_url(audio_url)
+
+chat_completion_from_base64 = client.chat.completions.create(
+    messages=[
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: [
+                {
+                    &quot;type&quot;: &quot;text&quot;,
+                    &quot;text&quot;: &quot;What's in this audio?&quot;,
+                },
+                {
+                    &quot;type&quot;: &quot;input_audio&quot;,
+                    &quot;input_audio&quot;: {
+                        &quot;data&quot;: audio_base64,
+                        &quot;format&quot;: &quot;wav&quot;,
+                    },
+                    &quot;uuid&quot;: audio_url,  # Optional
+                },
+            ],
+        },
+    ],
+    model=&quot;fixie-ai/ultravox-v0_5-llama-3_2-1b&quot;,
+    max_completion_tokens=64,
+)
+
+result = chat_completion_from_base64.choices[0].message.content
+print(&quot;Chat completion output from input audio:&quot;, result)
+```
+</code></pre>
+
+<p>Alternatively, you can pass <code>audio_url</code>, which is the audio counterpart of <code>image_url</code> for image input:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+chat_completion_from_url = client.chat.completions.create(
+    messages=[
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: [
+                {
+                    &quot;type&quot;: &quot;text&quot;,
+                    &quot;text&quot;: &quot;What's in this audio?&quot;,
+                },
+                {
+                    &quot;type&quot;: &quot;audio_url&quot;,
+                    &quot;audio_url&quot;: {
+                        &quot;url&quot;: audio_url,
+                    },
+                    &quot;uuid&quot;: audio_url,  # Optional
+                },
+            ],
+        },
+    ],
+    model=&quot;fixie-ai/ultravox-v0_5-llama-3_2-1b&quot;,
+    max_completion_tokens=64,
+)
+
+result = chat_completion_from_url.choices[0].message.content
+print(&quot;Chat completion output from audio url:&quot;, result)
+```
+</code></pre>
+
+<h4 id="multiple-audio-inputs-via-api">Multiple Audio Inputs via API</h4>
+<p>To send multiple audio clips in a single request, include multiple <code>input_audio</code> or <code>audio_url</code> content items. The server must be started with an appropriate <code>--limit-mm-per-prompt.audio</code> value:</p>
+<pre class="highlight"><code class="language-bash">vllm serve Qwen/Qwen2-Audio-7B-Instruct \
+  --limit-mm-per-prompt.audio 2</code></pre>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+import base64
+from openai import OpenAI
+
+client = OpenAI(base_url=&quot;http://localhost:8000/v1&quot;, api_key=&quot;EMPTY&quot;)
+
+def load_audio_base64(path: str) -&gt; str:
+    with open(path, &quot;rb&quot;) as f:
+        return base64.b64encode(f.read()).decode(&quot;utf-8&quot;)
+
+audio1_b64 = load_audio_base64(&quot;clip1.wav&quot;)
+audio2_b64 = load_audio_base64(&quot;clip2.wav&quot;)
+
+response = client.chat.completions.create(
+    model=&quot;Qwen/Qwen2-Audio-7B-Instruct&quot;,
+    messages=[
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: [
+                {&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: &quot;Compare these two audio clips:&quot;},
+                {
+                    &quot;type&quot;: &quot;input_audio&quot;,
+                    &quot;input_audio&quot;: {&quot;data&quot;: audio1_b64, &quot;format&quot;: &quot;wav&quot;},
+                },
+                {
+                    &quot;type&quot;: &quot;input_audio&quot;,
+                    &quot;input_audio&quot;: {&quot;data&quot;: audio2_b64, &quot;format&quot;: &quot;wav&quot;},
+                },
+            ],
+        }
+    ],
+    max_completion_tokens=256,
+)
+
+print(response.choices[0].message.content)
+```
+</code></pre>
+
+<h3 id="image-embedding-inputs">Image Embedding Inputs<a href="#image-embedding-inputs" class="heading-anchor" aria-label="Link">#</a></h3>
+<p>You can pass pre-computed image embeddings directly to the API server. This is useful when you have already processed images through a vision encoder and want to avoid re-encoding them.</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+import torch
+from openai import OpenAI
+
+openai_api_key = &quot;EMPTY&quot;
+openai_api_base = &quot;http://localhost:8000/v1&quot;
+model = &quot;llava-hf/llava-1.5-7b-hf&quot;
+
+client = OpenAI(
+    api_key=openai_api_key,
+    base_url=openai_api_base,
+)
+
+# Load pre-computed image embeddings
+image_embeds = torch.load(&quot;image_embeds.pt&quot;)
+image_url = &quot;https://example.com/image.jpg&quot;  # Optional, for UUID
+
+embeds = {
+    &quot;type&quot;: &quot;image_embeds&quot;,
+    &quot;image_embeds&quot;: image_embeds.tolist(),
+    &quot;uuid&quot;: image_url,  # Optional
+}
+
+# Single image input
+chat_completion = client.chat.completions.create(
+    messages=[
+        {
+            &quot;role&quot;: &quot;system&quot;,
+            &quot;content&quot;: &quot;You are a helpful assistant.&quot;,
+        },
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: [
+                {
+                    &quot;type&quot;: &quot;text&quot;,
+                    &quot;text&quot;: &quot;What's in this image?&quot;,
+                },
+                embeds,
+            ],
+        },
+    ],
+    model=model,
+)
+
+# Multi image input
+chat_completion = client.chat.completions.create(
+    messages=[
+        {
+            &quot;role&quot;: &quot;system&quot;,
+            &quot;content&quot;: &quot;You are a helpful assistant.&quot;,
+        },
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: [
+                {
+                    &quot;type&quot;: &quot;text&quot;,
+                    &quot;text&quot;: &quot;What's in this image?&quot;,
+                },
+                embeds,
+                embeds,
+            ],
+        },
+    ],
+    model=model,
+)
+
+# Multi image input (interleaved)
+chat_completion = client.chat.completions.create(
+    messages=[
+        {
+            &quot;role&quot;: &quot;system&quot;,
+            &quot;content&quot;: &quot;You are a helpful assistant.&quot;,
+        },
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: [
+                embeds,
+                {
+                    &quot;type&quot;: &quot;text&quot;,
+                    &quot;text&quot;: &quot;What's in this image?&quot;,
+                },
+                embeds,
+            ],
+        },
+    ],
+    model=model,
+)
+```
+</code></pre>
+
+<h3 id="cached-inputs_1">Cached Inputs<a href="#cached-inputs_1" class="heading-anchor" aria-label="Link">#</a></h3>
+<p>Just like with offline inference, you can skip sending media if you expect cache hits with provided UUIDs. You can do so by sending media like this:</p>
+<p>??? code</p>
+<pre class="highlight"><code>```python
+    # Image/video/audio URL:
+    {
+        &quot;type&quot;: &quot;image_url&quot;,
+        &quot;image_url&quot;: None,
+        &quot;uuid&quot;: image_uuid,
+    },
+
+    # image_embeds
+    {
+        &quot;type&quot;: &quot;image_embeds&quot;,
+        &quot;image_embeds&quot;: None,
+        &quot;uuid&quot;: image_uuid,
+    },
+
+    # input_audio:
+    {
+        &quot;type&quot;: &quot;input_audio&quot;,
+        &quot;input_audio&quot;: None,
+        &quot;uuid&quot;: audio_uuid,
+    },
+
+    # PIL Image:
+    {
+        &quot;type&quot;: &quot;image_pil&quot;,
+        &quot;image_pil&quot;: None,
+        &quot;uuid&quot;: image_uuid,
+    },
+
+```
+</code></pre>
+<div class="page-nav">
+<a href="mooncake_connector_usage.html"><div class="nav-label">← Previous</div><div class="nav-title">MooncakeConnector Usage Guide</div></a>
+<a href="nixl_connector_usage.html" class="nav-next"><div class="nav-label">Next →</div><div class="nav-title">NixlConnector Usage Guide</div></a>
+</div>
+<div class="last-updated">Generated by SASVA AI &mdash; 2026-03-19</div>
+</main>
+<aside class="toc-aside">
+<div class="toc-title">On this page</div>
+<a href="#offline-inference" class="" data-anchor="offline-inference">Offline Inference</a>
+<a href="#image-inputs" class="toc-h3" data-anchor="image-inputs">Image Inputs</a>
+<a href="#video-inputs" class="toc-h3" data-anchor="video-inputs">Video Inputs</a>
+<a href="#audio-inputs" class="toc-h3" data-anchor="audio-inputs">Audio Inputs</a>
+<a href="#mixed-modality-inputs" class="toc-h3" data-anchor="mixed-modality-inputs">Mixed Modality Inputs</a>
+<a href="#embedding-inputs" class="toc-h3" data-anchor="embedding-inputs">Embedding Inputs</a>
+<a href="#cached-inputs" class="toc-h3" data-anchor="cached-inputs">Cached Inputs</a>
+<a href="#online-serving" class="" data-anchor="online-serving">Online Serving</a>
+<a href="#image-inputs_1" class="toc-h3" data-anchor="image-inputs_1">Image Inputs</a>
+<a href="#video-inputs_1" class="toc-h3" data-anchor="video-inputs_1">Video Inputs</a>
+<a href="#audio-inputs_1" class="toc-h3" data-anchor="audio-inputs_1">Audio Inputs</a>
+<a href="#image-embedding-inputs" class="toc-h3" data-anchor="image-embedding-inputs">Image Embedding Inputs</a>
+<a href="#cached-inputs_1" class="toc-h3" data-anchor="cached-inputs_1">Cached Inputs</a>
+</aside>
+<button class="back-to-top" id="back-to-top" title="Back to top">↑</button>
+<div class="mermaid-overlay" id="mermaid-overlay">
+  <div class="mermaid-overlay-inner" id="mermaid-overlay-inner"></div>
+</div>
+<script>
+mermaid.initialize({startOnLoad:true,theme:"dark",securityLevel:"loose",flowchart:{useMaxWidth:true,htmlLabels:true},themeVariables:{primaryColor:"#1f6feb",primaryTextColor:"#e6edf3",primaryBorderColor:"#58a6ff",lineColor:"#8b949e",secondaryColor:"#21262d",tertiaryColor:"#161b22"}});
+hljs.highlightAll();
+</script>
+<script>
+(function(){
+  var currentPath = location.pathname;
+  var links = document.querySelectorAll('#sidebar-nav-links a');
+  for(var i=0;i<links.length;i++){
+    var href = links[i].getAttribute('href');
+    if(!href) continue;
+    // Resolve the href to an absolute path for accurate comparison
+    // This handles both relative (../section/page.html) and same-dir (page.html) links
+    var a = document.createElement('a');
+    a.href = href;
+    if(a.pathname === currentPath){
+      links[i].classList.add('active');
+    }
+  }
+  var idx=[{"t": "Welcome to vLLM", "p": "README.html", "h": []}, {"t": "Summary", "p": "api/README.html", "h": ["Configuration", "Offline Inference", "vLLM Engines", "Inference Parameters", "Multi-Modality", "Inputs", "Data Parsing", "Data Processing", "Registry", "Model Development"]}, {"t": "AsyncLLMEngine", "p": "api/async_llm_engine.html", "h": ["Class Hierarchy", "Construction", "Core Methods", "Lifecycle Management", "Generation Control", "LoRA Management", "Cache Management", "Profiling", "Distributed / RPC", "Weight Management", "Health &amp; Observability", "Properties", "Streaming Inputs", "Usage in the OpenAI Server"]}, {"t": "EngineArgs / AsyncEngineArgs", "p": "api/engine_args.html", "h": ["EngineArgs", "Creating an engine from EngineArgs", "CLI integration", "Parameter Reference", "Model &amp; Tokenizer", "Runner &amp; Conversion", "Precision &amp; Quantization", "Parallelism", "Memory Management", "Scheduling", "Prefix Caching", "LoRA", "Speculative Decoding", "Multimodal", "Structured Outputs", "Observability", "Compilation &amp; Execution", "Loading", "Miscellaneous", "AsyncEngineArgs"]}, {"t": "Python API Reference", "p": "api/index.html", "h": ["Public API Surface", "API Modules", "Quick-Start Examples", "Offline text generation", "Chat interface", "Embeddings", "Async generation (server-side)", "Version"]}, {"t": "LLM", "p": "api/llm.html", "h": ["Constructor", "Parameters", "Methods", "Text Generation", "Asynchronous / Queued Generation", "Pooling / Embedding Methods", "Engine Control", "Weight Management", "Profiling", "Utilities", "Attributes", "Notes", "Prompt types", "Batching", "LoRA adapters"]}, {"t": "LLMEngine", "p": "api/llm_engine.html", "h": ["Construction", "Request Management", "Step Execution", "Queue Inspection", "LoRA Management", "Cache Management", "Engine Control", "Profiling", "Distributed / RPC", "Statistics &amp; Observability", "Utilities", "Properties", "Custom Serving Loop Example", "Data-Parallel Support"]}, {"t": "OpenAI Protocol Types", "p": "api/openai_protocol.html", "h": ["Base Types", "Response Format Types", "Tool Types", "Chat Completion", "Text Completion", "Embeddings", "Scoring / Reranking", "Models", "Logits Processors", "HTTP Endpoints Summary", "Example: Chat Completion Request", "Example: Embeddings Request", "Example: Streaming Chat Completion"]}, {"t": "Output Types", "p": "api/outputs.html", "h": ["Overview", "RequestOutput", "Attributes", "Example", "CompletionOutput", "Attributes", "Methods", "Example", "PoolingRequestOutput", "Attributes", "PoolingOutput", "Attributes", "EmbeddingRequestOutput", "Attributes", "EmbeddingOutput", "Attributes", "Properties", "Example", "ClassificationRequestOutput", "Attributes"]}, {"t": "PoolingParams", "p": "api/pooling_params.html", "h": ["Constructor", "Parameters", "Internal / Advanced Parameters", "Valid Parameters by Task", "Methods", "Matryoshka Embeddings", "Examples", "Default embeddings", "Embeddings without activation", "Classification", "Scoring / reranking", "Relationship to PoolingTask"]}, {"t": "SamplingParams", "p": "api/sampling_params.html", "h": ["Constructor", "Parameters", "Sampling Strategy", "Output Count", "Penalties", "Length Control", "Stop Conditions", "Log Probabilities", "Detokenisation", "Streaming", "Structured Outputs", "Logit Manipulation", "Repetition Detection", "Miscellaneous", "Validation Rules", "Related Types", "Examples", "Greedy decoding", "Creative generation", "Reproducible output"]}, {"t": "Benchmark Suites", "p": "benchmarking/README.html", "h": []}, {"t": "Benchmark CLI", "p": "benchmarking/cli.html", "h": ["Dataset Overview", "Examples", "🚀 Online Benchmark", "📈 Offline Throughput Benchmark", "🛠️ Structured Output Benchmark", "📚 Long Document QA Benchmark", "🗂️ Prefix Caching Benchmark", "🧪 Hashing Benchmarks", "⚡ Request Prioritization Benchmark", "👁️ Multi-Modal Benchmark", "🔬 Multimodal Processor Benchmark", "Embedding Benchmark", "Reranker Benchmark"]}, {"t": "Performance Dashboard", "p": "benchmarking/dashboard.html", "h": ["Manually Trigger the benchmark", "Runtime environment variables", "Visualization", "Continuous Benchmarking", "How It Works", "Benchmark Configuration"]}, {"t": "Benchmarking Overview", "p": "benchmarking/index.html", "h": ["Why Benchmark?", "Benchmark Tools at a Glance", "Specialized Benchmark Scripts", "Key Metrics Explained", "Offline / Latency Metrics", "Choosing the Right Benchmark", "Datasets", "Continuous Performance Dashboard", "In This Section"]}, {"t": "Latency Benchmarks", "p": "benchmarking/latency_benchmarks.html", "h": ["When to Use Latency Benchmarks", "Quick Start", "Example Output", "CLI Reference", "Core Options", "Warmup and Iteration Control", "Output Options", "Profiling Options", "Common Benchmark Scenarios", "Decode-Heavy Workload (Small Input, Large Output)", "Prefill-Heavy Workload (Large Input, Small Output)", "Long-Context Workload", "Beam Search", "Quantized Model", "Multi-GPU (Tensor Parallelism)", "Saving Results to JSON", "Profiling a Single Batch", "Disabling Prefix Caching", "Understanding Latency Components", "Latency vs. Throughput Trade-off"]}, {"t": "LM Evaluation Harness Integration", "p": "benchmarking/lm_eval_harness.html", "h": ["Installation", "Quick Start", "Offline Evaluation (vllm backend)", "Online Evaluation (local-completions backend)", "Command-Line Usage", "Offline (vllm backend)", "Online (local-completions backend)", "Supported Tasks", "Model Arguments", "vllm Backend Arguments", "local-completions Backend Arguments", "Accuracy Regression Testing", "Running Accuracy Tests", "How Tests Work", "GSM8K Evaluation Suite", "Running GSM8K Evaluations", "GSM8K Config Format", "Evaluating Quantized Models", "FP8 Quantization", "FP8 KV Cache"]}, {"t": "Performance Benchmarks", "p": "benchmarking/performance_benchmarks.html", "h": ["Prerequisites", "Dataset Setup", "ShareGPT (Most Common)", "BurstGPT (Bursty Traffic)", "Sonnet (Deprecated)", "Random (Synthetic)", "HuggingFace Datasets", "Custom Dataset (JSONL)", "Custom Multimodal Dataset (JSONL)", "Step 1: Start the Server", "Step 2: Run the Benchmark", "Example Output", "Key Options", "Controlled Request Rate", "Saving Results", "Example Output", "Comparing Backends", "Specialized Benchmark Scripts", "Attention Kernel Benchmarks", "Disaggregated Prefill Benchmarks"]}, {"t": "Profiling with vLLM", "p": "benchmarking/profiling.html", "h": ["Profiler Overview", "Configuring the Profiler", "Server-Side Configuration", "ProfilerConfig Options", "Environment Variable", "Profiling During Serving", "Triggering via HTTP API", "Triggering via Python API", "Profiling During Benchmarks", "Latency Benchmark with Profiling", "Throughput Benchmark with Profiling", "Online Serving Benchmark with Profiling", "Viewing PyTorch Profiler Traces", "TensorBoard", "Chrome Trace Viewer", "Perfetto", "Profiler Schedule", "Layerwise Profiling", "Model Table Output", "Summary Table Output"]}, {"t": "Parameter Sweeps", "p": "benchmarking/sweeps.html", "h": ["Online Benchmark", "Basic", "Workload Explorer", "Startup Benchmark", "Visualization", "Basic", "Pareto chart"]}, {"t": "Throughput Benchmarks", "p": "benchmarking/throughput_benchmarks.html", "h": ["When to Use Throughput Benchmarks", "Quick Start", "Example Output", "CLI Reference", "Core Options", "Dataset Options", "Engine Options", "Output Options", "Advanced Options", "Common Benchmark Scenarios", "Standard Throughput (ShareGPT)", "Synthetic Random Workload", "Long-Context Throughput", "Multi-GPU Throughput", "FP8 Quantized Model", "LoRA Throughput", "Prefix Caching Throughput", "Async Engine Throughput", "Comparing Against HuggingFace Transformers", "Saving Results to JSON"]}, {"t": "vLLM CLI Guide", "p": "cli/README.html", "h": ["serve", "chat", "complete", "bench", "latency", "serve", "throughput", "collect-env", "run-batch", "More Help"]}, {"t": "vllm bench latency", "p": "cli/bench/latency.html", "h": ["JSON CLI Arguments", "Arguments"]}, {"t": "vllm bench mm-processor", "p": "cli/bench/mm_processor.html", "h": ["Overview", "Quick Start", "Measured Stages", "JSON CLI Arguments", "Arguments"]}, {"t": "vllm bench serve", "p": "cli/bench/serve.html", "h": ["JSON CLI Arguments", "Arguments"]}, {"t": "vllm bench sweep plot", "p": "cli/bench/sweep/plot.html", "h": ["JSON CLI Arguments", "Arguments"]}, {"t": "vllm bench sweep plot_pareto", "p": "cli/bench/sweep/plot_pareto.html", "h": ["JSON CLI Arguments", "Arguments"]}, {"t": "vllm bench sweep serve", "p": "cli/bench/sweep/serve.html", "h": ["JSON CLI Arguments", "Arguments"]}, {"t": "vllm bench sweep serve_workload", "p": "cli/bench/sweep/serve_workload.html", "h": ["JSON CLI Arguments", "Arguments"]}, {"t": "vllm bench throughput", "p": "cli/bench/throughput.html", "h": ["JSON CLI Arguments", "Arguments"]}, {"t": "vllm chat", "p": "cli/chat.html", "h": ["Arguments"]}, {"t": "vllm complete", "p": "cli/complete.html", "h": ["Arguments"]}, {"t": "vLLM CLI Reference", "p": "cli/index.html", "h": [":compass: Command Overview", ":rocket: Quick Start", "Start a server", "Run batch inference", "Benchmark performance", "Collect environment info", ":books: Subcommand Details", ":gear: Global Options", ":bulb: Tips", "Config file support", "JSON argument syntax", "Environment variable overrides", ":link: Related Resources"]}, {"t": "Json Tip.Inc", "p": "cli/json_tip.inc.html", "h": []}, {"t": "vllm run-batch", "p": "cli/run-batch.html", "h": ["JSON CLI Arguments", "Arguments"]}, {"t": "vllm serve", "p": "cli/serve.html", "h": ["JSON CLI Arguments", "Arguments"]}, {"t": "`vllm bench` — Benchmarking Reference", "p": "cli/vllm_bench.html", "h": [":compass: Available Subcommands", "Quick Examples", "Arguments", "Output", "Quick Examples", "Arguments", "Output", "Quick Examples", "Arguments", "Key Metrics", "Quick Examples", "Arguments", "Quick Examples", "Arguments", "Sweep Subcommands", "Quick Example", ":gear: Engine Arguments (Common)", ":bulb: Tips", "Quick testing without downloading weights", "Comparing configurations"]}, {"t": "`vllm collect-env` — Environment Diagnostics Reference", "p": "cli/vllm_collect_env.html", "h": [":zap: Usage", ":page_facing_up: Output Sections", "System Info", "PyTorch Info", "Python Environment", "CUDA / GPU Info", "CPU Info", "Versions of Relevant Libraries", "vLLM Info", "Environment Variables", ":clipboard: Example Output", ":bug: Using Output for Bug Reports", "Recommended bug report template", ":lock: Privacy Considerations", ":information_source: Implementation Notes", ":link: Related"]}, {"t": "`vllm run-batch` — Batch Inference Reference", "p": "cli/vllm_run_batch.html", "h": [":zap: Quick Examples", ":page_facing_up: Input File Format", "Fields", "Supported Endpoints", "Example: Mixed batch file", ":page_facing_up: Output File Format", "Output Fields", ":clipboard: Arguments", "Batch-Specific Arguments", "Engine Arguments", ":arrows_counterclockwise: File Transport", "Input", "Output", ":bar_chart: Prometheus Metrics", ":bulb: Tips and Best Practices", "Batch file preparation", "Handling errors", "Large batches", "Unsupported endpoints", ":link: Related"]}, {"t": "`vllm serve` — API Server Reference", "p": "cli/vllm_serve.html", "h": [":zap: Quick Examples", ":mag: Exploring Options", ":page_facing_up: Config File", ":gear: JSON Argument Syntax", ":clipboard: Top-Level Arguments", ":globe_with_meridians: Frontend Arguments", "Network", "TLS / SSL", "CORS", "Authentication", "HTTP Server", ":speech_balloon: Chat &amp; Template Arguments", ":wrench: Tool Calling Arguments", ":floppy_disk: LoRA Arguments", ":bar_chart: Logging &amp; Observability Arguments", ":electric_plug: Usage Tracking Arguments", ":brain: Model Arguments", ":floppy_disk: Load Arguments", ":arrows_counterclockwise: Parallelism Arguments", ":package: Cache Arguments"]}, {"t": "Contact Us", "p": "community/contact_us.html", "h": []}, {"t": "Community", "p": "community/index.html", "h": [":speech_balloon: Where to connect", ":envelope: Contact us", ":handshake: How to get involved", ":busts_in_silhouette: Community pages", ":scroll: Governance"]}, {"t": "Meetups", "p": "community/meetups.html", "h": []}, {"t": "RFC process", "p": "community/rfcs.html", "h": ["When to write an RFC", "RFC lifecycle", "How to submit an RFC", "Step 1: Open a GitHub Issue", "Step 2: Announce in Slack", "Step 3: Engage with feedback", "Step 4: Assignment and decision", "Step 5: Implement and reference", "RFC template", "Review criteria", "Roles in the RFC process", "Tips for a successful RFC", "Finding open RFCs", "Related pages"]}, {"t": "Sponsors", "p": "community/sponsors.html", "h": []}, {"t": "Getting support", "p": "community/support.html", "h": [":compass: Choosing the right channel", ":material-forum: User forum", "Writing a good forum post", ":fontawesome-brands-github: GitHub issues", "Writing an effective bug report", "What happens after you file an issue", ":fontawesome-brands-slack: Developer Slack", "Recommended channels", ":material-console: Collecting environment information", ":material-frequently-asked-questions: Common issues", "Installation problems", "Runtime errors", "API server issues", ":material-book-open-variant: Additional resources"]}, {"t": "Configuration Options", "p": "configuration/README.html", "h": []}, {"t": "KV Cache Configuration", "p": "configuration/cache_config.html", "h": ["Memory Allocation", "Block Size", "KV Cache Data Type", "Prefix Caching", "Mamba Cache (Hybrid Models)", "KV Cache Offloading", "KV Sharing", "CPU Backend KV Cache", "Memory Sizing Guide", "Estimating KV cache memory", "Practical configurations"]}, {"t": "Compilation Configuration", "p": "configuration/compilation_config.html", "h": ["Overview", "Compilation Mode", "CUDA Graph Mode", "Inductor Compilation", "Custom Operations", "Graph Partitioning", "Caching", "Backend", "Custom Fusion Passes (PassConfig)", "Dynamic Shapes (DynamicShapesConfig)", "Optimization Level Presets", "Common Configurations", "Debug mode (no compilation)", "Fast startup (piecewise graphs only)", "Maximum performance (default)", "Custom CUDA graph sizes", "Persistent compile cache", "Disable specific fusions", "Environment Variables"]}, {"t": "Conserving Memory", "p": "configuration/conserving_memory.html", "h": ["Tensor Parallelism (TP)", "Quantization", "Context length and batch size", "Reduce CUDA Graphs", "Adjust cache size", "Multi-modal input limits", "Configurable options", "Multi-modal processor arguments"]}, {"t": "EngineArgs Reference", "p": "configuration/engine_args.html", "h": ["Model &amp; Tokenizer", "Loading", "Parallelism", "KV Cache", "Scheduler", "Speculative Decoding", "LoRA", "Multimodal", "Compilation &amp; CUDA Graphs", "Attention", "Observability", "Structured Outputs", "CPU Offloading", "KV Transfer (Disaggregated Prefill)", "Miscellaneous", "Usage Examples", "Basic model serving", "FP8 quantized serving with prefix caching", "Speculative decoding with EAGLE", "LoRA serving"]}, {"t": "Environment Variables", "p": "configuration/env_vars.html", "h": []}, {"t": "Environment Variables", "p": "configuration/environment_variables.html", "h": ["Variable Precedence", "Installation &amp; Build", "Paths &amp; Cache", "Networking &amp; RPC", "API Server", "Logging", "Model Loading", "Distributed &amp; Parallelism", "Data Parallel", "Ray Integration", "Compilation &amp; CUDA Graphs", "KV Cache &amp; Memory", "CPU Backend", "Multimodal", "MoE (Mixture of Experts)", "FlashInfer", "Quantization Kernels", "ROCm / AMD GPU", "TPU / XLA", "LoRA"]}, {"t": "Configuration Overview", "p": "configuration/index.html", "h": ["Configuration Architecture", "How the layers work", "Quick-Start: Most Important Settings", "Minimal server launch", "High-throughput batch inference", "Low-latency interactive serving", "Configuration Reference Pages", "Optimization Levels", "Performance Modes", "Configuration via Python API", "Configuration File (JSON)", "Environment Variable Precedence"]}, {"t": "LoRA Configuration", "p": "configuration/lora_config.html", "h": ["Overview", "Enabling LoRA", "Capacity Configuration", "Rank Configuration", "Data Type", "Sharding", "CUDA Graph Specialization", "Multimodal LoRA", "Runtime LoRA Management", "Loading adapters at startup", "Dynamic adapter loading", "Using adapters in requests", "Environment Variables", "Memory Estimation", "Complete Example"]}, {"t": "Model Configuration", "p": "configuration/model_config.html", "h": ["Core Model Identity", "Tokenizer", "Data Types", "Context Length", "Model Loading", "Model Behavior", "Logprobs", "Generation Config", "Sliding Window &amp; Attention", "Multimodal", "Pooling", "Custom Logits Processors", "Practical Examples", "Load a model with BF16 and custom context length", "Load a GGUF model", "Embedding model", "Model with HF config overrides"]}, {"t": "Model Resolution", "p": "configuration/model_resolution.html", "h": []}, {"t": "Observability Configuration", "p": "configuration/observability_config.html", "h": ["Prometheus Metrics", "OpenTelemetry Tracing", "KV Cache Metrics", "CUDA Graph Metrics", "NVTX Tracing", "MFU Metrics", "Iteration Logging", "Stats Logging", "Logging Configuration", "Multimodal Processor Stats", "Complete Observability Setup", "Production monitoring with Prometheus + Grafana", "Distributed tracing with Jaeger", "GPU profiling with Nsight Systems", "Benchmark mode (minimal overhead)", "Key Metrics Reference"]}, {"t": "Optimization and Tuning", "p": "configuration/optimization.html", "h": ["Optimization Levels", "Preemption", "Chunked Prefill", "Performance Tuning with Chunked Prefill", "Parallelism Strategies", "Tensor Parallelism (TP)", "Pipeline Parallelism (PP)", "Expert Parallelism (EP)", "Data Parallelism (DP)", "Batch-level DP for Multi-Modal Encoders", "Input Processing", "Parallel Processing", "Multi-Modal Caching", "Processor Caching", "IPC Caching", "Configuration", "Cache Placement", "CPU Resources for GPU Deployments", "Minimum CPU Requirements", "Data Parallel and Multi-API Server Deployments"]}, {"t": "Parallel Configuration", "p": "configuration/parallel_config.html", "h": ["Parallelism Strategies Overview", "Tensor Parallelism", "Pipeline Parallelism", "Data Parallelism", "Expert Parallelism (MoE)", "Context Parallelism", "Distributed Backend", "Communication Optimizations", "Loading", "Worker Configuration", "Multi-Node Setup Examples", "Two-node tensor parallel (MP backend)", "Ray-based multi-node", "MoE model with expert parallelism", "Data parallel with multiple replicas"]}, {"t": "Quantization Configuration", "p": "configuration/quantization_config.html", "h": ["Overview", "Supported Quantization Methods", "Weight-Only Quantization", "AWQ — Activation-aware Weight Quantization", "GPTQ — Generalized Post-Training Quantization", "GGUF", "BitsAndBytes", "FP8 Quantization", "FP8 Weight Quantization", "FP8 KV Cache", "Activation Quantization", "SmoothQuant", "Sparse Quantization", "SqueezeLLM", "Advanced Quantization Methods", "Marlin", "Marlin 2:4 Sparse", "DeepSpeedFP", "EETQ", "ExLlamaV2"]}, {"t": "Scheduler Configuration", "p": "configuration/scheduler_config.html", "h": ["Core Batching Parameters", "Chunked Prefill", "Scheduling Policy", "Async Scheduling", "Streaming", "Hybrid KV Cache Manager", "Multimodal Encoder Budget", "Tuning Guide", "Throughput-optimized configuration", "Latency-optimized configuration", "Mixed workload (long prompts + short decode)", "Priority-based serving", "Understanding Chunked Prefill"]}, {"t": "Server Arguments", "p": "configuration/serve_args.html", "h": ["CLI Arguments", "Configuration file"]}, {"t": "Speculative Decoding Configuration", "p": "configuration/speculative_config.html", "h": ["Overview", "Configuration", "Core Parameters", "Draft Model Configuration", "N-gram Speculation", "EAGLE Speculation", "Medusa Speculation", "Suffix Decoding", "DeepSeek Multi-Token Prediction (MTP)", "Advanced Options", "Performance Tuning", "Acceptance rate", "Method selection guide", "Complete Examples", "Draft model speculation", "N-gram speculation (no draft model)", "EAGLE with quantized draft"]}, {"t": "Contributing to vLLM", "p": "contributing/README.html", "h": ["Job Board", "License", "Developing", "Linting", "Documentation", "Testing", "Issues", "Pull Requests &amp; Code Reviews", "DCO and Signed-off-by", "PR Title and Classification", "Code Quality", "Adding or Changing Kernels", "Notes for Large Changes", "What to Expect for the Reviews", "Thank You"]}, {"t": "Contributing a New Model", "p": "contributing/adding_model.html", "h": ["Before You Start", "Check Existing Support", "Open a GitHub Issue First", "Understand the Model Architecture", "Implementation Overview", "Step 1: Create the Model File", "File Header", "Key Design Principles", "Minimal Decoder-Only Template", "Step 2: Implement Weight Loading", "Handle Stacked Parameters", "Handle Name Remapping", "Step 3: Register the Architecture", "Step 4: Update the Test Registry", "Step 5: Write Tests", "Correctness Test", "Logprob Comparison Test", "Running Your Tests", "Step 6: Update Documentation", "PR Checklist"]}, {"t": "Contributing a Hardware Platform", "p": "contributing/adding_platform.html", "h": ["Overview", "Built-in Platforms", "Out-of-Tree Platforms", "Architecture", "Platform Detection", "Step 1: Create the Platform Class", "Step 2: Implement the Attention Backend", "Step 3: Register the Platform Plugin", "Option A: In-Tree Platform", "Option B: Out-of-Tree Platform (Plugin Package)", "Step 4: Add Build Support", "Docker Image", "Build Script", "Step 5: Add CI Tests", "Step 6: Write Tests", "Step 7: Update Documentation", "Platform Interface Reference", "Required Methods", "Optional Methods", "Class Attributes"]}, {"t": "Contributing a Quantization Backend", "p": "contributing/adding_quantization.html", "h": ["Overview", "Supported Quantization Methods", "Step 1: Create the Quantization Config File", "Step 2: Implement the Quantize Method", "Step 3: Register the Quantization Method", "Add to the Literal Type", "Add Platform Support (Optional)", "Step 4: Handle Auto-Detection", "Step 5: Write Tests", "Running Quantization Tests", "Step 6: Update Documentation", "Advanced Topics", "Using the Plugin System", "Meta Device Loading", "MoE (Mixture of Experts) Support", "KV Cache Quantization", "PR Checklist", "Getting Help"]}, {"t": "CI Failures", "p": "contributing/ci/failures.html", "h": ["Filing a CI Test Failure Issue", "Logs Wrangling", "Investigating a CI Test Failure", "Reproducing a Failure", "Submitting a PR", "Other Resources", "Daily Triage"]}, {"t": "Nightly Builds of vLLM Wheels", "p": "contributing/ci/nightly_builds.html", "h": ["Build and Upload Process on CI", "Wheel Building", "Index Generation", "Directory Structure", "Variant Organization", "Index Generation Details", "Special Handling for AWS Services", "Implementation Files"]}, {"t": "Update PyTorch version on vLLM OSS CI/CD", "p": "contributing/ci/update_pytorch_version.html", "h": ["Test PyTorch release candidates (RCs)", "Update CUDA version", "Manually running vLLM builds on BuildKiteCI", "Update all the different vLLM platforms"]}, {"t": "CI/CD Pipeline", "p": "contributing/ci_cd.html", "h": ["Overview", "GitHub Actions Workflows", "Other Workflows", "Buildkite CI Pipeline", "Pipeline Structure", "Image Build", "Test Areas", "Test Area YAML Format", "Hardware Tests", "AMD ROCm Tests", "CPU Tests", "Intel Tests", "Ascend NPU Tests", "GH200 Tests", "Understanding CI Results", "Buildkite Dashboard", "Interpreting Failures", "Flaky Tests", "Adding New CI Jobs", "Adding a Test to an Existing Area"]}, {"t": "Code Style", "p": "contributing/code_style.html", "h": ["Overview", "Pre-commit", "Installation", "Running Manually", "CI Integration", "Ruff", "Configuration", "Per-File Ignores", "Running Ruff", "Common Ruff Rules", "mypy", "Configuration", "Type Annotation Guidelines", "Running mypy", "Suppressing mypy Errors", "Code Style Guidelines", "Imports", "Logging", "Docstrings", "Constants and Configuration"]}, {"t": "Deprecation Policy", "p": "contributing/deprecation_policy.html", "h": ["Overview", "Deprecation Pipeline", "1. Deprecated (Still On By Default)", "2. Deprecated (Off By Default)", "3. Removed", "Example Timeline", "Important Guidelines", "Final Notes"]}, {"t": "Development Environment Setup", "p": "contributing/development_setup.html", "h": ["Prerequisites", "Step 1: Fork and Clone", "Step 2: Create a Virtual Environment", "Step 3: Install Build Dependencies", "Step 4: Install vLLM in Editable Mode", "Platform-Specific Installation", "Step 5: Install Development Dependencies", "Step 6: Set Up Pre-commit Hooks", "Step 7: Verify Your Setup", "Building C++/CUDA Extensions", "Compilation Environment Variables", "IDE Configuration", "VS Code", "PyCharm", "Environment Variables for Development", "Working with the Codebase", "Key Directories", "Keeping Your Fork in Sync", "Troubleshooting", "Build Failures"]}, {"t": "Dockerfile", "p": "contributing/dockerfile/dockerfile.html", "h": []}, {"t": "Incremental Compilation Workflow", "p": "contributing/incremental_build.html", "h": ["Prerequisites", "Setting up the CMake Build Environment", "Building and Installing with CMake", "Verifying the Build", "Additional Tips"]}, {"t": "Contributing to vLLM", "p": "contributing/index.html", "h": ["Why Contribute?", "Ways to Contribute", "Before You Start", "Read the Code of Conduct", "Join the Community", "Contribution Workflow", "Step 1: Fork and Clone", "Step 2: Create a Branch", "Step 3: Develop and Test", "Step 4: Submit a Pull Request", "Step 5: Respond to Review", "Issue Templates", "Documentation in This Section", "Getting Help"]}, {"t": "Summary", "p": "contributing/model/README.html", "h": []}, {"t": "Basic Model", "p": "contributing/model/basic.html", "h": ["1. Bring your model code", "2. Make your code compatible with vLLM", "Initialization Code", "Computation Code", "3. (Optional) Implement tensor parallelism and quantization support", "4. Implement the weight loading logic", "5. Register your model", "Frequently Asked Questions", "How to support models with interleaving sliding windows?", "How to support models that use Mamba?"]}, {"t": "Multi-Modal Support", "p": "contributing/model/multimodal.html", "h": ["1. Update the base vLLM model", "2. Specify processing information", "Maximum number of input items", "3. Specify dummy inputs", "4. Specify processing details", "Multi-modal fields", "Prompt updates", "5. Register processor-related classes", "Notes", "Inserting feature tokens without replacement", "Handling prompt updates unrelated to multi-modal data", "Custom HF processor"]}, {"t": "Registering a Model", "p": "contributing/model/registration.html", "h": ["Built-in models", "Out-of-tree models"]}, {"t": "Unit Testing", "p": "contributing/model/tests.html", "h": ["Required Tests", "Model loading", "Optional Tests", "Model correctness", "Multi-modal processing"]}, {"t": "Speech-to-Text (Transcription/Translation) Support", "p": "contributing/model/transcription.html", "h": ["Update the base vLLM model", "Audio preprocessing and chunking", "Exposing tasks automatically", "Examples in-tree", "Test with the API"]}, {"t": "Profiling vLLM", "p": "contributing/profiling.html", "h": ["Profile with PyTorch Profiler", "Example commands and usage", "Profile with NVIDIA Nsight Systems", "Example commands and usage", "Continuous Profiling", "How It Works", "Adding New Models", "Viewing Profiling Results", "Profiling vLLM Python Code", "Example usage - decorator", "Example Usage - context manager", "Analyzing Profile Results", "Analyzing Garbage Collection Costs"]}, {"t": "Release Process", "p": "contributing/release_process.html", "h": ["Release Philosophy", "Versioning", "Compatibility Guarantee", "Release Cadence", "Release Types", "Release Branch", "Branch Cut", "Cherry-Pick Policy", "Release Build Process", "Step 1: Create the Release Branch", "Step 2: Push an RC Tag", "Step 3: Wheel Build Matrix", "Step 4: Performance Validation", "Step 5: Final Release Tag", "Step 6: Publish to PyPI", "Step 7: Announce the Release", "Contributing to a Release", "Targeting a Release", "Requesting a Cherry-Pick", "Updating Release Notes"]}, {"t": "Testing Guide", "p": "contributing/testing.html", "h": ["Test Infrastructure", "Installing Test Dependencies", "Test Organization", "Running Tests", "Basic Usage", "Common pytest Flags", "Running by Marker", "Available Markers", "Test Areas", "Basic Correctness", "Model Tests", "Distributed Tests", "Quantization Tests", "Kernel Tests", "Entrypoint Tests", "Writing Tests", "Test File Conventions", "Basic Test Structure", "Comparing with HuggingFace", "Async Tests"]}, {"t": "Vulnerability Management", "p": "contributing/vulnerability_management.html", "h": ["Reporting Vulnerabilities", "Vulnerability Management Team", "Security Advisories", "Team Members", "Slack Discussion", "Vulnerability Disclosure"]}, {"t": "Docker deployment", "p": "deployment/docker.html", "h": ["Quick start", "Official image variants", "Pre-built images", "Pulling a specific version", "Running with a Hugging Face token", "GPU selection", "Shared memory for tensor parallelism", "Build image from source", "Standard build", "Build arguments reference", "Build stages", "Targeting a specific stage", "Multi-platform builds with Docker Bake", "Default build (openai target)", "Build the test image", "Preview the resolved configuration", "Bake variables", "Version management", "AWS SageMaker image", "CUDA forward compatibility"]}, {"t": "Elastic Expert Parallelism", "p": "deployment/elastic_ep.html", "h": ["Overview", "Expert Parallelism Load Balancing (EPLB)", "Motivation", "Key Concepts", "Enabling EPLB", "EPLB Configuration", "Rebalancing Algorithm", "Expert Weight Transfer", "Expert Placement Strategies", "Monitoring Load Balancedness", "Elastic EP (Dynamic Scaling)", "Prerequisites", "Enabling Elastic EP", "Stateless Process Groups", "Scale-Up Sequence", "Scale-Down Sequence", "Launching New Workers", "Standby Groups", "Requirements and Constraints", "Example: DeepSeek-V3 with EPLB"]}, {"t": "Anyscale", "p": "deployment/frameworks/anyscale.html", "h": ["Production-ready vLLM on Anyscale quickstarts"]}, {"t": "AnythingLLM", "p": "deployment/frameworks/anything-llm.html", "h": ["Prerequisites", "Deploy"]}, {"t": "AutoGen", "p": "deployment/frameworks/autogen.html", "h": ["Prerequisites", "Deploy"]}, {"t": "BentoML", "p": "deployment/frameworks/bentoml.html", "h": []}, {"t": "Cerebrium", "p": "deployment/frameworks/cerebrium.html", "h": []}, {"t": "Chatbox", "p": "deployment/frameworks/chatbox.html", "h": ["Prerequisites", "Deploy"]}, {"t": "Dify", "p": "deployment/frameworks/dify.html", "h": ["Prerequisites", "Deploy"]}, {"t": "dstack", "p": "deployment/frameworks/dstack.html", "h": []}, {"t": "Haystack", "p": "deployment/frameworks/haystack.html", "h": ["Prerequisites", "Deploy"]}, {"t": "Helm", "p": "deployment/frameworks/helm.html", "h": ["Prerequisites", "Installing the chart", "Uninstalling the chart", "Architecture", "Values", "Configuration Examples", "Using S3 Model Download (Default)", "Using Custom Init Containers Only"]}, {"t": "Hugging Face Inference Endpoints", "p": "deployment/frameworks/hf_inference_endpoints.html", "h": ["Overview", "Deployment Methods", "Method 1: Deploy from the Catalog", "Method 2: Guided Deployment (Transformers Models)", "Method 3: Manual Deployment (Advanced Models)", "Advanced Deployment Details", "Next Steps"]}, {"t": "LiteLLM", "p": "deployment/frameworks/litellm.html", "h": ["Prerequisites", "Deploy", "Chat completion", "Embeddings"]}, {"t": "Lobe Chat", "p": "deployment/frameworks/lobe-chat.html", "h": []}, {"t": "LWS", "p": "deployment/frameworks/lws.html", "h": ["Prerequisites", "Deploy and Serve", "Access ClusterIP service", "Serve the model"]}, {"t": "Modal", "p": "deployment/frameworks/modal.html", "h": []}, {"t": "Open WebUI", "p": "deployment/frameworks/open-webui.html", "h": []}, {"t": "Retrieval-Augmented Generation", "p": "deployment/frameworks/retrieval_augmented_generation.html", "h": ["vLLM + langchain", "Prerequisites", "Deploy", "vLLM + llamaindex", "Prerequisites", "Deploy"]}, {"t": "RunPod", "p": "deployment/frameworks/runpod.html", "h": ["Prerequisites", "Starting the Server", "Exposing Port 8000", "Troubleshooting 502 Bad Gateway", "Verifying the Deployment"]}, {"t": "SkyPilot", "p": "deployment/frameworks/skypilot.html", "h": ["Prerequisites", "Run on a single instance", "Scale up to multiple replicas"]}, {"t": "Streamlit", "p": "deployment/frameworks/streamlit.html", "h": ["Prerequisites", "Deploy"]}, {"t": "NVIDIA Triton", "p": "deployment/frameworks/triton.html", "h": []}, {"t": "Deployment", "p": "deployment/index.html", "h": ["Deployment guides", "Choosing a deployment approach", "Third-party integrations", "Kubernetes operators and platforms", "Cloud and serving frameworks", "Key concepts", "Image variants", "Health endpoint", "Streaming support", "GPU memory management", "Next steps"]}, {"t": "AIBrix", "p": "deployment/integrations/aibrix.html", "h": []}, {"t": "NVIDIA Dynamo", "p": "deployment/integrations/dynamo.html", "h": []}, {"t": "KAITO", "p": "deployment/integrations/kaito.html", "h": []}, {"t": "KServe", "p": "deployment/integrations/kserve.html", "h": []}, {"t": "Kthena", "p": "deployment/integrations/kthena.html", "h": ["1. Prerequisites", "1.1 Install Volcano", "1.2 Install Kthena", "3. Deploying Multi-Node llama vLLM via Kthena", "3.1 Prepare the Manifest", "4. Verifying the Deployment", "4.1 Check ModelServing Status", "4.2 Check Pods", "6. Accessing the vLLM OpenAI-Compatible API", "7. Clean Up"]}, {"t": "KubeAI", "p": "deployment/integrations/kubeai.html", "h": []}, {"t": "KubeRay", "p": "deployment/integrations/kuberay.html", "h": ["Why KubeRay instead of manual scripts?", "Learn more"]}, {"t": "Llama Stack", "p": "deployment/integrations/llamastack.html", "h": ["Inference using OpenAI-Compatible API", "Inference using Embedded vLLM"]}, {"t": "llm-d", "p": "deployment/integrations/llm-d.html", "h": []}, {"t": "llmaz", "p": "deployment/integrations/llmaz.html", "h": []}, {"t": "Production stack", "p": "deployment/integrations/production-stack.html", "h": ["Pre-requisite", "Deployment using vLLM production stack", "Validate Installation", "Send a Query to the Stack", "Uninstall", "(Advanced) Configuring vLLM production stack"]}, {"t": "Using Kubernetes", "p": "deployment/k8s.html", "h": ["Deployment with CPUs", "Deployment with GPUs", "Troubleshooting", "Startup Probe or Readiness Probe Failure, container log contains \"KeyboardInterrupt: terminated\"", "Conclusion"]}, {"t": "Kubernetes deployment", "p": "deployment/kubernetes.html", "h": ["Prerequisites", "Quick start", "1. Clone the repository", "2. Install the chart", "3. Verify the deployment", "4. Test the API", "Chart structure", "Values reference", "Image configuration", "Replicas and resources", "GPU node affinity", "Service configuration", "Model download", "How it works", "Enable model download", "S3 credentials", "Custom download command", "Disable model download", "Health probes", "Autoscaling"]}, {"t": "Load balancing", "p": "deployment/load_balancing.html", "h": ["Overview", "Nginx load balancing", "Docker Compose setup", "Load balancing algorithms", "Round-robin (default)", "Least connections", "IP hash (session affinity)", "TLS termination at the load balancer", "Elastic endpoint scaling", "How it works", "Scaling to a new data parallel size", "Checking scaling state", "Load balancer integration", "Sleep mode", "Endpoints", "Putting the engine to sleep", "Waking the engine", "Checking sleep state", "Load balancer integration", "Kubernetes load balancing"]}, {"t": "Monitoring setup", "p": "deployment/monitoring.html", "h": ["Prerequisites", "Prometheus setup", "Verifying the metrics endpoint", "Prometheus configuration", "Docker Compose quick start", "Scraping multiple vLLM instances", "Kubernetes ServiceMonitor", "Grafana dashboard", "Importing the reference dashboard", "Dashboard panels", "Key PromQL queries", "Latency percentiles", "Throughput", "Prefix cache hit rate", "KV cache pressure", "Request queue depth", "Request success and failure", "HTTP-level metrics", "Model FLOPs Utilization (MFU)", "Alert rules"]}, {"t": "Multi-Node Deployment", "p": "deployment/multi_node.html", "h": ["Prerequisites", "Choosing a Backend", "Multi-Node with Ray", "Step 1: Start the Ray Cluster", "Step 2: Launch vLLM", "Alternative: Pure Tensor Parallelism Across Nodes", "Using Containers with Ray", "Multi-Node with Multiprocessing", "Step 1: Head Node", "Step 2: Worker Nodes", "Three-Node Example", "Distributed Timeout", "Data Parallel Multi-Node", "Internal Load Balancing (single API endpoint)", "API Server on Dedicated Node", "Port Requirements", "Network Optimisation", "InfiniBand", "GPUDirect RDMA", "Pipeline vs. Tensor Parallelism Trade-offs"]}, {"t": "Using Nginx", "p": "deployment/nginx.html", "h": ["Build Nginx Container", "Create Simple Nginx Config file", "Build vLLM Container", "Create Docker Network", "Launch vLLM Containers", "Launch Nginx", "Verify That vLLM Servers Are Ready"]}, {"t": "Production readiness checklist", "p": "deployment/production_checklist.html", "h": ["Security", "Authentication and authorisation", "Transport security", "Container security", "CORS configuration", "Reliability", "Health probes", "Fault tolerance", "Resource limits", "Graceful shutdown", "Observability", "Logging", "Metrics", "Tracing", "Request IDs", "Performance", "Model loading", "GPU utilisation", "Quantisation", "KV cache"]}, {"t": "Ray Cluster Configuration", "p": "deployment/ray_cluster.html", "h": ["Why Ray?", "Installation", "Starting a Ray Cluster", "Manual Cluster Setup", "Container-Based Setup", "KubeRay", "Placement Groups", "Automatic Placement Group", "Custom Placement Group", "Bundle Index Control", "Runtime Environment", "Worker Configuration", "GPU Resources per Worker", "Worker-Specific Environment Variables", "Nsight Profiling", "Compiled DAG (cgraph)", "Channel Type", "Communication Overlap", "PP Communication Backend", "cgraph Timeout"]}, {"t": "Security best practices", "p": "deployment/security.html", "h": ["Threat model", "API key authentication", "Enabling API key authentication", "Multiple API keys", "Using environment variables", "API key authentication limitations", "Recommended approach: reverse proxy allowlist", "Transport security (TLS/HTTPS)", "Network security", "Firewall configuration", "Network isolation for multi-node deployments", "Binding to specific interfaces", "CORS configuration", "Default values (permissive — change in production)", "Restricting CORS", "Endpoint hardening", "Disable the FastAPI documentation UI", "Do not enable the tokenizer info endpoint", "Restrict media URL domains (multimodal deployments)", "Limit HTTP header size"]}, {"t": "SSL/TLS configuration", "p": "deployment/ssl_tls.html", "h": ["Overview", "CLI arguments", "Basic HTTPS setup", "Step 1: Generate a self-signed certificate (development only)", "Step 2: Start vLLM with TLS", "Step 3: Test the connection", "Production certificate setup", "Using Let's Encrypt with Certbot", "Using an organisational CA", "Automatic certificate hot-reload", "How it works", "Typical use case: Let's Encrypt auto-renewal", "Mutual TLS (mTLS)", "Server configuration", "Client configuration", "Cipher suite configuration", "Docker deployment with TLS", "Kubernetes deployment with TLS", "Store certificates in a Secret", "Mount the Secret in the Deployment"]}, {"t": "Architecture Overview", "p": "design/arch_overview.html", "h": ["Entrypoints", "LLM Class", "OpenAI-Compatible API Server", "V1 Process Architecture", "API Server Process", "Engine Core Process", "GPU Worker Processes", "DP Coordinator Process (conditional)", "Process Count Summary", "LLM Engine", "LLMEngine", "AsyncLLMEngine", "Worker", "Model Runner", "Model", "Class Hierarchy", "V1 Engine Internals", "V1 vs V0 Engine", "V1 Component Map", "Scheduler: Unified Token Budget"]}, {"t": "Attention Backend Feature Support", "p": "design/attention_backends.html", "h": ["Setting the Attention Backend", "Command Line", "Python API", "Backend Selection Behavior", "Manual Selection", "Automatic Selection", "Backend Priority (CUDA)", "Standard Attention (MHA, MQA, GQA)", "MLA Attention (DeepSeek-style)", "Legend", "Standard Attention (MHA, MQA, GQA) Backends", "MLA (Multi-head Latent Attention) Backends", "Prefill Backends", "Decode Backends"]}, {"t": "CUDA Graphs", "p": "design/cuda_graphs.html", "h": ["Motivation", "Detailed Design", "Overview", "Full CUDA Graph capturing &amp; warm-up", "CUDA Graphs Compatibility of Attention Backends", "Usage guide", "Python examples", "Piecewise compilation and full graph custom passes (attention fusion, sequence parallelism)", "About the Performance"]}, {"t": "CustomOp", "p": "design/custom_op.html", "h": ["How CustomOp Works in vLLM", "How to Customise Your Configuration for CustomOp", "Types of Supported CustomOp in vLLM", "Guidelines for Implementing a New CustomOp", "Implement a New CustomOp in vLLM", "Register a New CustomOp in OOT Device Plugins"]}, {"t": "Dual Batch Overlap", "p": "design/dbo.html", "h": ["Motivation", "Introduction", "Running with DBO", "DBO Components", "GPU Model Runner", "UBatchWrapper", "UBatchContext"]}, {"t": "How to debug the vLLM-torch.compile integration", "p": "design/debug_vllm_compile.html", "h": ["vLLM-torch.compile overview", "Use tlparse", "Turn off vLLM-torch.compile integration", "Debugging TorchDynamo", "Debugging Dynamic Shape full graph capture", "Debugging constraint violations and dynamic shapes guards issues", "Printing guards", "Debugging TorchInductor", "Editable TorchInductor code", "Debugging vLLM-compile cache", "Debugging CUDAGraphs"]}, {"t": "Distributed Inference Design", "p": "design/distributed_inference.html", "h": ["Overview", "Process Group Architecture", "GroupCoordinator", "Named Groups", "Initialisation Sequence", "Rank Terminology", "Communication Primitives", "Collective Operations", "Point-to-Point Operations", "Custom Op Registration", "Pipeline Parallelism Communication", "Executor Backends", "MultiprocExecutor", "RayDistributedExecutor", "Parallelism Configuration", "Key Parameters", "Derived Properties", "Backend Selection Logic", "MoE Expert Parallelism", "EP Group Formation"]}, {"t": "Fused MoE Modular Kernel", "p": "design/fused_moe_modular_kernel.html", "h": ["Introduction", "Motivation", "ModularKernel Components", "TopKWeightAndReduce", "FusedMoEPrepareAndFinalizeModular", "FusedMoEExpertsModular", "FusedMoEModularKernel", "How-To", "How To Add a FusedMoEPrepareAndFinalizeModular Type", "How To Add a FusedMoEExpertsModular Type", "FusedMoEModularKernel Initialization", "How To Unit Test", "How To Profile", "FusedMoEPrepareAndFinalizeModular Implementations", "FusedMoEExpertsModular"]}, {"t": "Fusion torch.compile passes", "p": "design/fusions.html", "h": ["Quick Reference", "Support Matrix", "Enabling / Disabling Fusions", "Fusion Details", "See Also"]}, {"t": "Integration with Hugging Face", "p": "design/huggingface_integration.html", "h": []}, {"t": "Hybrid KV Cache Manager", "p": "design/hybrid_kv_cache_manager.html", "h": ["What is a hybrid model?", "Definitions", "Allocation", "High level idea", "Case 1: toy model", "Case 5: KV sharing", "Prefix caching", "High level idea", "Case 0: full attention only models", "Case 1: sliding window attention only models", "Case 2: sliding window attention + full attention models", "Case 3: mamba models", "Implementation", "Overview", "Memory Layout"]}, {"t": "IO Processor Plugins", "p": "design/io_processor_plugins.html", "h": ["Architecture Overview", "Method Reference", "Writing an IO Processor Plugin", "Step 2 — Create the registration function", "Step 3 — Declare the entry point", "Step 4 — Install the plugin", "Using an IO Processor Plugin", "Method 2 — Via Model HF Configuration", "Async IO Processing", "Real-World Example", "Deprecation Notices", "See Also"]}, {"t": "KV Cache Management", "p": "design/kv_cache_management.html", "h": ["Overview", "Core Concepts", "Blocks", "KVCacheBlock", "KV Cache Groups", "Block Pool and Free Queue", "Block Pool", "FreeKVCacheBlockQueue", "Eviction Order", "Prefix Caching", "Block Hashing", "Hash Algorithms", "Cache Lookup", "Cache Insertion", "Cache Eviction (LRU)", "Touching Cached Blocks", "Slot Allocation", "Block Layout", "Allocation Steps", "Sliding Window Attention"]}, {"t": "Logits Processors", "p": "design/logits_processors.html", "h": ["Logits Processors Background", "Logits Processors in the vLLM engine", "Updating Logits Processor Internal State", "Applying Logits Processors to the Model Output Logits", "Logits Processor Programming Model", "How to Introduce a New Logits Processor to vLLM", "Best Practices for Writing Built-In Logits Processors", "Built-In Logits Processors", "Custom Logits Processors"]}, {"t": "LoRA Resolver Plugins", "p": "design/lora_resolver_plugins.html", "h": ["Overview", "Prerequisites", "Required Environment Variables", "Optional Environment Variables", "Available Resolvers", "lora_filesystem_resolver", "Advanced Configuration", "Multiple Resolvers", "Custom Resolver Implementation", "Troubleshooting", "Common Issues", "Debugging Tips"]}, {"t": "Metrics", "p": "design/metrics.html", "h": ["Objectives", "Background", "Metrics Overview", "v1 Metrics", "Grafana Dashboard", "Prometheus Client Library", "Multi-process Mode", "Built in Python/Process Metrics", "Metrics Design", "Legacy PRs", "Metrics Implementation PRs", "Metrics Collection", "Interval Calculations", "Scheduler Stats", "Engine Core Events", "Frontend Stats Collection", "KV Cache Residency Metrics", "Metrics Publishing - Logging", "Metrics Publishing - Prometheus", "Cache Config Info"]}, {"t": "Multi-Modal Data Processing", "p": "design/mm_processing.html", "h": ["Prompt Update Detection", "Tokenized Prompt Inputs", "The problem", "Dummy text", "Automatic prompt updating", "Summary", "Processor Output Caching"]}, {"t": "Model Runner V2 Design Document", "p": "design/model_runner_v2.html", "h": ["Introduction", "1. Persistent Batch", "Background", "Problems with V1's Approach", "MRV2's Solution", "2. Async-First", "3. Removing Async Barrier", "MRV2's Solution: Eliminate the Race", "4. StagedWriteTensor", "5. GPU-Native Input Metadata Preparation and Output Processing", "Universal Virtual Addressing (UVA)", "6. Triton-Native Sampler", "Gumbel Sampling Kernel", "Efficient Top-K Logprobs", "Memory-Efficient Prompt Logprobs", "Better Compatibility with Speculative Decoding", "7. Modularity", "9. Explicit CUDA Graph Management", "Development Philosophy"]}, {"t": "Fused MoE Kernel Features", "p": "design/moe_kernel_features.html", "h": ["Fused MoE Modular All2All backends", "Fused Experts Kernels", "Modular Kernel \"families\""]}, {"t": "Python Multiprocessing", "p": "design/multiprocessing.html", "h": ["Debugging", "Introduction", "Multiprocessing Methods", "Tradeoffs", "Compatibility with Dependencies", "Current State (v0)", "Prior State in v1", "Changes Made in v1", "Alternatives Considered", "Future Work"]}, {"t": "Optimization Levels", "p": "design/optimization_levels.html", "h": ["Overview", "Level Summaries and Usage Examples", "Troubleshooting", "Common Issues"]}, {"t": "P2P NCCL Connector", "p": "design/p2p_nccl_connector.html", "h": ["Detailed Design", "Overall Process", "Proxy/Router (Demo)", "KV Cache Transfer Methods", "P2P Communication via ZMQ &amp; NCCL", "NCCL Group Topology", "GPU Memory Buffer and Tensor Memory Pool", "Install vLLM", "Run xPyD", "Instructions", "Run 1P3D", "Run 3P1D", "Single request", "Benchmark", "Shut down", "Test data"]}, {"t": "Paged Attention", "p": "design/paged_attention.html", "h": ["Inputs", "Concepts", "Query", "Key", "QK", "Softmax", "Value", "LV", "Output", "Citation"]}, {"t": "Plugin System", "p": "design/plugin_system.html", "h": ["How Plugins Work in vLLM", "Plugin Loading Lifecycle", "How vLLM Discovers Plugins", "Entry Points Reference", "Minimal Plugin Example", "Anatomy of a Plugin Entry Point", "Controlling Which Plugins Load", "Types of Supported Plugins", "Guidelines for Writing Plugins", "Re-entrancy", "Error Handling", "Versioning", "Platform Plugin Guidelines", "Project Structure", "Entry Point Registration", "Platform Class Implementation", "Worker Class Implementation", "Attention Backend Implementation", "Custom Ops", "Optional Pluggable Modules"]}, {"t": "Automatic Prefix Caching", "p": "design/prefix_caching.html", "h": ["Data Structure", "Operations", "Block Allocation", "Free", "Eviction (LRU)", "Example"]}, {"t": "Scheduler Design", "p": "design/scheduler.html", "h": ["Overview", "Design Philosophy", "Request States", "Scheduling Algorithm", "Token Budget", "Phase 1: Schedule Running Requests", "Phase 2: Schedule Waiting Requests", "Continuous Batching", "Preemption", "Preemption Policy", "Scheduling Policies", "FCFS (First-Come, First-Served)", "Priority", "Speculative Decoding Integration", "Draft Token Scheduling", "Lookahead Allocation", "Draft Token ID Updates", "Encoder-Decoder Support", "Mamba / Hybrid Model Support", "SchedulerOutput"]}, {"t": "Speculative decoding — internal design", "p": "design/speculative_decoding_design.html", "h": ["Table of contents", "1. High-level architecture", "2. Configuration — SpeculativeConfig", "Key fields", "Method auto-detection", "Token tree generation", "3. Proposer class hierarchy", "SpecDecodeBaseProposer", "EagleProposer vs. DraftModelProposer", "4. EAGLE proposer internals", "Propose method", "Input preparation — standard path", "Input preparation — padded drafter batch path", "Tree attention", "Embedding sharing", "EAGLE3 auxiliary hidden states", "5. N-gram proposer internals", "CPU implementation (NgramProposer)", "GPU implementation (NgramProposerGPU)", "6. Medusa proposer internals"]}, {"t": "`torch.compile` integration", "p": "design/torch_compile.html", "h": ["Compilation Cache", "Dynamic shapes and vllm guard dropping", "Configuring Dynamic Shapes", "Python Code Compilation", "Computation Graph Processing", "Computation Graph Compilation", "Cudagraph Capture", "Full Cudagraph capture"]}, {"t": "torch.compile with Multimodal Encoders", "p": "design/torch_compile_multimodal.html", "h": ["Overview", "How Compilation Works for Multimodal Components", "APIs for Enablement", "CompilationConfig", "Applying torch.compile to a New Multimodal Model/Component", "Common pitfalls", "VllmBackend Feature Support", "Compile ranges", "Cudagraphs", "Troubleshooting", "Graph Breaks in Vision Encoders", "Compilation Errors", "See Also"]}, {"t": "V1 Engine Architecture", "p": "design/v1_engine.html", "h": ["Overview", "AsyncLLM", "Responsibilities", "Lifecycle", "Input Processing", "Output Processing", "Engine Loop", "EngineCore", "Class Hierarchy", "Initialization Sequence", "KV Cache Initialization", "The Step Loop", "Batch Queue (Pipeline Parallelism)", "Async Scheduling", "Sleep / Wake", "EngineCoreProc (Background Process Mode)", "Thread Architecture", "Startup Handshake", "Serialization", "EngineCoreClient"]}, {"t": "Examples", "p": "examples/README.html", "h": []}, {"t": "Examples Overview", "p": "examples/index.html", "h": ["How to Use These Examples", "Categories", "Others", "Quick Reference: Which Example Should I Use?", "Prerequisites", "See Also"]}, {"t": "Offline Inference Examples", "p": "examples/offline_inference/index.html", "h": ["Basic Examples", "Multimodal Inference", "Structured Outputs", "LoRA &amp; Adapters", "Speculative Decoding", "Prefix Caching", "Distributed Inference", "RLHF &amp; Weight Syncing", "Model Management", "Advanced Features", "See Also"]}, {"t": "Online Serving Examples", "p": "examples/online_serving/index.html", "h": ["Starting the Server", "Chat &amp; Completions", "Tool Calling", "Reasoning Models", "Multimodal Serving", "Structured Outputs", "Responses API", "Audio &amp; Speech", "RAG Integrations", "Web UIs", "Distributed Serving", "Observability", "See Also"]}, {"t": "Other Examples", "p": "examples/others/index.html", "h": ["Tensorizer — Fast Model Serialization", "LMCache — Remote KV Cache Sharing", "LMCache Configuration Reference", "KVTransferConfig Reference", "See Also"]}, {"t": "Pooling & Embedding Examples", "p": "examples/pooling/index.html", "h": ["Embeddings", "Classification", "Scoring &amp; Reranking", "Token Embeddings", "Token Classification", "Plugin Models", "Pooling Task Reference", "Common Patterns", "Offline Embedding Pattern", "Online Embedding Pattern", "Reranking Pattern", "See Also"]}, {"t": "Features", "p": "features/README.html", "h": ["Compatibility Matrix", "Feature x Feature", "Feature x Hardware"]}, {"t": "Automatic Prefix Caching", "p": "features/automatic_prefix_caching.html", "h": ["Introduction", "Enabling APC in vLLM", "Example workloads", "Limits"]}, {"t": "Batch Invariance", "p": "features/batch_invariance.html", "h": ["Motivation", "Hardware Requirements", "Enabling Batch Invariance", "Online Inference (Server Mode)", "Offline Inference", "Tested Models", "Implementation Details", "Future Improvements"]}, {"t": "Custom Arguments", "p": "features/custom_arguments.html", "h": ["Offline Custom Arguments", "Online Custom Arguments"]}, {"t": "Custom Logits Processors", "p": "features/custom_logitsprocs.html", "h": ["Logits Processors Background", "Creating a Custom Logits Processor", "Passing Custom Argument to a Custom Logits Processor", "Example Custom Logits Processor Implementation", "Wrapping an Existing Request-Level Logits Processor", "Ways to Load Your Custom Logits Processor in vLLM", "Method 1: Pass the Custom Logits Processor Fully-Qualified Class Name (FQCN) to vLLM at Initialization Time", "Method 2: Automatically Detect Custom Logits Processors Installed in Your Python Environment As Entry Points", "Method 3 (Offline-only): Pass a Python Class Object to the vLLM Constructor", "Invoking a Custom Logits Processor Against a Request", "Best Practices for Writing Custom Logits Processors"]}, {"t": "Disaggregated Encoder", "p": "features/disagg_encoder.html", "h": ["1  Motivation", "1. Independent, fine-grained scaling", "2. Lower time-to-first-token (TTFT)", "3. Cross-process reuse and caching", "2  Usage Example", "3  Test Script", "4  Development", "Key abstractions"]}, {"t": "Disaggregated Prefilling", "p": "features/disagg_prefill.html", "h": ["Why Disaggregated Prefilling?", "Separate TTFT and ITL Tuning", "Eliminate Prefill Interruptions", "Architecture", "Components", "Connector Architecture (v1)", "Layer-by-Layer Pipeline", "Available Connectors", "ExampleConnector", "NixlConnector", "P2pNcclConnector", "LMCacheConnectorV1", "MooncakeConnector", "OffloadingConnector", "MultiConnector", "KV Transfer Configuration", "Roles", "Usage Example", "Online Serving (Two Instances)", "Offline Inference"]}, {"t": "Interleaved Thinking", "p": "features/interleaved_thinking.html", "h": ["Introduction", "How Interleaved Thinking Works", "Supported Models", "Example Usage"]}, {"t": "LoRA Adapters", "p": "features/lora.html", "h": ["Serving LoRA Adapters", "Multi-LoRA Serving", "How It Works", "Configuring Multi-LoRA", "Pinning Adapters", "Dynamically Serving LoRA Adapters", "Using API Endpoints", "Using Resolver Plugins", "In-Place LoRA Reloading", "LoRA model lineage in model card", "LoRA Support for Tower and Connector of Multi-Modal Model", "Default LoRA Models For Multimodal Models", "Configuration Reference", "Using Tips", "Supported LoRA Features", "Supported Target Modules", "Adapter Identity and Caching", "Performance Considerations", "Further Reading"]}, {"t": "MooncakeConnector Usage Guide", "p": "features/mooncake_connector_usage.html", "h": ["About Mooncake", "Prerequisites", "Installation", "Usage", "Prefiller Node (192.168.0.2)", "Decoder Node (192.168.0.3)", "Proxy", "Environment Variables", "KV Transfer Config", "KV Role Options", "kv_connector_extra_config", "Example Scripts/Code"]}, {"t": "Multimodal Inputs", "p": "features/multimodal_inputs.html", "h": ["Offline Inference", "Image Inputs", "Video Inputs", "Audio Inputs", "Mixed Modality Inputs", "Embedding Inputs", "Cached Inputs", "Online Serving", "Image Inputs", "Video Inputs", "Audio Inputs", "Image Embedding Inputs", "Cached Inputs"]}, {"t": "NixlConnector Usage Guide", "p": "features/nixl_connector_usage.html", "h": ["Prerequisites", "Installation", "Transport Configuration", "Example: using LIBFABRIC backend", "Basic Usage (on the same host)", "Producer (Prefiller) Configuration", "Consumer (Decoder) Configuration", "Proxy Server", "Environment Variables", "Multi-Instance Setup", "Multiple Prefiller Instances on Different Machines", "Multiple Decoder Instances on Different Machines", "Proxy for Multiple Instances", "KV Role Options", "KV Load Failure Policy", "Experimental Feature", "Heterogeneous KV Layout support", "Cross layers blocks", "Example Scripts/Code"]}, {"t": "Prompt Embedding Inputs", "p": "features/prompt_embeds.html", "h": ["What are prompt embeddings?", "Offline Inference", "Hugging Face Transformers Inputs", "Online Serving", "Transformers Inputs via OpenAI Client"]}, {"t": "Quantization", "p": "features/quantization/README.html", "h": ["Supported Hardware", "Out-of-Tree Quantization Plugins", "Registering a Custom Quantization Method", "Required QuantizationConfig Methods", "Implementing a Quantized Linear Method", "Implementing a Quantized MoE Method", "Using the Plugin"]}, {"t": "AutoAWQ", "p": "features/quantization/auto_awq.html", "h": []}, {"t": "AWQ", "p": "features/quantization/awq.html", "h": ["Hardware requirements", "Quick start", "Serving a pre-quantized AWQ model", "Python API", "Quantizing a model with LLM Compressor", "Installation", "Basic 4-bit AWQ quantization", "Quantizing with AutoAWQ (legacy)", "Running a quantized model", "Command line", "Python API", "Evaluating accuracy", "Configuration reference", "AWQ vs. GPTQ comparison", "Tensor parallelism", "Best practices", "Troubleshooting", "Related pages"]}, {"t": "BitsAndBytes", "p": "features/quantization/bitsandbytes.html", "h": ["Hardware requirements", "Installation", "Quantization modes", "4-bit quantization (recommended)", "8-bit quantization (LLM.int8())", "Loading a pre-quantized checkpoint", "In-flight 4-bit quantization", "Command line", "In-flight 8-bit quantization", "Configuration options", "Generating a quantized checkpoint", "Generating text", "OpenAI-compatible server", "BitsAndBytes vs. GPTQ vs. AWQ", "Best practices", "Troubleshooting", "Related pages"]}, {"t": "BitsAndBytes", "p": "features/quantization/bnb.html", "h": ["Read quantized checkpoint", "Inflight quantization: load as 4bit quantization", "OpenAI Compatible Server"]}, {"t": "FP8", "p": "features/quantization/fp8.html", "h": ["Hardware requirements", "Quick start", "Serving a pre-quantized FP8 model", "Online dynamic quantization (no checkpoint required)", "Activation schemes", "Dynamic activation (recommended for accuracy)", "Static activation", "Quantizing a model with LLM Compressor", "Installation", "Dynamic FP8 quantization (no calibration data)", "Static FP8 quantization (with calibration data)", "Block-wise FP8 quantization", "FP8 KV cache", "Running a quantized model", "Command line", "Python API", "Evaluating accuracy", "Configuration reference", "Tensor parallelism", "Best practices"]}, {"t": "GGUF", "p": "features/quantization/gguf.html", "h": ["Supported quantization types", "Hardware requirements", "Loading from Hugging Face", "Command line", "With tensor parallelism", "With a custom HuggingFace config", "Loading a local GGUF file", "Python API", "Chat API", "Choosing a quantization type", "Finding GGUF models", "Limitations", "Troubleshooting", "Related pages"]}, {"t": "GPTQ", "p": "features/quantization/gptq.html", "h": ["Hardware requirements", "Quick start", "Serving a pre-quantized GPTQ model", "Python API", "Quantizing a model with GPTQModel", "Installation", "Basic 4-bit quantization", "8-bit quantization", "Dynamic per-layer quantization", "Quantizing with LLM Compressor", "Running a quantized model", "Command line", "Python API", "Evaluating accuracy", "Configuration reference", "Tensor parallelism", "Best practices", "Troubleshooting", "Related pages"]}, {"t": "GPTQModel", "p": "features/quantization/gptqmodel.html", "h": ["Installation", "Quantizing a model", "Running a quantized model with vLLM", "Using GPTQModel with vLLM's Python API"]}, {"t": "Intel Quantization Support", "p": "features/quantization/inc.html", "h": ["Key Features", "Supported Recipes on Intel Platforms", "Quantizing a Model", "Installation", "Quantize with CLI", "Quantize with Python API", "Deploying AutoRound Quantized Models in vLLM", "Evaluating the Quantized Model with vLLM"]}, {"t": "Quantization overview", "p": "features/quantization/index.html", "h": ["Supported methods", "Hardware compatibility", "Choosing a method", "Quantization method details", "Weight-only vs. weight-and-activation", "Static vs. dynamic activation quantization", "Group size", "Out-of-tree quantization plugins", "Related pages"]}, {"t": "INT4 W4A16", "p": "features/quantization/int4.html", "h": ["Prerequisites", "Quantization Process", "1. Loading the Model", "2. Preparing Calibration Data", "3. Applying Quantization", "4. Evaluating Accuracy", "Best Practices", "Troubleshooting and Support"]}, {"t": "INT8 W8A8", "p": "features/quantization/int8.html", "h": ["Hardware requirements", "Quick start", "Serving a pre-quantized INT8 model", "Python API", "Quantizing a model with LLM Compressor", "Installation", "Step 1: Load the model", "Step 2: Prepare calibration data", "Step 3: Apply quantization", "Step 4: Evaluate accuracy", "Understanding the compressed-tensors format", "SmoothQuant explained", "Running a quantized model", "Command line", "Python API", "Best practices", "INT8 vs. FP8 comparison", "Troubleshooting", "Related pages"]}, {"t": "KV cache quantization", "p": "features/quantization/kv_cache_quantization.html", "h": ["Supported formats", "Quantization strategies", "Per-tensor quantization", "Per-attention-head quantization", "Scale calibration approaches", "1. No calibration (default scales = 1.0)", "2. Random token calibration (on-the-fly)", "3. Dataset calibration with LLM Compressor (recommended)", "Combining KV cache and weight quantization", "Loading a checkpoint with calibrated KV scales", "Command-line reference", "Memory savings", "Best practices", "Troubleshooting", "Related pages"]}, {"t": "LLM Compressor", "p": "features/quantization/llm_compressor.html", "h": ["Why use LLM Compressor?", "Key features", "Resources"]}, {"t": "NVIDIA Model Optimizer", "p": "features/quantization/modelopt.html", "h": ["Supported ModelOpt checkpoint formats", "Quantizing HuggingFace Models with PTQ", "Running the OpenAI-compatible server", "Testing (local checkpoints)"]}, {"t": "MXFP4", "p": "features/quantization/mxfp4.html", "h": ["Hardware requirements", "Backend selection", "Quick start", "Loading a pre-quantized MXFP4 model", "Python API", "Quantizing a model with LLM Compressor", "MXFP4 format details", "Supported models", "Tensor parallelism", "LoRA support", "Environment variables", "Limitations", "Troubleshooting", "Related pages"]}, {"t": "Quantized KV Cache", "p": "features/quantization/quantized_kvcache.html", "h": ["FP8 KV Cache Overview", "Supported FP8 KV-Cache Quantization Schemes", "Scale Calibration Approaches", "Examples"]}, {"t": "AMD Quark", "p": "features/quantization/quark.html", "h": ["Quark Installation", "Quantization Process", "1. Load the Model", "2. Prepare the Calibration Dataloader", "3. Set the Quantization Configuration", "4. Quantize the Model and Export", "5. Evaluation in vLLM", "Quark Quantization Script", "Using OCP MX (MXFP4, MXFP6) models", "Using Quark Quantized layerwise Auto Mixed Precision (AMP) Models", "1. Quantize a model using mixed precision in AMD Quark", "2. inference the quantized mixed precision model in vLLM"]}, {"t": "TorchAO", "p": "features/quantization/torchao.html", "h": ["Hardware requirements", "Installation", "Supported quantization types", "Loading a pre-quantized TorchAO checkpoint", "Quantizing a model with TorchAO", "Using the transformers integration", "INT4 weight-only quantization", "FP8 dynamic activation quantization", "Using a TorchAO config file", "Per-module quantization", "Running a quantized model", "Command line", "Python API", "Skipping modules", "TorchAO vs. other methods", "Best practices", "Troubleshooting", "Related pages"]}, {"t": "Reasoning Outputs", "p": "features/reasoning_outputs.html", "h": ["Supported Models", "Quickstart", "Streaming chat completions", "Tool Calling", "Server-Level Default Chat Template Kwargs", "Disabling Thinking Mode by Default", "Enabling Thinking Mode by Default", "Request-Level Override", "Limitations", "How to support a new reasoning model"]}, {"t": "Sleep Mode", "p": "features/sleep_mode.html", "h": ["Sleep levels", "Usage", "Offline inference", "Online Serving", "Limitation"]}, {"t": "Speculative decoding", "p": "features/speculative_decoding/README.html", "h": ["How speculative decoding works", "Available methods", "Algorithm comparison", "EAGLE", "MTP (multi-token prediction)", "Draft model", "Parallel draft model (PARD)", "MLP speculator", "N-gram (prompt lookup decoding)", "Suffix decoding", "Medusa", "Method selection at a glance", "Lossless guarantees", "Theoretical losslessness", "Algorithmic losslessness", "vLLM logprob stability", "Sources of variation", "Known feature incompatibilities", "Resources for contributors"]}, {"t": "Draft Models", "p": "features/speculative_decoding/draft_model.html", "h": []}, {"t": "EAGLE draft models", "p": "features/speculative_decoding/eagle.html", "h": ["How EAGLE works", "EAGLE3 auxiliary hidden states", "Quick start", "Offline inference — EAGLE", "Offline inference — EAGLE3", "Online serving — EAGLE", "Tree attention", "Parallel drafting with EAGLE", "Configuration reference", "Measuring acceptance rate", "Pre-trained EAGLE draft models", "Training your own EAGLE head", "See also"]}, {"t": "Medusa", "p": "features/speculative_decoding/medusa.html", "h": ["How Medusa works", "Quick start", "Offline inference", "Online serving", "Method auto-detection", "Configuration reference", "How Medusa differs from EAGLE", "Measuring acceptance rate", "Pre-trained Medusa models", "Training your own Medusa heads", "See also"]}, {"t": "MLP Draft Models", "p": "features/speculative_decoding/mlp.html", "h": ["MLP Drafter Example", "Pre-Trained MLP Drafter Models"]}, {"t": "MTP (Multi-Token Prediction)", "p": "features/speculative_decoding/mtp.html", "h": ["Offline Example", "Online Example", "Notes"]}, {"t": "N-Gram Speculation", "p": "features/speculative_decoding/n_gram.html", "h": []}, {"t": "N-gram speculation (prompt lookup decoding)", "p": "features/speculative_decoding/ngram.html", "h": ["How n-gram speculation works", "Offline inference", "Online serving", "Offline inference", "Online serving", "Configuration reference", "Choosing n-gram length", "CPU vs. GPU implementation", "When to use n-gram speculation", "Combining with other settings", "See also"]}, {"t": "Parallel Draft Models", "p": "features/speculative_decoding/parallel_draft_model.html", "h": ["PARD Offline Mode Example", "PARD Online Mode Example", "Pre-trained PARD weights"]}, {"t": "vllm-project/speculators", "p": "features/speculative_decoding/speculators.html", "h": ["Why use speculators?", "Key features", "Supported draft model types", "Workflow overview", "Step 1: Generate hidden states", "Step 2: Train a draft model", "Step 3: Deploy with vLLM", "Pre-trained speculators models", "Resources", "See also"]}, {"t": "Suffix Decoding", "p": "features/speculative_decoding/suffix.html", "h": []}, {"t": "Structured Outputs", "p": "features/structured_outputs.html", "h": ["Backends", "Choosing a Backend", "Backend Comparison", "xgrammar", "outlines", "guidance (llguidance)", "lm-format-enforcer", "Online Serving (OpenAI API)", "Reasoning Outputs", "Experimental Automatic Parsing (OpenAI API)", "Offline Inference", "Specifying a Backend in Offline Inference", "JSON Schema Example", "Regex Example", "EBNF Grammar Example", "Advanced Configuration", "Disabling Whitespace Flexibility", "Disabling Additional Properties", "Async Grammar Compilation", "xgrammar Cache Size"]}, {"t": "Tool Calling", "p": "features/tool_calling.html", "h": ["Quickstart", "Named Function Calling", "Required Function Calling", "None Function Calling", "Automatic Function Calling", "IBM Granite", "Qwen Models", "Parallel Tool Calls", "Example: Parallel Tool Calls", "Parsers with Parallel Tool Call Support", "Streaming Tool Calls", "Basic Streaming Example", "Streaming with Parallel Tool Calls", "Streaming with Tool Results (Multi-Turn)", "How to Write a Tool Parser Plugin", "Quick Reference: Parser and Template Matrix"]}, {"t": "First Inference Walkthrough", "p": "getting_started/first-inference.html", "h": ["Step 1 — Verify Your Installation", "Step 2 — Offline Batch Inference", "Key classes", "Common sampling parameters", "Step 3 — Chat Interface (Instruct Models)", "Batch chat inference", "Step 4 — Greedy Decoding (Deterministic Output)", "Step 5 — Start the OpenAI-Compatible Server", "Start the server", "Check the server health", "List available models", "Step 6 — Query the Server", "Text completion (v1/completions)", "Chat completion (v1/chat/completions)", "Using the OpenAI Python client", "Streaming responses", "Step 7 — Embeddings (Optional)", "Common Patterns", "Load a gated model (requires HF token)", "Limit GPU memory usage"]}, {"t": "Getting Started with vLLM", "p": "getting_started/index.html", "h": [":compass: Which Path Is Right for You?", ":package: Installation Guides", "GPU Installation", "CPU Installation", "Hardware Plugins", ":zap: Quick Install (NVIDIA CUDA)", ":whale: Docker (No Local Install Required)", ":books: After Installation", ":white_check_mark: System Requirements", "Common Requirements", "GPU-Specific Requirements", "CPU-Specific Requirements", ":question: Frequently Asked Questions", ":link: Related Resources"]}, {"t": "Installation", "p": "getting_started/installation/README.html", "h": ["Hardware Plugins"]}, {"t": "--8&lt;-- [start:installation]", "p": "getting_started/installation/cpu.apple.inc.html", "h": []}, {"t": "--8&lt;-- [start:installation]", "p": "getting_started/installation/cpu.arm.inc.html", "h": ["Building for your target ARM CPU", "Examples", "Launching the OpenAI server"]}, {"t": "CPU-Only Installation", "p": "getting_started/installation/cpu.html", "h": ["Requirements", "Option 1 — Install via pip", "Create a Python environment", "Install pre-built wheels", "Option 2 — Build from Source", "Install system dependencies", "Create a Python environment", "Clone and install vLLM", "Python-only build (no recompilation)", "Option 3 — Docker", "Pull pre-built images", "Build a custom Docker image", "Runtime Configuration", "Key environment variables", "Recommended serving configuration", "Tensor parallel across NUMA nodes", "Supported Features", "Troubleshooting", "Community &amp; Support", "Next Steps"]}, {"t": "--8&lt;-- [start:installation]", "p": "getting_started/installation/cpu.s390x.inc.html", "h": []}, {"t": "--8&lt;-- [start:installation]", "p": "getting_started/installation/cpu.x86.inc.html", "h": ["Building for your target CPU", "Examples", "Launching the OpenAI server"]}, {"t": "Installation", "p": "getting_started/installation/device.template.html", "h": ["Requirements", "Set up using Python", "Pre-built wheels", "Build wheel from source", "Set up using Docker", "Pre-built images", "Build image from source", "Extra information"]}, {"t": "Building vLLM from Source", "p": "getting_started/installation/from-source.html", "h": ["Prerequisites", "System dependencies", "Python environment", "Clone the repository", "Build Methods", "Method 1 — Python-only build (no recompilation)", "Method 2 — Full build (with C++/CUDA compilation)", "Method 3 — Build a portable wheel", "Backend-Specific Build Instructions", "CUDA (NVIDIA GPU)", "CPU (x86, ARM, macOS)", "ROCm (AMD GPU)", "TPU (Google Cloud)", "XPU (Intel GPU)", "Speeding Up Builds", "ccache (local compilation cache)", "sccache (remote compilation cache)", "Parallel compilation", "Incremental kernel builds", "Using an Existing PyTorch Installation"]}, {"t": "NVIDIA GPU (CUDA) Installation", "p": "getting_started/installation/gpu-cuda.html", "h": ["Requirements", "Option 1 — Install via pip (Recommended)", "Create a Python environment", "Install vLLM", "Verify the installation", "Option 2 — Docker (Zero Local Install)", "Pull the official image", "Run the OpenAI-compatible server", "Build a custom Docker image", "Option 3 — Build from Source", "Python-only build (no recompilation)", "Full build (with C++/CUDA compilation)", "Supported Features", "Troubleshooting", "Next Steps"]}, {"t": "AMD GPU (ROCm) Installation", "p": "getting_started/installation/gpu-rocm.html", "h": ["Requirements", "Option 1 — Install via pip", "Create a Python environment", "Install vLLM", "Verify the installation", "Option 2 — Docker", "Pull the official ROCm image", "Run the OpenAI-compatible server", "AMD nightly images", "Option 3 — Build from Source", "Prerequisites", "Step 1 — Install Triton for ROCm", "Step 2 — (Optional) Install Flash Attention for ROCm", "Step 3 — (Optional) Build AITER", "Step 4 — Build vLLM", "Build a Docker image from source", "Performance Tuning", "Supported Features", "Troubleshooting", "Community &amp; Support"]}, {"t": "--8&lt;-- [start:installation]", "p": "getting_started/installation/gpu.cuda.inc.html", "h": []}, {"t": "GPU", "p": "getting_started/installation/gpu.html", "h": ["toc_depth: 3", "Requirements", "Set up using Python", "Create a new Python environment", "Pre-built wheels", "Build wheel from source", "Set up using Docker", "Pre-built images", "Build image from source", "Supported features"]}, {"t": "--8&lt;-- [start:installation]", "p": "getting_started/installation/gpu.rocm.inc.html", "h": []}, {"t": "--8&lt;-- [start:installation]", "p": "getting_started/installation/gpu.xpu.inc.html", "h": []}, {"t": "Intel Gaudi HPU Installation", "p": "getting_started/installation/hpu.html", "h": ["Requirements", "Option 1 — Docker (Recommended)", "Pull the Gaudi base image", "Build the vLLM Gaudi image", "Run the container", "Option 2 — Build from Source", "Prerequisites", "Install vLLM", "Install the vllm-gaudi plugin", "Verify the installation", "Running Inference", "Offline inference", "Online serving", "Multi-card tensor parallel", "Key Environment Variables", "Version Compatibility", "Supported Features", "Troubleshooting", "Community &amp; Support", "Next Steps"]}, {"t": "Installation Overview", "p": "getting_started/installation/index.html", "h": ["Platform Comparison", "Quick Install (NVIDIA CUDA)", "Installation Guides by Platform", "GPU Platforms", "Accelerator Platforms", "CPU Platforms", "Build from Source", "System Requirements", "Common Requirements", "GPU Requirements", "CPU Requirements", "Hardware Plugins", "After Installation", "Next Steps"]}, {"t": "macOS Apple Silicon Installation", "p": "getting_started/installation/macos.html", "h": ["Requirements", "Install Xcode Command Line Tools", "Option 1 — Install via pip (Recommended)", "Create a Python environment", "Install vLLM", "Verify the installation", "Option 2 — Build from Source (Full Build)", "Verify with a Smoke Test", "Running Inference", "Offline inference", "Online serving", "Runtime Configuration", "Key environment variables", "Recommended configuration for Apple Silicon", "GPU-Accelerated Inference with vllm-metal", "Troubleshooting", "Supported Features", "Community &amp; Support", "Next Steps"]}, {"t": "Huawei Ascend NPU Installation", "p": "getting_started/installation/npu.html", "h": ["Requirements", "Option 1 — Docker (Recommended)", "Build the vLLM Ascend image", "Run the container", "Option 2 — Build from Source", "Prerequisites", "Install vLLM", "Install the vllm-ascend plugin", "Verify the installation", "Running Inference", "Offline inference", "Online serving", "Using ModelScope (for China mainland users)", "Key Environment Variables", "Supported Features", "Troubleshooting", "Community &amp; Support", "Next Steps"]}, {"t": "Python Env Setup.Inc", "p": "getting_started/installation/python_env_setup.inc.html", "h": []}, {"t": "Google TPU Installation", "p": "getting_started/installation/tpu.html", "h": ["Requirements", "Option 1 — Install via pip", "Option 2 — Docker", "Build the TPU Docker image", "Run the TPU container", "Option 3 — Build from Source", "Prerequisites", "Install dependencies", "Install vLLM", "Verify the Installation", "Running Inference", "Offline inference", "Online serving", "Key Environment Variables", "Performance Notes", "Supported Features", "Troubleshooting", "Community &amp; Support", "Next Steps"]}, {"t": "Intel GPU (XPU) Installation", "p": "getting_started/installation/xpu.html", "h": ["Requirements", "Option 1 — Docker (Recommended)", "Pull the pre-built image", "Run the container", "Build a custom Docker image", "Option 2 — Build from Source", "Step 1 — Install Intel GPU driver", "Step 2 — Install Intel oneAPI", "Step 3 — Install oneCCL (for distributed inference)", "Step 4 — Create a Python environment", "Step 5 — Install vLLM", "Verify the Installation", "Running Inference", "Offline inference", "Online serving", "Tensor parallel (multi-GPU)", "Pipeline parallel (online serving)", "Distributed Backend", "Key Environment Variables", "Supported Features"]}, {"t": "Quickstart", "p": "getting_started/quickstart.html", "h": ["Prerequisites", "Installation", "Offline Batched Inference", "More Offline Inference Examples", "OpenAI-Compatible Server", "OpenAI Completions API with vLLM", "OpenAI Chat Completions API with vLLM", "More Server Examples", "On Attention Backends", "Next Steps"]}, {"t": "Collaboration Policy", "p": "governance/collaboration.html", "h": ["Adding New Major Features", "Adding New Models", "Adding New Hardware"]}, {"t": "Committers", "p": "governance/committers.html", "h": ["Active Committers", "Emeritus Committers", "Area Owners", "Engine Core", "Model Implementations", "Entrypoints", "Features", "Code Base", "External Kernels Integration", "Integrations", "Collaboration with Model Vendors", "Hardware", "Ecosystem Projects"]}, {"t": "Governance", "p": "governance/index.html", "h": ["Values", "Design values", "Collaboration values", "Maintainer hierarchy", "Lead maintainers", "Core maintainers (project leads)", "Committers and area owners", "Committer proposal process", "Selection criteria", "Nomination steps", "Working groups", "Advisory board", "Decision-making process", "Project roadmap", "Technical decisions", "Merging code", "Communication channels", "Slack channels for contributors", "Collaboration with external partners", "Governance pages"]}, {"t": "Governance Process", "p": "governance/process.html", "h": ["Values", "Design Values", "Collaboration Values", "Project Maintainers", "Core Maintainers", "Lead Maintainers", "Committers and Area Owners", "Working Groups", "Advisory Board", "Process", "Project Roadmap", "Decision Making", "Merging Code", "Slack", "Meetings"]}, {"t": "Welcome to vLLM", "p": "index.html", "h": [":rocket: Key features", ":compass: Where to start", ":sparkles: What's new", ":white_check_mark: Feature matrix", "Inference modes", "Model types", "Quantization", "Parallelism &amp; scaling", "Speculative decoding", "Hardware platforms", ":books: Documentation sections", ":handshake: Community &amp; resources", ":scroll: Citation"]}, {"t": "Main", "p": "mkdocs/overrides/main.html", "h": []}, {"t": "Toc Item", "p": "mkdocs/overrides/partials/toc-item.html", "h": []}, {"t": "Adding a New Model", "p": "models/adding_model.html", "h": ["Overview", "Prerequisites", "Step 1: Create the Model File", "Minimal Decoder-Only Model Template", "Step 2: Implement Weight Loading", "Manual Weight Loading with Stacked Parameters", "Weight Name Remapping", "Step 3: Implement Required Interfaces", "For Text Generation Models", "For Embedding Models", "For Multimodal Models", "Declaring Pipeline Parallelism Support", "Declaring LoRA Support", "Step 4: Register the Architecture", "Step 5: Add Architecture-Specific Config (Optional)", "Step 6: Write Tests", "Basic Correctness Test", "Comparing Against HuggingFace Reference", "Common Patterns and Tips", "Handling Tied Embeddings"]}, {"t": "Embedding Models", "p": "models/embedding_models.html", "h": ["Overview", "Quick Start", "Text Embeddings", "Batch Embeddings", "Using the OpenAI-Compatible API", "Serving an Embedding Model", "Pooling Strategies", "Configuring Pooling", "Matryoshka Embeddings", "Chunked Processing for Long Inputs", "Supported Embedding Models", "Text-Only Embedding Models", "Multimodal Embedding Models", "Cross-Encoders and Rerankers", "Using Cross-Encoders", "Supported Reranker Models", "Late Interaction Models (ColBERT)", "Using ColBERT Models", "Supported ColBERT Models", "SPLADE Sparse Embeddings"]}, {"t": "Encoder-Decoder Models", "p": "models/encoder_decoder_models.html", "h": ["Supported Encoder-Decoder Architectures", "Automatic Speech Recognition (ASR)", "Whisper", "Qwen3 ASR", "FireRedASR2", "Document Parsing", "Nemotron Parse", "Architecture Details", "How Encoder-Decoder Models Work in vLLM", "Cross-Attention KV Cache", "Audio Input Formats", "Performance Considerations", "Batching ASR Requests", "Memory Optimization", "Related"]}, {"t": "Fastsafetensor", "p": "models/extensions/fastsafetensor.html", "h": []}, {"t": "Loading models with Run:ai Model Streamer", "p": "models/extensions/runai_model_streamer.html", "h": ["Tunable parameters", "Sharded Model Loading"]}, {"t": "Loading models with CoreWeave's Tensorizer", "p": "models/extensions/tensorizer.html", "h": ["Installing Tensorizer", "The basics", "Serializing a vLLM model with Tensorizer", "Serving the model using Tensorizer", "Options for configuring Tensorizer"]}, {"t": "Generative Models", "p": "models/generative_models.html", "h": ["Overview", "Quick Start", "Basic Text Generation", "Chat Completion", "Serving via OpenAI-Compatible API", "Model Families", "Llama Family", "Qwen Family", "Mistral / Mixtral Family", "DeepSeek Family", "Gemma Family", "Phi Family", "Mixture-of-Experts (MoE) Models", "Key MoE Models", "Running MoE Models", "Expert Parallelism", "State Space Models (SSM)", "Mamba Models", "Hybrid Models (Attention + SSM)", "Long-Context Models"]}, {"t": "CPU - Intel® Xeon®", "p": "models/hardware_supported_models/cpu.html", "h": ["Validated Hardware", "Recommended Models", "Text-only Language Models", "Multimodal Language Models"]}, {"t": "XPU - Intel® GPUs", "p": "models/hardware_supported_models/xpu.html", "h": ["Validated Hardware", "Recommended Models", "Text-only Language Models", "Multimodal Language Models", "Embedding and Reranker Language Models"]}, {"t": "Models Overview", "p": "models/index.html", "h": ["Model Categories", "Quick Navigation", "How vLLM Loads Models", "Quantization Support", "Model Loading Formats", "Transformers Backend", "Related Resources"]}, {"t": "ModelRegistry API", "p": "models/model_registry.html", "h": ["Overview", "Architecture Resolution", "Core Methods", "Capability Query Methods", "Lazy Loading and Caching", "How Lazy Loading Works", "Cache Location", "Cache Invalidation", "Registering Models via Plugins", "Creating a Plugin", "Registering the Plugin", "Inline Registration", "Internal Architecture Dictionaries", "Previously Supported Models", "Example: Checking Model Capabilities", "Example: Listing All Supported Architectures", "Related"]}, {"t": "Multimodal Models", "p": "models/multimodal_models.html", "h": ["Supported Modalities", "Quick Start", "Image Input", "Image from URL", "Multiple Images", "Audio Input", "Video Input", "Using the OpenAI-Compatible API", "Image via URL", "Image via Base64", "Audio Input", "Configuration", "Limiting Multimodal Inputs", "Disabling Multimodal Processing", "Pre-computed Embeddings", "Multimodal Input Types", "Supported Input Formats", "Model-Specific Notes", "LLaVA Family", "Qwen2-VL / Qwen2.5-VL"]}, {"t": "Pooling Models", "p": "models/pooling_models.html", "h": ["Configuration", "Model Runner", "Model Conversion", "Pooling Tasks", "Pooler Configuration", "Offline Inference", "Online Serving", "Matryoshka Embeddings", "Manually enable Matryoshka Embeddings", "Offline Inference", "Online Inference", "Specific models", "ColBERT Late Interaction Models", "ColQwen3 Multi-Modal Late Interaction Models", "Llama Nemotron Multimodal", "BAAI/bge-m3", "Deprecated Features", "Encode task"]}, {"t": "Supported Models", "p": "models/supported_models.html", "h": ["Text Generation Models (Decoder-Only)", "Embedding &amp; Pooling Models", "Cross-Encoder / Reranker Models", "Multimodal Models", "Vision-Language Models (Image + Text)", "Audio-Language Models", "Omni Models (Audio + Vision + Text)", "Encoder-Decoder Models", "Speculative Decoding Models", "Transformers Backend Models", "Quantization Compatibility", "Previously Supported Models", "Adding a New Model"]}, {"t": "Anthropic-Compatible API", "p": "serving/anthropic_api.html", "h": ["Endpoints", "Quick Start", "Start the Server", "Send a Request", "Messages API", "Multi-Turn Conversations", "System Prompts", "Streaming", "Streaming Events", "Tool Calling", "Tool Choice Options", "Tool Result", "Token Counting", "Error Handling", "Differences from OpenAI Chat Completions", "Authentication", "See Also"]}, {"t": "API Reference", "p": "serving/api_reference.html", "h": ["Base URL", "Authentication", "Common Response Formats", "Error Response", "Usage Info", "Generation Endpoints", "POST /v1/chat/completions", "POST /v1/completions", "POST /v1/responses", "GET /v1/responses/{response_id}", "POST /v1/responses/{response_id}/cancel", "Audio Endpoints", "POST /v1/audio/transcriptions", "POST /v1/audio/translations", "WebSocket /v1/realtime", "Pooling / Embedding Endpoints", "POST /v1/embeddings", "POST /pooling", "POST /classify", "POST /score"]}, {"t": "Batch Inference", "p": "serving/batch_inference.html", "h": ["Overview", "Quick Start", "Prepare Input File", "Run the Batch", "Read Output", "Input Format", "URL Routing", "Output Format", "Examples by Endpoint", "Chat Completions", "Embeddings", "Audio Transcription", "Audio Translation", "Scoring", "Re-ranking", "CLI Arguments", "Required Arguments", "Optional Arguments", "Frontend Arguments", "Remote Files"]}, {"t": "Chat Completions", "p": "serving/chat_completions.html", "h": ["Quick Start", "Start the Server", "Send a Request", "Message Roles", "Multi-turn Conversation", "Streaming", "Stream with Usage Statistics", "Sampling Parameters", "Example: Deterministic Output", "Structured Outputs", "JSON Mode", "JSON Schema", "Choice Constraint (vLLM Extension)", "Regex Constraint (vLLM Extension)", "Tool Calling / Function Calling", "Server Setup", "Define and Call Tools", "Tool Choice Options", "Available Tool Parsers", "Log Probabilities"]}, {"t": "Text Completions", "p": "serving/completions.html", "h": ["Quick Start", "Start the Server", "Send a Request", "Request Parameters", "Standard OpenAI Parameters", "vLLM Sampling Extensions", "vLLM Extra Extensions", "Response Format", "Non-Streaming Response", "Streaming Response", "Common Use Cases", "Batch Prompts", "Echo Mode", "Log Probabilities", "Beam Search", "Structured Output", "Prompt Token IDs", "Streaming", "Stream with Usage", "Repetition Detection"]}, {"t": "Context Parallel Deployment", "p": "serving/context_parallel_deployment.html", "h": ["Prefill Context Parallel", "Decode Context Parallel", "Technical Discussions"]}, {"t": "Data Parallel Deployment", "p": "serving/data_parallel_deployment.html", "h": ["Internal Load Balancing", "Hybrid Load Balancing", "External Load Balancing"]}, {"t": "Troubleshooting distributed deployments", "p": "serving/distributed_troubleshooting.html", "h": ["Verify inter-node GPU communication", "No available node types can fulfill resource request", "Ray observability"]}, {"t": "Embeddings", "p": "serving/embeddings.html", "h": ["Quick Start", "Start the Server", "Generate Embeddings", "Request Parameters", "vLLM Extensions", "Response Format", "Batch Embeddings", "Semantic Similarity", "Base64 Encoding", "Matryoshka Embeddings (Dimension Reduction)", "Chat-Format Embeddings", "Multimodal Embeddings", "VLM2Vec", "Pooling API", "Classification API", "Score / Re-rank API", "Serving Embedding Models", "Basic Embedding Model", "Instruction-Following Embedding Model", "Cross-Encoder Re-ranker"]}, {"t": "Expert Parallel Deployment", "p": "serving/expert_parallel_deployment.html", "h": ["Prerequisites", "Backend Selection Guide", "Single Node Deployment", "Configuration", "Layer Behavior with EP Enabled", "Example Command", "Multi-Node Deployment", "Deployment Steps", "Example: 2-Node Deployment", "Key Configuration Notes", "Network Configuration", "Expert Parallel Load Balancer (EPLB)", "Configuration", "EPLB Parameters", "Expert Distribution Formula", "Memory Footprint Overhead", "Example Command", "Advanced Configuration", "Performance Optimization", "Troubleshooting"]}, {"t": "gRPC Server", "p": "serving/grpc_server.html", "h": ["Overview", "Quick Start", "Start the gRPC Server", "Generate Text", "Server Configuration", "Command-Line Arguments", "Example with Engine Args", "Service Definition", "RPCs in Detail", "Generate", "Pre-tokenized Input", "HealthCheck", "Abort", "GetModelInfo", "GetServerInfo", "Structured Outputs", "gRPC Reflection", "Error Handling", "Server Options", "Graceful Shutdown"]}, {"t": "Serving Overview", "p": "serving/index.html", "h": ["Serving Interfaces", "API Endpoints at a Glance", "Generation APIs", "Audio APIs", "Pooling / Embedding APIs", "Utility APIs", "Anthropic API", "Quick Start", "Start the Server", "Send a Request", "Endpoint Deep Dives", "Cross-Cutting Topics", "Deployment Guides"]}, {"t": "Claude Code", "p": "serving/integrations/claude_code.html", "h": ["How It Works", "Requirements", "Installation", "Starting the vLLM Server", "Configuring Claude Code", "Testing the Setup", "Troubleshooting"]}, {"t": "LangChain", "p": "serving/integrations/langchain.html", "h": []}, {"t": "LlamaIndex", "p": "serving/integrations/llamaindex.html", "h": []}, {"t": "Serving Multimodal Models", "p": "serving/multimodal_serving.html", "h": ["Overview", "Quick Start", "Vision Model (Images)", "Video Model", "Audio Model", "Server Configuration", "Limiting Media Per Prompt", "Media I/O Options", "Allowed Media Domains", "Allowing Local File Paths", "Fetch Timeouts", "Model-Specific Configurations", "Vision-Language Models", "Audio-Language Models", "Omni Models (Image + Audio)", "Chat Templates", "Transcriptions API", "Starting the Server", "Making Transcription Requests", "Supported Response Formats"]}, {"t": "Offline Inference", "p": "serving/offline_inference.html", "h": ["Ray Data LLM API"]}, {"t": "OpenAI-Compatible Server", "p": "serving/openai_compatible_server.html", "h": ["Server Configuration", "Network Settings", "Authentication", "CORS Configuration", "SSL/TLS", "Logging", "Request ID Headers", "Custom Middleware", "HTTP Parser Settings", "API Documentation", "Multi-Process Configuration", "Config File", "Supported APIs", "Chat Template", "Extra Parameters", "Extra HTTP Headers", "Offline API Documentation", "API Reference", "Completions API", "Chat API"]}, {"t": "Parallelism and Scaling", "p": "serving/parallelism_scaling.html", "h": ["Distributed inference strategies for a single-model replica", "Single-node deployment", "Multi-node deployment", "What is Ray?", "Ray cluster setup with containers", "Running vLLM on a Ray cluster", "Running vLLM with MultiProcessing", "Optimizing network communication for tensor parallelism", "Enabling GPUDirect RDMA", "Troubleshooting distributed deployments"]}, {"t": "Realtime API (WebSocket)", "p": "serving/realtime_api.html", "h": ["Overview", "Quick Start", "Start the Server", "Connect and Transcribe", "Audio Format Requirements", "Converting Audio to PCM16", "Protocol Reference", "Connection", "Client → Server Events", "Server → Client Events", "Protocol Flow", "Live Microphone Transcription", "Authentication", "Error Handling", "Example Clients", "Comparison: Realtime vs. Transcriptions API", "See Also"]}, {"t": "Responses API", "p": "serving/responses_api.html", "h": ["Quick Start", "Start the Server", "Create a Response", "Request Parameters", "Standard OpenAI Parameters", "vLLM Extensions", "Response Format", "Multi-Turn Conversations", "Streaming", "Streaming Events", "Tool Calling", "Retrieve a Stored Response", "Retrieve with Streaming", "Cancel a Response", "System Instructions", "Reasoning Models", "Context Truncation", "Structured Outputs", "Differences from Chat Completions", "See Also"]}, {"t": "AWS SageMaker Integration", "p": "serving/sagemaker.html", "h": ["Overview", "Quick Start", "Docker Image", "Deploy to SageMaker", "Endpoints", "GET/POST /ping", "POST /invocations", "Request Routing", "Routing by Task", "Chat Completions via SageMaker", "Embeddings via SageMaker", "Stateful Sessions", "LoRA Adapters", "Environment Variables", "Multi-Model Endpoints", "Health Check Configuration", "Streaming on SageMaker", "Cost Optimization", "Instance Selection", "Auto-Scaling"]}, {"t": "Speech-to-Text", "p": "serving/speech_to_text.html", "h": ["Quick Start", "Start the Server", "Transcribe Audio", "Transcription Endpoint", "Supported Audio Formats", "Response Formats", "Response Examples", "Detailed Examples", "Transcribe with Language Hint", "Verbose JSON with Timestamps", "Streaming Transcription", "Style Prompt", "Translation Endpoint", "Translate Audio", "Translation Response", "Sampling Parameters (vLLM Extensions)", "Streaming Options", "Batch Transcription", "Supported Models", "Comparison: Transcriptions vs. Realtime API"]}, {"t": "Streaming Responses", "p": "serving/streaming.html", "h": ["How Streaming Works", "Chat Completions Streaming", "Basic Streaming", "Stream with Usage Statistics", "Streaming Chunk Format", "First Chunk", "Last Chunk", "Finish Reasons", "Text Completions Streaming", "Completion Chunk Format", "Responses API Streaming", "Responses API Event Types", "SSE Event Format for Responses API", "Audio Transcription Streaming", "Raw HTTP Streaming", "Streaming with Tool Calls", "Streaming with Log Probabilities", "Cancellation", "Performance Considerations", "Time to First Token (TTFT)"]}, {"t": "Documentation Sitemap", "p": "sitemap.html", "h": [":material-rocket-launch: Getting Started", ":material-book-open-variant: Usage", ":material-server: Serving", ":material-chip: Models", ":material-puzzle: Features", "Quantization", "Speculative Decoding", "Other Features", ":material-tune: Configuration", ":material-cloud-upload: Deployment", ":material-sitemap: Design &amp; Architecture", ":material-console: CLI Reference", ":material-code-braces: API Reference", ":material-flask: Benchmarking", ":material-code-block-tags: Examples", ":material-dumbbell: Training Integration", ":material-source-pull: Contributing", ":material-account-group: Community", ":material-scale-balance: Governance"]}, {"t": "Training Integration", "p": "training/index.html", "h": ["Why Use vLLM for RL Training?", "Architecture Overview", "Deployment Modes", "Offline (Programmatic) API", "Online (HTTP Server) Mode", "Sleep / Wake-up Mode", "Weight Transfer Backends", "Third-Party Integrations", "TRL (Transformers Reinforcement Learning)", "RLHF Libraries", "Quick-Start Examples", "In This Section"]}, {"t": "Reinforcement Learning from Human Feedback", "p": "training/rlhf.html", "h": []}, {"t": "Transformers Reinforcement Learning", "p": "training/trl.html", "h": ["Modes of Using vLLM During Training", "Server mode", "Colocate mode"]}, {"t": "Weight Transfer API", "p": "training/weight_transfer_api.html", "h": ["Overview", "Configuration", "Worker-Side API", "HTTP Server API", "NCCL Backend", "When to use", "Initialisation", "Sending weights (trainer side)", "Receiving weights (worker side)", "Packed tensor broadcasting", "IPC Backend", "When to use", "Initialisation", "Sending weights (trainer side)", "Engine Factory", "Registering a custom backend", "Base Classes", "Complete Examples", "Separate GPUs — NCCL (Ray)", "Colocated GPU — IPC (Ray)"]}, {"t": "Using vLLM", "p": "usage/README.html", "h": []}, {"t": "Beam Search Decoding", "p": "usage/beam_search.html", "h": ["When to Use Beam Search", "Quick Start", "Examples", "Basic Beam Search", "Batch Beam Search", "Comparing All Beams", "With Token ID Input", "With LoRA", "Concurrency Limiting", "How Beam Search Works in vLLM", "Beam Search vs. Sampling", "Performance Considerations", "See Also"]}, {"t": "Chat Templates", "p": "usage/chat_templates.html", "h": ["Why Chat Templates Matter", "How vLLM Selects a Chat Template", "Using a Built-In Template", "Specifying a Custom Template", "Via CLI (server)", "Via Python (offline inference)", "Built-In Chat Templates", "Plain Chat Templates", "Template Summary Table", "Content Format Detection", "Chat Template Variables", "Message Object Fields", "Server-Level Default Template Variables", "Writing a Custom Chat Template", "Tips for Writing Templates", "Jinja2 Filters Available in vLLM", "Multimodal Content in Templates", "Embedding Model Templates", "Troubleshooting", "Further Reading"]}, {"t": "Frequently Asked Questions", "p": "usage/faq.html", "h": ["Mitigation Strategies"]}, {"t": "Usage Guide", "p": "usage/index.html", "h": ["What's in This Section", "Choosing the Right Inference Mode", "Quick Reference: LLM Class Methods", "Common Patterns at a Glance", "Greedy decoding (deterministic)", "Sampling with nucleus (top-p)", "Chat with a system prompt", "Embeddings", "Next Steps"]}, {"t": "Log Probabilities Guide", "p": "usage/logprobs.html", "h": ["Enabling Log Probabilities", "Generated Token Log Probabilities", "Accessing Generated Logprobs", "Identifying the Sampled Token", "Cumulative Log Probability", "Prompt Token Log Probabilities", "Accessing Prompt Logprobs", "Computing Perplexity", "Scoring Sequences", "Logprobs in the OpenAI API", "Common Patterns", "Get the top-1 token at each position", "Find positions where the model was uncertain", "Compute sequence probability", "Compare two models on the same text", "Reference Summary", "See Also"]}, {"t": "Production Metrics", "p": "usage/metrics.html", "h": ["General Metrics", "Speculative Decoding Metrics", "NIXL KV Connector Metrics", "Model Flops Utilization (MFU) Performance Metrics", "Deprecation Policy"]}, {"t": "Offline Inference", "p": "usage/offline_inference.html", "h": ["Installation", "The LLM Class", "Key Constructor Parameters", "Basic Example", "Greedy Decoding (Deterministic)", "Multiple Outputs per Prompt", "Per-Prompt Sampling Parameters", "Token ID Inputs", "Disabling the Progress Bar", "Single Conversation", "Batch Chat (Multiple Conversations)", "Multi-Turn Conversations", "Custom Chat Template", "Continuing a Partial Response", "Semantic Similarity", "Matryoshka Embeddings (Reduced Dimensions)", "N-to-N Scoring", "Enqueue / Wait Pattern", "Multi-GPU Inference", "LoRA Adapters"]}, {"t": "Output Types Reference", "p": "usage/output_types.html", "h": ["Overview", "Generative Model Outputs", "Accessing Log Probabilities", "Accessing Prompt Log Probabilities", "Pooling Model Outputs", "Beam Search Outputs", "Log Probability Types", "Complete Example: Extracting All Information", "See Also"]}, {"t": "PoolingParams Reference", "p": "usage/pooling_params.html", "h": ["Overview", "Supported Tasks", "Parameter Reference", "Internal Parameters", "Valid Parameters by Task", "Usage Examples", "Basic Embedding", "Reduced-Dimension Embedding (Matryoshka)", "Classification with Raw Logits", "Scoring / Reranking", "Per-Request Pooling Params", "Configuring Default Pooling Parameters", "See Also"]}, {"t": "Reproducibility", "p": "usage/reproducibility.html", "h": ["Setting the global seed", "Default Behavior"]}, {"t": "SamplingParams Reference", "p": "usage/sampling_params.html", "h": ["Quick Reference", "Output Count", "Randomness &amp; Sampling", "Reproducibility", "Length Control", "Stopping Conditions", "Repetition Penalties", "Log Probabilities", "Logit Control", "Structured Outputs", "Output Format", "Streaming Control", "Advanced", "Common Recipes", "Greedy decoding", "Creative writing", "Balanced generation", "Reproducible output", "Multiple diverse outputs", "Constrained length"]}, {"t": "Security", "p": "usage/security.html", "h": ["Inter-Node Communication", "Configuration Options for Inter-Node Communications", "Notes on PyTorch Distributed", "Security Recommendations", "Security and Firewalls: Protecting Exposed vLLM Systems", "Firewall Configuration Guidance", "API Key Authentication Limitations", "Overview", "Protected Endpoints (Require API Key)", "Unprotected Endpoints (No API Key Required)", "Security Implications", "Recommended Security Practices", "Tool Server and MCP Security", "Built-in Demo Tools (GPT-OSS)", "Reporting Security Vulnerabilities"]}, {"t": "Tokenization", "p": "usage/tokenization.html", "h": ["Overview", "Tokenizer Modes", "Auto-Detection Logic", "Tokenizer Implementations", "Configuration Reference", "CLI Flags", "Python API", "Using a Separate Tokenizer", "ModelScope Support", "GGUF Tokenizers", "Truncation Side", "Incremental Detokenization", "Spaces Between Special Tokens", "Programmatic Tokenizer Access", "Required Properties", "Required Methods", "Implementing a Custom Tokenizer", "Performance Tips", "Use Fast Tokenizers", "Tokenizer Caching"]}, {"t": "Tool Calling Jinja Templates", "p": "usage/tool_templates.html", "h": ["Quick Start", "How Tool Calling Works in vLLM", "Tool Call Output Formats", "Available Tool Chat Templates", "Llama Family", "Mistral Family", "Hermes / NousResearch", "DeepSeek Family", "Gemma Family", "IBM Granite Family", "Qwen / Alibaba Family", "GLM Family", "InternLM Family", "Salesforce xLAM Family", "Microsoft Phi Family", "MiniMax Family", "Tencent Hunyuan Family", "Template Summary Table", "Tool Definition Schema", "Mistral-Specific Requirements"]}, {"t": "Troubleshooting", "p": "usage/troubleshooting.html", "h": ["Hangs downloading a model", "Hangs loading a model from disk", "Out of memory", "Generation quality changed", "Enable more logging", "Breakpoints", "Incorrect network setup", "Incorrect hardware/driver", "Python multiprocessing", "Model failed to be inspected", "Model not supported", "Failed to infer device type", "CUDA error: the provided PTX was compiled with an unsupported toolchain", "ptxas fatal: Value 'sm_110a' is not defined for option 'gpu-name'", "Known Issues"]}, {"t": "Usage Stats Collection", "p": "usage/usage_stats.html", "h": ["What data is collected?", "Opting out"]}, {"t": "vLLM V1", "p": "usage/v1_guide.html", "h": ["Differences from V0", "Chunked Prefill", "CUDA Graphs", "Semantic Changes to Logprobs", "Feature Support", "Hardware", "Models", "Features"]}];
+  var searchInput=document.getElementById('doc-search');
+  var searchResults=document.getElementById('search-results');
+  var navLinks=document.getElementById('sidebar-nav-links');
+  if(!searchInput||!searchResults||!navLinks)return;
+  var depth=(location.pathname.match(/\//g)||[]).length;
+  var prefix='';
+  var docsIdx=location.pathname.indexOf('/docs/');
+  if(docsIdx>=0){var after=location.pathname.substring(docsIdx+6);var parts=after.split('/');prefix='../'.repeat(Math.max(0,parts.length-1));}
+  searchInput.addEventListener('input',function(){
+    var q=this.value.toLowerCase().trim();
+    if(!q){searchResults.innerHTML='';navLinks.style.display='';return;}
+    navLinks.style.display='none';
+    var hits=[];
+    for(var i=0;i<idx.length;i++){
+      var item=idx[i];var score=0;
+      if(item.t.toLowerCase().indexOf(q)>=0)score+=10;
+      for(var j=0;j<item.h.length;j++){if(item.h[j].toLowerCase().indexOf(q)>=0)score+=3;}
+      if(score>0)hits.push({item:item,score:score});
+    }
+    hits.sort(function(a,b){return b.score-a.score;});
+    var html='';
+    for(var k=0;k<Math.min(hits.length,15);k++){
+      var h=hits[k].item;
+      html+='<a href="'+prefix+h.p+'">'+h.t+'</a>';
+      var mh=[];for(var m=0;m<h.h.length;m++){if(h.h[m].toLowerCase().indexOf(q)>=0)mh.push(h.h[m]);}
+      for(var n=0;n<Math.min(mh.length,2);n++){html+='<div class="search-heading">↳ '+mh[n]+'</div>';}
+    }
+    if(!hits.length)html='<div style="padding:8px 12px;color:var(--text-dim);font-size:0.8rem">No results</div>';
+    searchResults.innerHTML=html;
+  });
+})();
+</script>
+<script>
+(function(){
+  // Mermaid expand buttons — added AFTER mermaid renders (so button is on wrapper, not inside pre)
+  var overlay=document.getElementById('mermaid-overlay');
+  var overlayInner=document.getElementById('mermaid-overlay-inner');
+  function _addMermaidButtons(){
+    document.querySelectorAll('.mermaid,pre.mermaid').forEach(function(el){
+      if(el.dataset.expandAdded)return;
+      el.dataset.expandAdded='1';
+      // Wrap in a div so the button is a sibling of pre, not inside it
+      var wrapper=document.createElement('div');
+      wrapper.style.cssText='position:relative;display:inline-block;width:100%;';
+      el.parentNode.insertBefore(wrapper,el);
+      wrapper.appendChild(el);
+      var btn=document.createElement('button');
+      btn.className='mermaid-expand';btn.textContent='⛶';btn.title='Expand diagram';
+      btn.addEventListener('click',function(e){
+        e.stopPropagation();
+        var clone=el.cloneNode(true);
+        delete clone.dataset.expandAdded;
+        clone.removeAttribute('data-expand-added');
+        clone.style.cssText='background:none;border:none;padding:0;margin:0;text-align:center;min-width:70vw;max-width:90vw;';
+        // Clear overlay content safely, keep close button
+        overlayInner.innerHTML='';
+        var closeBtn=document.createElement('button');
+        closeBtn.className='mermaid-overlay-close';closeBtn.textContent='×';closeBtn.title='Close';
+        closeBtn.addEventListener('click',function(){overlay.classList.remove('open');});
+        overlayInner.appendChild(clone);
+        overlayInner.appendChild(closeBtn);
+        overlay.classList.add('open');
+        // Re-run mermaid on the clone after it's in the DOM
+        setTimeout(function(){
+          if(window.mermaid){
+            try{mermaid.run({nodes:[clone]});}catch(err){}
+          }
+        },50);
+      });
+      wrapper.appendChild(btn);
+    });
+  }
+  // Wait for mermaid to finish rendering before adding buttons (mermaid init runs above)
+  setTimeout(_addMermaidButtons,800);
+  if(overlay){
+    overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.classList.remove('open');});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')overlay.classList.remove('open');});
+  }
+  // Code copy buttons
+  document.querySelectorAll('pre').forEach(function(pre){
+    if(pre.classList.contains('mermaid'))return;
+    var btn=document.createElement('button');
+    btn.className='code-copy';btn.textContent='Copy';
+    btn.addEventListener('click',function(){
+      var code=pre.querySelector('code');
+      var text=code?code.textContent:pre.textContent;
+      navigator.clipboard.writeText(text).then(function(){btn.textContent='Copied!';setTimeout(function(){btn.textContent='Copy';},2000);});
+    });
+    pre.appendChild(btn);
+  });
+  // Back to top
+  var btt=document.getElementById('back-to-top');
+  if(btt){
+    window.addEventListener('scroll',function(){btt.style.display=window.scrollY>300?'flex':'none';});
+    btt.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+  }
+  // TOC active scroll tracking
+  var tocLinks=document.querySelectorAll('.toc-aside a[data-anchor]');
+  if(tocLinks.length>0){
+    var headingEls=[];
+    tocLinks.forEach(function(l){var el=document.getElementById(l.dataset.anchor);if(el)headingEls.push({el:el,link:l});});
+    var tocAside=document.querySelector('.toc-aside');
+    var onScroll=function(){
+      var scrollPos=window.scrollY+80;
+      var active=null;
+      for(var i=0;i<headingEls.length;i++){if(headingEls[i].el.offsetTop<=scrollPos)active=headingEls[i];}
+      tocLinks.forEach(function(l){l.classList.remove('toc-active');});
+      if(active){
+        active.link.classList.add('toc-active');
+        // Scroll active link into view within the TOC panel, not the page
+        if(tocAside){
+          var linkTop=active.link.offsetTop-tocAside.offsetTop;
+          var visibleTop=tocAside.scrollTop;
+          var visibleBottom=visibleTop+tocAside.clientHeight;
+          if(linkTop<visibleTop+40||linkTop>visibleBottom-40){
+            tocAside.scrollTop=linkTop-tocAside.clientHeight/2;
+          }
+        }
+      }
+    };
+    window.addEventListener('scroll',onScroll);
+    onScroll();
+    // Prevent TOC links from scrolling the TOC panel to top on click
+    tocLinks.forEach(function(l){
+      l.addEventListener('click',function(e){
+        e.preventDefault();
+        var anchor=l.dataset.anchor;
+        var target=document.getElementById(anchor);
+        if(target){target.scrollIntoView({behavior:'smooth',block:'start'});}
+      });
+    });
+  }
+  // Persist sidebar scroll position across page navigations
+  var sidebarEl=document.querySelector('nav.sidebar');
+  if(sidebarEl){
+    var sidebarKey='sasva-sidebar-scroll';
+    // Restore scroll position on page load
+    var savedScroll=sessionStorage.getItem(sidebarKey);
+    if(savedScroll){sidebarEl.scrollTop=parseInt(savedScroll,10);}
+    // Save scroll position before navigating away
+    document.querySelectorAll('#sidebar-nav-links a').forEach(function(a){
+      a.addEventListener('click',function(){
+        sessionStorage.setItem(sidebarKey,String(sidebarEl.scrollTop));
+      });
+    });
+    // Also scroll active item into view on load
+    var activeLink=sidebarEl.querySelector('a.active');
+    if(activeLink&&!savedScroll){
+      var linkOffset=activeLink.offsetTop-sidebarEl.offsetTop;
+      sidebarEl.scrollTop=Math.max(0,linkOffset-sidebarEl.clientHeight/2);
+    }
+  }
+})();
+</script>
+</body>
+</html>

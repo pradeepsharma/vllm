@@ -1,144 +1,476 @@
 # Generative Models
 
-vLLM provides first-class support for generative models, which covers most of LLMs.
+Generative (text generation) models are the most common model type in vLLM. These are decoder-only transformer models that generate text autoregressively — predicting one token at a time conditioned on all previous tokens.
 
-In vLLM, generative models implement the [VllmModelForTextGeneration][vllm.model_executor.models.VllmModelForTextGeneration] interface.
-Based on the final hidden states of the input, these models output log probabilities of the tokens to generate,
-which are then passed through [Sampler][vllm.v1.sample.sampler.Sampler] to obtain the final text.
+---
 
-## Configuration
+## Overview
 
-### Model Runner (`--runner`)
+vLLM supports **100+ decoder-only architectures** including:
 
-Run a model in generation mode via the option `--runner generate`.
+- **Standard transformers** — Llama, Mistral, Qwen, Gemma, Phi, GPT-2, OPT, BLOOM
+- **Mixture-of-Experts (MoE)** — Mixtral, DeepSeek-V3, Qwen3-MoE, Llama 4
+- **State Space Models (SSM)** — Mamba, Mamba2, Falcon Mamba
+- **Hybrid models** — Jamba (attention + Mamba), Falcon H1, Bamba, OLMo Hybrid
+- **Long-context models** — models with extended context windows via RoPE scaling
 
-!!! tip
-    There is no need to set this option in the vast majority of cases as vLLM can automatically
-    detect the model runner to use via `--runner auto`.
+---
 
-## Offline Inference
+## Quick Start
 
-The [LLM][vllm.LLM] class provides various methods for offline inference.
-See [configuration](../api/README.md#configuration) for a list of options when initializing the model.
-
-### `LLM.generate`
-
-The [generate][vllm.LLM.generate] method is available to all generative models in vLLM.
-It is similar to [its counterpart in HF Transformers](https://huggingface.co/docs/transformers/main/en/main_classes/text_generation#transformers.GenerationMixin.generate),
-except that tokenization and detokenization are also performed automatically.
-
-```python
-from vllm import LLM
-
-llm = LLM(model="facebook/opt-125m")
-outputs = llm.generate("Hello, my name is")
-
-for output in outputs:
-    prompt = output.prompt
-    generated_text = output.outputs[0].text
-    print(f"Prompt: {prompt!r}, Generated text: {generated_text!r}")
-```
-
-You can optionally control the language generation by passing [SamplingParams][vllm.SamplingParams].
-For example, you can use greedy sampling by setting `temperature=0`:
+### Basic Text Generation
 
 ```python
 from vllm import LLM, SamplingParams
 
-llm = LLM(model="facebook/opt-125m")
-params = SamplingParams(temperature=0)
-outputs = llm.generate("Hello, my name is", params)
+llm = LLM(model="meta-llama/Llama-3.1-8B-Instruct")
 
-for output in outputs:
-    prompt = output.prompt
-    generated_text = output.outputs[0].text
-    print(f"Prompt: {prompt!r}, Generated text: {generated_text!r}")
+outputs = llm.generate(
+    ["Tell me about the history of artificial intelligence."],
+    SamplingParams(max_tokens=256, temperature=0.7),
+)
+print(outputs[0].outputs[0].text)
 ```
 
-!!! important
-    By default, vLLM will use sampling parameters recommended by model creator by applying the `generation_config.json` from the huggingface model repository if it exists. In most cases, this will provide you with the best results by default if [SamplingParams][vllm.SamplingParams] is not specified.
-
-    However, if vLLM's default sampling parameters are preferred, please pass `generation_config="vllm"` when creating the [LLM][vllm.LLM] instance.
-A code example can be found here: [examples/offline_inference/basic/basic.py](../../examples/offline_inference/basic/basic.py)
-
-### `LLM.beam_search`
-
-The [beam_search][vllm.LLM.beam_search] method implements [beam search](https://huggingface.co/docs/transformers/en/generation_strategies#beam-search) on top of [generate][vllm.LLM.generate].
-For example, to search using 5 beams and output at most 50 tokens:
+### Chat Completion
 
 ```python
 from vllm import LLM
-from vllm.sampling_params import BeamSearchParams
+from vllm.sampling_params import SamplingParams
 
-llm = LLM(model="facebook/opt-125m")
-params = BeamSearchParams(beam_width=5, max_tokens=50)
-outputs = llm.beam_search([{"prompt": "Hello, my name is "}], params)
+llm = LLM(model="meta-llama/Llama-3.1-8B-Instruct")
 
-for output in outputs:
-    generated_text = output.sequences[0].text
-    print(f"Generated text: {generated_text!r}")
+# Using chat template
+outputs = llm.chat([
+    {"role": "user", "content": "What is the capital of France?"},
+])
+print(outputs[0].outputs[0].text)
 ```
 
-### `LLM.chat`
+### Serving via OpenAI-Compatible API
 
-The [chat][vllm.LLM.chat] method implements chat functionality on top of [generate][vllm.LLM.generate].
-In particular, it accepts input similar to [OpenAI Chat Completions API](https://platform.openai.com/docs/api-reference/chat)
-and automatically applies the model's [chat template](https://huggingface.co/docs/transformers/en/chat_templating) to format the prompt.
-
-!!! important
-    In general, only instruction-tuned models have a chat template.
-    Base models may perform poorly as they are not trained to respond to the chat conversation.
-
-??? code
-
-    ```python
-    from vllm import LLM
-
-    llm = LLM(model="meta-llama/Meta-Llama-3-8B-Instruct")
-    conversation = [
-        {
-            "role": "system",
-            "content": "You are a helpful assistant",
-        },
-        {
-            "role": "user",
-            "content": "Hello",
-        },
-        {
-            "role": "assistant",
-            "content": "Hello! How can I assist you today?",
-        },
-        {
-            "role": "user",
-            "content": "Write an essay about the importance of higher education.",
-        },
-    ]
-    outputs = llm.chat(conversation)
-
-    for output in outputs:
-        prompt = output.prompt
-        generated_text = output.outputs[0].text
-        print(f"Prompt: {prompt!r}, Generated text: {generated_text!r}")
-    ```
-
-A code example can be found here: [examples/offline_inference/basic/chat.py](../../examples/offline_inference/basic/chat.py)
-
-If the model doesn't have a chat template or you want to specify another one,
-you can explicitly pass a chat template:
+```bash
+vllm serve meta-llama/Llama-3.1-8B-Instruct
+```
 
 ```python
-from vllm.entrypoints.chat_utils import load_chat_template
+import openai
 
-# You can find a list of existing chat templates under `examples/`
-custom_template = load_chat_template(chat_template="<path_to_template>")
-print("Loaded chat template:", custom_template)
+client = openai.OpenAI(base_url="http://localhost:8000/v1", api_key="token")
 
-outputs = llm.chat(conversation, chat_template=custom_template)
+response = client.chat.completions.create(
+    model="meta-llama/Llama-3.1-8B-Instruct",
+    messages=[{"role": "user", "content": "What is the capital of France?"}],
+)
+print(response.choices[0].message.content)
 ```
 
-## Online Serving
+---
 
-Our [OpenAI-Compatible Server](../serving/openai_compatible_server.md) provides endpoints that correspond to the offline APIs:
+## Model Families
 
-- [Completions API](../serving/openai_compatible_server.md#completions-api) is similar to `LLM.generate` but only accepts text.
-- [Chat API](../serving/openai_compatible_server.md#chat-api)  is similar to `LLM.chat`, accepting both text and [multi-modal inputs](../features/multimodal_inputs.md) for models with a chat template.
+### Llama Family
+
+The Llama family is the most widely used open-source model family. vLLM supports all generations:
+
+| Model | Architecture | Context | Notes |
+|---|---|---|---|
+| Llama 1 | `LlamaForCausalLM` | 2K | Original Llama |
+| Llama 2 | `LlamaForCausalLM` | 4K | Improved Llama |
+| Llama 3 / 3.1 / 3.2 / 3.3 | `LlamaForCausalLM` | 128K | Current generation |
+| Llama 4 Scout/Maverick | `Llama4ForCausalLM` | 10M | MoE, multimodal |
+
+```python
+# Llama 3.1 8B
+llm = LLM(model="meta-llama/Llama-3.1-8B-Instruct")
+
+# Llama 3.3 70B with tensor parallelism
+llm = LLM(
+    model="meta-llama/Llama-3.3-70B-Instruct",
+    tensor_parallel_size=4,
+)
+```
+
+### Qwen Family
+
+Alibaba's Qwen models are high-performance multilingual models:
+
+| Model | Architecture | Notes |
+|---|---|---|
+| Qwen 1.x | `QWenLMHeadModel` | Original Qwen |
+| Qwen2 / Qwen2.5 | `Qwen2ForCausalLM` | Current generation |
+| Qwen2 MoE | `Qwen2MoeForCausalLM` | Mixture of Experts |
+| Qwen3 | `Qwen3ForCausalLM` | Latest generation |
+| Qwen3 MoE | `Qwen3MoeForCausalLM` | MoE variant |
+
+```python
+llm = LLM(model="Qwen/Qwen2.5-7B-Instruct")
+```
+
+### Mistral / Mixtral Family
+
+Mistral AI's models are known for efficiency and strong performance:
+
+| Model | Architecture | Notes |
+|---|---|---|
+| Mistral 7B | `MistralForCausalLM` | Sliding window attention |
+| Mixtral 8x7B / 8x22B | `MixtralForCausalLM` | Sparse MoE |
+| Mistral Large 3 | `MistralLarge3ForCausalLM` | 123B parameters |
+| Mistral Small 3.1 | `Mistral3ForConditionalGeneration` | Multimodal |
+
+```python
+llm = LLM(model="mistralai/Mistral-7B-Instruct-v0.3")
+```
+
+### DeepSeek Family
+
+DeepSeek models are known for strong reasoning and coding capabilities:
+
+| Model | Architecture | Notes |
+|---|---|---|
+| DeepSeek-V2 | `DeepseekV2ForCausalLM` | MLA attention |
+| DeepSeek-V3 | `DeepseekV3ForCausalLM` | 671B MoE |
+| DeepSeek-R1 | `DeepseekV3ForCausalLM` | Reasoning model |
+
+```python
+# DeepSeek-V3 requires multi-GPU
+llm = LLM(
+    model="deepseek-ai/DeepSeek-V3",
+    tensor_parallel_size=8,
+)
+```
+
+### Gemma Family
+
+Google's Gemma models are efficient open models:
+
+| Model | Architecture | Notes |
+|---|---|---|
+| Gemma 1 | `GemmaForCausalLM` | 2B, 7B |
+| Gemma 2 | `Gemma2ForCausalLM` | 2B, 9B, 27B |
+| Gemma 3 | `Gemma3ForCausalLM` | Text-only |
+| Gemma 3n | `Gemma3nForCausalLM` | Nano variant |
+
+```python
+llm = LLM(model="google/gemma-2-9b-it")
+```
+
+### Phi Family
+
+Microsoft's Phi models are small but capable:
+
+| Model | Architecture | Notes |
+|---|---|---|
+| Phi-2 | `PhiForCausalLM` | 2.7B |
+| Phi-3 Mini/Small/Medium | `Phi3ForCausalLM` | 3.8B–14B |
+| Phi-3.5 MoE | `PhiMoEForCausalLM` | 16x3.8B |
+
+```python
+llm = LLM(model="microsoft/Phi-3-mini-4k-instruct")
+```
+
+---
+
+## Mixture-of-Experts (MoE) Models
+
+MoE models activate only a subset of their parameters for each token, enabling large parameter counts with manageable compute costs.
+
+### Key MoE Models
+
+| Model | Architecture | Total Params | Active Params |
+|---|---|---|---|
+| Mixtral 8x7B | `MixtralForCausalLM` | 46.7B | 12.9B |
+| Mixtral 8x22B | `MixtralForCausalLM` | 141B | 39B |
+| DeepSeek-V3 | `DeepseekV3ForCausalLM` | 671B | 37B |
+| Qwen3-30B-A3B | `Qwen3MoeForCausalLM` | 30B | 3B |
+| Llama 4 Scout | `Llama4ForCausalLM` | 109B | 17B |
+| Qwen2-57B-A14B | `Qwen2MoeForCausalLM` | 57B | 14B |
+
+### Running MoE Models
+
+```python
+# Mixtral 8x7B on 2 GPUs
+llm = LLM(
+    model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+    tensor_parallel_size=2,
+)
+
+# DeepSeek-V3 on 8 GPUs
+llm = LLM(
+    model="deepseek-ai/DeepSeek-V3",
+    tensor_parallel_size=8,
+    max_model_len=32768,
+)
+```
+
+### Expert Parallelism
+
+For very large MoE models, use expert parallelism to distribute experts across GPUs:
+
+```bash
+vllm serve deepseek-ai/DeepSeek-V3 \
+    --tensor-parallel-size 8 \
+    --expert-parallel-size 8
+```
+
+---
+
+## State Space Models (SSM)
+
+SSMs like Mamba process sequences with linear complexity, making them efficient for long sequences.
+
+### Mamba Models
+
+```python
+# Mamba 2.8B
+llm = LLM(model="state-spaces/mamba-2.8b-hf")
+
+# Mamba 2
+llm = LLM(model="state-spaces/mamba2-2.7b")
+
+# Falcon Mamba
+llm = LLM(model="tiiuae/falcon-mamba-7b")
+```
+
+!!! note "Pipeline parallelism"
+    Pure SSM models (Mamba, Mamba2) do not support pipeline parallelism. Use tensor parallelism instead.
+
+### Hybrid Models (Attention + SSM)
+
+Hybrid models combine attention layers with SSM layers for the best of both worlds:
+
+| Model | Architecture | Notes |
+|---|---|---|
+| Jamba | `JambaForCausalLM` | Attention + Mamba |
+| Falcon H1 | `FalconH1ForCausalLM` | Attention + Mamba2 |
+| Bamba | `BambaForCausalLM` | IBM Bamba |
+| OLMo Hybrid | `OlmoHybridForCausalLM` | OLMo + Mamba |
+| Zamba2 | `Zamba2ForCausalLM` | Zyphra Zamba2 |
+| Nemotron-H | `NemotronHForCausalLM` | NVIDIA Nemotron-H |
+
+```python
+llm = LLM(model="ai21labs/Jamba-v0.1")
+```
+
+---
+
+## Long-Context Models
+
+Many modern models support very long context windows through techniques like RoPE scaling:
+
+| Model | Context Window |
+|---|---|
+| Llama 3.1 / 3.3 | 128K tokens |
+| Qwen2.5-7B-Instruct | 128K tokens |
+| Mistral Large 3 | 128K tokens |
+| Llama 4 Scout | 10M tokens |
+| Kimi Linear | 1M tokens |
+
+```python
+# Enable long context (may require more GPU memory)
+llm = LLM(
+    model="meta-llama/Llama-3.1-8B-Instruct",
+    max_model_len=131072,  # 128K tokens
+)
+```
+
+---
+
+## Sampling Parameters
+
+Control text generation with `SamplingParams`:
+
+```python
+from vllm import SamplingParams
+
+params = SamplingParams(
+    temperature=0.8,       # Randomness (0.0 = greedy, 1.0 = full sampling)
+    top_p=0.95,            # Nucleus sampling threshold
+    top_k=50,              # Top-k sampling
+    max_tokens=512,        # Maximum tokens to generate
+    stop=["</s>", "\n\n"], # Stop sequences
+    presence_penalty=0.1,  # Penalize repeated topics
+    frequency_penalty=0.1, # Penalize repeated tokens
+    repetition_penalty=1.1,# Multiplicative repetition penalty
+    n=3,                   # Number of output sequences
+    best_of=5,             # Generate 5, return best 3
+    seed=42,               # Random seed for reproducibility
+)
+```
+
+### Greedy Decoding
+
+```python
+params = SamplingParams(temperature=0.0)  # Deterministic
+```
+
+### Beam Search
+
+```python
+params = SamplingParams(
+    use_beam_search=True,
+    best_of=5,
+    temperature=0.0,
+)
+```
+
+---
+
+## Quantization
+
+Most generative models support quantization to reduce memory usage and increase throughput:
+
+```python
+# AWQ quantization
+llm = LLM(
+    model="Qwen/Qwen2.5-7B-Instruct-AWQ",
+    quantization="awq",
+)
+
+# GPTQ quantization
+llm = LLM(
+    model="TheBloke/Llama-2-7B-GPTQ",
+    quantization="gptq",
+)
+
+# BitsAndBytes INT4
+llm = LLM(
+    model="meta-llama/Llama-3.1-8B-Instruct",
+    quantization="bitsandbytes",
+    load_format="bitsandbytes",
+)
+
+# FP8 (requires Hopper or Ada GPU)
+llm = LLM(
+    model="meta-llama/Llama-3.1-8B-Instruct",
+    quantization="fp8",
+)
+
+# GGUF
+llm = LLM(
+    model="TheBloke/Llama-2-7B-GGUF",
+    tokenizer="meta-llama/Llama-2-7b-hf",
+)
+```
+
+---
+
+## LoRA Fine-Tuned Models
+
+vLLM supports serving LoRA adapters on top of base models:
+
+```python
+from vllm import LLM
+from vllm.lora.request import LoRARequest
+
+llm = LLM(
+    model="meta-llama/Llama-3.1-8B",
+    enable_lora=True,
+    max_lora_rank=64,
+)
+
+# Use a specific LoRA adapter
+outputs = llm.generate(
+    ["Tell me a story."],
+    lora_request=LoRARequest(
+        lora_name="my-adapter",
+        lora_int_id=1,
+        lora_path="/path/to/lora/adapter",
+    ),
+)
+```
+
+---
+
+## Speculative Decoding
+
+Speculative decoding uses a small draft model to propose tokens that are then verified by the main model, increasing throughput:
+
+```python
+llm = LLM(
+    model="meta-llama/Llama-3.1-70B-Instruct",
+    speculative_model="meta-llama/Llama-3.1-8B-Instruct",
+    num_speculative_tokens=5,
+)
+```
+
+vLLM also supports EAGLE and Medusa draft models:
+
+```python
+# EAGLE speculative decoding
+llm = LLM(
+    model="meta-llama/Llama-3.1-8B-Instruct",
+    speculative_model="yuhuili/EAGLE-LLaMA3.1-Instruct-8B",
+    speculative_model_uses_eagle=True,
+)
+```
+
+---
+
+## Parallelism
+
+### Tensor Parallelism
+
+Distribute model weights across multiple GPUs:
+
+```python
+llm = LLM(
+    model="meta-llama/Llama-3.1-70B-Instruct",
+    tensor_parallel_size=4,  # Use 4 GPUs
+)
+```
+
+### Pipeline Parallelism
+
+Distribute model layers across GPUs (useful for very large models):
+
+```python
+llm = LLM(
+    model="meta-llama/Llama-3.1-405B-Instruct",
+    tensor_parallel_size=4,
+    pipeline_parallel_size=2,  # 8 GPUs total
+)
+```
+
+---
+
+## Structured Output
+
+vLLM supports constrained decoding for structured outputs:
+
+```python
+from vllm.sampling_params import GuidedDecodingParams
+
+# JSON schema
+params = SamplingParams(
+    guided_decoding=GuidedDecodingParams(
+        json={
+            "type": "object",
+            "properties": {
+                "name": {"type": "string"},
+                "age": {"type": "integer"},
+            },
+        }
+    )
+)
+
+# Regex
+params = SamplingParams(
+    guided_decoding=GuidedDecodingParams(regex=r"\d{3}-\d{3}-\d{4}")
+)
+
+# Grammar (EBNF)
+params = SamplingParams(
+    guided_decoding=GuidedDecodingParams(grammar="root ::= 'yes' | 'no'")
+)
+```
+
+---
+
+## Related
+
+- [Supported Models](supported_models.md) — complete list of supported architectures
+- [Adding a New Model](adding_model.md) — implementing a new generative model
+- [Multimodal Models](multimodal_models.md) — vision-language and audio-language models
+- [Engine Arguments](../configuration/engine_args.md) — full configuration reference
+- [Parallelism & Scaling](../serving/parallelism_scaling.md) — multi-GPU deployment

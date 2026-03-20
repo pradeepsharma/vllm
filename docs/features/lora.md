@@ -102,7 +102,69 @@ curl http://localhost:8000/v1/completions \
     }' | jq
 ```
 
-## Dynamically serving LoRA Adapters
+## Multi-LoRA Serving
+
+vLLM is designed to serve multiple LoRA adapters simultaneously in a single deployment. This is one of its key
+differentiators: rather than running a separate server process per adapter, vLLM batches requests across different
+adapters in the same forward pass, sharing the base model weights.
+
+### How It Works
+
+Internally, vLLM maintains two pools for LoRA adapters:
+
+- **GPU slots** (`max_loras`): The number of adapters that can be *active* (loaded into GPU memory) at the same time. Each active adapter occupies a pre-allocated slot in the LoRA weight buffers.
+- **CPU cache** (`max_cpu_loras`): The total number of adapters that can be *registered* (held in CPU memory) at once. Must be `>= max_loras`. When the GPU slots are full, the least-recently-used adapter is evicted from GPU memory but remains in CPU memory for fast re-activation.
+
+When a batch arrives containing requests for different adapters, vLLM:
+
+1. Checks which adapters are already active in GPU slots.
+2. Loads any missing adapters from CPU cache (or disk) into available GPU slots, evicting the LRU adapter if needed.
+3. Constructs a **LoRA mapping** that tells each LoRA-enabled layer which slot to use for each token in the batch.
+4. Runs the forward pass, applying the correct adapter weights per token using the [Punica](https://arxiv.org/abs/2310.18547) batched GEMM kernels.
+
+This design means that serving 8 different adapters concurrently costs almost no extra memory beyond the `max_loras` GPU slots, and the base model weights are shared across all of them.
+
+### Configuring Multi-LoRA
+
+```bash
+vllm serve meta-llama/Llama-3.2-3B-Instruct \
+    --enable-lora \
+    --max-loras 4 \
+    --max-cpu-loras 16 \
+    --max-lora-rank 64 \
+    --lora-modules \
+        sql-lora=jeeejeee/llama32-3b-text2sql-spider \
+        code-lora=/path/to/code-adapter \
+        chat-lora=/path/to/chat-adapter
+```
+
+| Parameter | Default | Description |
+|---|---|---|
+| `--max-loras` | `1` | Maximum adapters active in GPU simultaneously |
+| `--max-cpu-loras` | same as `--max-loras` | Maximum adapters held in CPU memory |
+| `--max-lora-rank` | `16` | Maximum LoRA rank across all adapters |
+| `--fully-sharded-loras` | `False` | Enable fully sharded LoRA computation (faster at high rank/TP) |
+
+### Pinning Adapters
+
+If you have adapters that are used very frequently and should never be evicted from GPU memory, you can pin them
+programmatically using the `pin_lora` method on the engine:
+
+```python
+llm = LLM(
+    model="meta-llama/Llama-3.2-3B-Instruct",
+    enable_lora=True,
+    max_loras=4,
+    max_cpu_loras=16,
+)
+
+# Pin a frequently-used adapter so it is never evicted from GPU
+llm.llm_engine.pin_lora(lora_id=1)
+```
+
+Pinned adapters count against `max_loras` but are excluded from LRU eviction.
+
+## Dynamically Serving LoRA Adapters
 
 In addition to serving LoRA adapters at server startup, the vLLM server supports dynamically configuring LoRA adapters at runtime through dedicated API endpoints and plugins. This feature can be particularly useful when the flexibility to change models on-the-fly is needed.
 
@@ -154,24 +216,78 @@ curl -X POST http://localhost:8000/v1/unload_lora_adapter \
 }'
 ```
 
-### Using Plugins
+### Using Resolver Plugins
 
-Alternatively, you can use the LoRAResolver plugin to dynamically load LoRA adapters. LoRAResolver plugins enable you to load LoRA adapters from both local and remote sources such as local file system and S3. On every request, when there's a new model name that hasn't been loaded yet, the LoRAResolver will try to resolve and load the corresponding LoRA adapter.
+Alternatively, you can use the LoRAResolver plugin system to dynamically load LoRA adapters. LoRAResolver plugins enable you to load LoRA adapters from both local and remote sources such as local file system and S3. On every request, when there's a new model name that hasn't been loaded yet, the LoRAResolver will try to resolve and load the corresponding LoRA adapter.
 
 You can set up multiple LoRAResolver plugins if you want to load LoRA adapters from different sources. For example, you might have one resolver for local files and another for S3 storage. vLLM will load the first LoRA adapter that it finds.
 
-You can either install existing plugins or implement your own. By default, vLLM comes with a [resolver plugin to load LoRA adapters from a local directory, as well as a resolver plugin to load LoRA adapters from repositories on Hugging Face Hub](https://github.com/vllm-project/vllm/tree/main/vllm/plugins/lora_resolvers)
-To enable either of these resolvers, you must `set VLLM_ALLOW_RUNTIME_LORA_UPDATING` to True.
+You can either install existing plugins or implement your own. By default, vLLM comes with a [resolver plugin to load LoRA adapters from a local directory, as well as a resolver plugin to load LoRA adapters from repositories on Hugging Face Hub](https://github.com/vllm-project/vllm/tree/main/vllm/plugins/lora_resolvers).
+To enable either of these resolvers, you must set `VLLM_ALLOW_RUNTIME_LORA_UPDATING` to `True`.
 
-- To leverage a local directory, set `VLLM_PLUGINS` to include `lora_filesystem_resolver` and set `VLLM_LORA_RESOLVER_CACHE_DIR` to a local directory. When vLLM receives a request using a LoRA adapter `foobar`,
-it will first look in the local directory for a directory `foobar`, and attempt to load the contents of that directory as a LoRA adapter. If successful, the request will complete as normal and that adapter will then be available for normal use on the server.
-- To leverage repositories on Hugging Face Hub, set `VLLM_PLUGINS` to include `lora_hf_hub_resolver` and set `VLLM_LORA_RESOLVER_HF_REPO_LIST` to a comma separated list of repository IDs on Hugging Face Hub. When vLLM receives a request for the LoRA adapter `my/repo/subpath`, it will download the adapter at the `subpath` of `my/repo` if it exists and contains an `adapter_config.json`, then build a request to the cached dir for the adapter, similar to the `lora_filesystem_resolver`. Please note that enabling remote downloads is insecure and not intended for use in production environments.
+#### Filesystem Resolver
 
-Alternatively, follow these example steps to implement your own plugin:
+The filesystem resolver scans a local directory for LoRA adapters. When vLLM receives a request for an unknown model name, it looks for a subdirectory with that name inside `VLLM_LORA_RESOLVER_CACHE_DIR` and validates the `adapter_config.json` inside it.
 
-1. Implement the LoRAResolver interface.
+```bash
+export VLLM_ALLOW_RUNTIME_LORA_UPDATING=True
+export VLLM_PLUGINS=lora_filesystem_resolver
+export VLLM_LORA_RESOLVER_CACHE_DIR=/path/to/lora/adapters
+```
 
-    ??? code "Example of a simple S3 LoRAResolver implementation"
+Expected directory layout:
+
+```text
+/path/to/lora/adapters/
+├── sql-adapter/
+│   ├── adapter_config.json
+│   ├── adapter_model.bin
+│   └── tokenizer files (if applicable)
+├── code-adapter/
+│   ├── adapter_config.json
+│   └── adapter_model.safetensors
+└── ...
+```
+
+Each `adapter_config.json` must contain `"peft_type": "LORA"` and a `base_model_name_or_path` that matches the running base model. When vLLM receives a request for `sql-adapter`, it automatically loads the adapter from the directory and makes it available for future requests — no server restart required.
+
+#### Hugging Face Hub Resolver
+
+The HF Hub resolver downloads adapters on demand from specified Hugging Face repositories.
+
+!!! warning
+    Enabling remote downloads is a security risk. This resolver is **not** intended for production environments.
+
+```bash
+export VLLM_ALLOW_RUNTIME_LORA_UPDATING=True
+export VLLM_PLUGINS=lora_hf_hub_resolver
+export VLLM_LORA_RESOLVER_HF_REPO_LIST=my-org/my-lora-repo,another-org/another-repo
+```
+
+When vLLM receives a request for the LoRA adapter `my-org/my-lora-repo/subpath`, it:
+
+1. Matches `my-org/my-lora-repo` against the allowed repository list.
+2. Lists files in the repository to find subdirectories containing `adapter_config.json`.
+3. Downloads the matching subdirectory via `snapshot_download`.
+4. Validates and loads the adapter from the local cache.
+
+Adapter names follow the pattern `<org>/<repo>/<subpath>` (or just `<org>/<repo>` if the adapter is at the repo root).
+
+#### Multiple Resolvers
+
+You can enable multiple resolvers simultaneously. vLLM tries each resolver in the order they are listed until one succeeds:
+
+```bash
+export VLLM_PLUGINS=lora_filesystem_resolver,lora_hf_hub_resolver
+```
+
+#### Custom Resolver Implementation
+
+Follow these steps to implement your own resolver plugin:
+
+1. **Implement the `LoRAResolver` interface.**
+
+    ??? code "Example: S3 LoRAResolver"
 
         ```python
         import os
@@ -186,8 +302,12 @@ Alternatively, follow these example steps to implement your own plugin:
                 self.local_path_format = os.getenv("LOCAL_PATH_TEMPLATE")
 
             async def resolve_lora(self, base_model_name, lora_name):
-                s3_path = self.s3_path_format.format(base_model_name=base_model_name, lora_name=lora_name)
-                local_path = self.local_path_format.format(base_model_name=base_model_name, lora_name=lora_name)
+                s3_path = self.s3_path_format.format(
+                    base_model_name=base_model_name, lora_name=lora_name
+                )
+                local_path = self.local_path_format.format(
+                    base_model_name=base_model_name, lora_name=lora_name
+                )
 
                 # Download the LoRA from S3 to the local path
                 await self.s3._get(
@@ -202,7 +322,7 @@ Alternatively, follow these example steps to implement your own plugin:
                 return lora_request
         ```
 
-2. Register `LoRAResolver` plugin.
+2. **Register the resolver** with the global registry.
 
     ```python
     from vllm.lora.resolver import LoRAResolverRegistry
@@ -211,7 +331,7 @@ Alternatively, follow these example steps to implement your own plugin:
     LoRAResolverRegistry.register_resolver("s3_resolver", s3_resolver)
     ```
 
-    For more details, refer to the [vLLM's Plugins System](../design/plugin_system.md).
+    For more details, refer to [vLLM's Plugins System](../design/plugin_system.md).
 
 ### In-Place LoRA Reloading
 
@@ -371,6 +491,21 @@ vllm serve ibm-granite/granite-speech-3.3-2b \
 
 Note: Default multimodal LoRAs are currently only available for `.generate` and chat completions.
 
+## Configuration Reference
+
+The table below summarises every `LoRAConfig` field and its corresponding CLI flag.
+
+| Python field | CLI flag | Default | Description |
+|---|---|---|---|
+| `max_lora_rank` | `--max-lora-rank` | `16` | Maximum rank allowed for any loaded adapter. Must be one of: 1, 8, 16, 32, 64, 128, 256, 320, 512. |
+| `max_loras` | `--max-loras` | `1` | Maximum number of adapters active in GPU at the same time. |
+| `max_cpu_loras` | `--max-cpu-loras` | same as `max_loras` | Maximum adapters held in CPU memory. Must be `>= max_loras`. |
+| `lora_dtype` | `--lora-dtype` | `"auto"` | Data type for LoRA weights. `"auto"` inherits the base model dtype. |
+| `fully_sharded_loras` | `--fully-sharded-loras` | `False` | Use fully sharded LoRA layers. Faster at high sequence length, rank, or tensor-parallel size. |
+| `specialize_active_lora` | `--specialize-active-lora` | `False` | Capture separate CUDA graphs for each power-of-2 count of active LoRAs. Improves throughput at the cost of longer startup. |
+| `enable_tower_connector_lora` | `--enable-tower-connector-lora` | `False` | Enable experimental LoRA for vision tower and connector in multimodal models. |
+| `default_mm_loras` | `--default-mm-loras` | `None` | JSON dict mapping modality names to LoRA model paths for automatic multimodal LoRA application. |
+
 ## Using Tips
 
 ### Configuring `max_lora_rank`
@@ -389,3 +524,47 @@ vllm serve model --enable-lora --max-lora-rank 64
 # Bad: unnecessarily high, wastes memory
 vllm serve model --enable-lora --max-lora-rank 256
 ```
+
+### Supported LoRA Features
+
+vLLM supports the following PEFT LoRA variants:
+
+- **Standard LoRA** — the default low-rank decomposition.
+- **rsLoRA** (`use_rslora: true` in `adapter_config.json`) — Rank-Stabilized LoRA, which scales the adapter by `alpha / sqrt(r)` instead of `alpha / r`. vLLM detects this automatically from the adapter config.
+
+The following features are **not yet supported**:
+
+- **DoRA** (`use_dora: true`) — Weight-Decomposed Low-Rank Adaptation.
+- `modules_to_save` — saving non-LoRA modules alongside the adapter.
+
+### Supported Target Modules
+
+vLLM can apply LoRA to any linear layer that is registered as a supported module in the model's `SupportsLoRA` implementation. Common target modules include:
+
+- `q_proj`, `k_proj`, `v_proj`, `o_proj` — attention projections
+- `gate_proj`, `up_proj`, `down_proj` — MLP / feed-forward projections
+- `embed_tokens`, `lm_head` — embedding and output layers
+
+The exact set of supported modules depends on the model architecture. Refer to the model's source file for the `supported_lora_modules` list.
+
+### Adapter Identity and Caching
+
+`LoRARequest` uses `lora_name` (not `lora_int_id`) for equality and hashing. This means:
+
+- Two `LoRARequest` objects with the same `lora_name` but different `lora_int_id` values are considered equal.
+- `lora_int_id` must be globally unique and greater than 0. It is used internally to index into the GPU slot array.
+- When using the dynamic loading API, vLLM derives `lora_int_id` from `abs(hash(lora_name))`.
+
+### Performance Considerations
+
+- **Tensor parallelism**: By default, only half of the LoRA computation is sharded across tensor-parallel ranks. Enable `--fully-sharded-loras` to shard all LoRA layers, which is faster at high rank or large TP degree.
+- **CUDA graphs**: When `--enforce-eager` is not set, vLLM captures CUDA graphs for LoRA inference. Use `--specialize-active-lora` to capture separate graphs for each power-of-2 count of active adapters, reducing overhead when the number of active adapters varies.
+- **CPU offloading**: Adapters not currently needed in GPU are kept in CPU memory (up to `max_cpu_loras`). Reactivating a CPU-cached adapter is much faster than reloading from disk.
+
+## Further Reading
+
+- [LoRA Resolver Plugins Design](../design/lora_resolver_plugins.md) — deep dive into the resolver plugin architecture.
+- [Multi-LoRA inference example](../../examples/offline_inference/multilora_inference.py) — offline inference with multiple adapters.
+- [LoRA paper](https://arxiv.org/abs/2106.09685) — the original LoRA paper by Hu et al.
+- [rsLoRA paper](https://arxiv.org/abs/2312.03732) — Rank-Stabilized LoRA.
+- [Punica paper](https://arxiv.org/abs/2310.18547) — the batched GEMM kernel used for multi-LoRA inference.
