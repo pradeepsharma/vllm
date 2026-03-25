@@ -1,0 +1,8 @@
+# Dependencies for the task_tracker CLI tool
+# Install with: pip install -r requirements/task_tracker.txt
+#
+# Or install as an optional extra from the project root:
+#   pip install -e ".[task-tracker]"
+
+click>=8.0
+rich>=13.0

@@ -41,6 +41,13 @@ Slack="https://slack.vllm.ai/"
 
 [project.scripts]
 vllm = "vllm.entrypoints.cli.main:main"
+task = "task_tracker.cli:cli"
+
+[project.optional-dependencies]
+task-tracker = [
+    "click>=8.0",
+    "rich>=13.0",
+]
 
 [project.entry-points."vllm.general_plugins"]
 lora_filesystem_resolver = "vllm.plugins.lora_resolvers.filesystem_resolver:register_filesystem_resolver"
