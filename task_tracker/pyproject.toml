@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "task-tracker"
+version = "0.1.0"
+description = "A Python CLI task tracker built with Click and Rich"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+keywords = ["cli", "task", "tracker", "productivity"]
+dependencies = [
+    "click>=8.0",
+    "rich>=13.0",
+]
+
+[project.scripts]
+task-tracker = "task_tracker.cli:task_tracker_cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["task_tracker*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"
+
+[tool.coverage.run]
+source = ["task_tracker"]
+omit = ["tests/*"]
