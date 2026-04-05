@@ -29,3 +29,6 @@ testpaths = ["tests"]
 dev = [
     "pytest>=7.0",
 ]
+test = [
+    "pytest>=7.0",
+]
