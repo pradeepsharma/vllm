@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Model Registry Internals</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+<style>
+:root{--bg:#0d1117;--bg-card:#161b22;--bg-sidebar:#0d1117;--text:#e6edf3;--text-dim:#8b949e;--border:#30363d;--accent:#58a6ff;--accent-dim:#1f6feb;--code-bg:#1c2128;--hover:#21262d}*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;display:flex;min-height:100vh}main{flex:1;max-width:900px;padding:40px 48px;overflow-x:auto}h1{font-size:2rem;font-weight:700;margin-bottom:8px;padding-bottom:12px;border-bottom:1px solid var(--border)}h2{font-size:1.5rem;font-weight:600;margin-top:32px;margin-bottom:12px;color:var(--text)}h3{font-size:1.2rem;font-weight:600;margin-top:24px;margin-bottom:8px}h4{font-size:1rem;font-weight:600;margin-top:20px;margin-bottom:6px}p{margin-bottom:12px}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}code{background:var(--code-bg);padding:2px 6px;border-radius:4px;font-size:0.875em;font-family:"SFMono-Regular",Consolas,monospace}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:16px;overflow-x:auto;margin:16px 0;position:relative}pre code{background:none;padding:0}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{padding:8px 12px;border:1px solid var(--border);text-align:left}th{background:var(--bg-card);font-weight:600}tr:nth-child(even){background:rgba(255,255,255,0.02)}blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:16px 0;color:var(--text-dim);background:rgba(88,166,255,0.04)}ul,ol{margin:8px 0 12px 24px}li{margin-bottom:4px}.breadcrumb{font-size:0.85rem;color:var(--text-dim);margin-bottom:20px}.breadcrumb a{color:var(--text-dim)}.mermaid,pre.mermaid{background:var(--bg-card);border-radius:8px;padding:16px;margin:16px 0;text-align:center;border:none}.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:600}.badge-info{background:rgba(88,166,255,0.15);color:var(--accent)}.last-updated{font-size:0.8rem;color:var(--text-dim);margin-top:40px;padding-top:16px;border-top:1px solid var(--border)}.hero{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:24px;margin:24px 0}.section-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:24px 0}.section-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px;transition:border-color 0.2s}.section-card:hover{border-color:var(--accent)}.section-card h3{margin-top:0;font-size:1.1rem}.section-card p{font-size:0.9rem;color:var(--text-dim);margin-bottom:8px}.tech-stack{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.tech-badge{background:var(--code-bg);border:1px solid var(--border);padding:4px 12px;border-radius:16px;font-size:0.85rem}.toc-aside{width:200px;min-width:200px;padding:16px 0 16px 16px;position:sticky;top:0;height:100vh;overflow-y:auto;border-left:1px solid var(--border);font-size:0.8rem;scroll-behavior:smooth}.toc-aside .toc-title{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-dim);font-weight:600;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid var(--border)}.toc-aside a{display:block;padding:3px 0;color:var(--text-dim);text-decoration:none;transition:color 0.15s}.toc-aside a:hover{color:var(--text)}.toc-aside a.toc-active{color:var(--accent);font-weight:500}.toc-aside a.toc-h3{padding-left:12px;font-size:0.75rem}.page-nav{display:flex;justify-content:space-between;margin-top:40px;padding-top:20px;border-top:1px solid var(--border);gap:16px}.page-nav a{display:block;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;text-decoration:none;transition:border-color 0.2s;flex:1;max-width:48%}.page-nav a:hover{border-color:var(--accent)}.page-nav .nav-label{font-size:0.75rem;color:var(--text-dim);margin-bottom:4px}.page-nav .nav-title{color:var(--accent);font-weight:500}.page-nav .nav-next{text-align:right}.code-copy{position:absolute;top:8px;right:8px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-dim);padding:4px 8px;border-radius:4px;font-size:0.7rem;cursor:pointer;opacity:0;transition:opacity 0.2s}pre:hover .code-copy{opacity:1}.code-copy:hover{color:var(--text);border-color:var(--accent)}.mermaid-expand{position:absolute;top:8px;right:8px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-dim);padding:4px 8px;border-radius:4px;font-size:0.7rem;cursor:pointer;opacity:0;transition:opacity 0.2s;z-index:10}div:hover>.mermaid-expand{opacity:1}.mermaid-expand:hover{color:var(--accent);border-color:var(--accent)}.mermaid-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out}.mermaid-overlay.open{display:flex}.mermaid-overlay-inner{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:32px;max-width:95vw;max-height:95vh;overflow:auto;position:relative}.mermaid-overlay-close{position:absolute;top:12px;right:16px;background:none;border:none;color:var(--text-dim);font-size:1.5rem;cursor:pointer;line-height:1}.mermaid-overlay-close:hover{color:var(--text)}.back-to-top{position:fixed;bottom:24px;right:24px;width:36px;height:36px;background:var(--bg-card);border:1px solid var(--border);border-radius:50%;color:var(--text-dim);font-size:1rem;cursor:pointer;display:none;align-items:center;justify-content:center;transition:all 0.2s;z-index:100}.back-to-top:hover{color:var(--accent);border-color:var(--accent)}h2 .heading-anchor,h3 .heading-anchor{opacity:0;color:var(--text-dim);text-decoration:none;margin-left:6px;font-size:0.8em;transition:opacity 0.15s}h2:hover .heading-anchor,h3:hover .heading-anchor{opacity:1}h2:hover .heading-anchor:hover,h3:hover .heading-anchor:hover{color:var(--accent)}@media print{nav.sidebar,.toc-aside,.back-to-top,.code-copy,.breadcrumb,.page-nav{display:none!important}body{display:block!important}main{max-width:100%!important;padding:20px!important}pre{white-space:pre-wrap!important;word-break:break-all}a{color:#000!important}h1,h2,h3{page-break-after:avoid}}@media(max-width:1200px){.toc-aside{display:none}}@media(max-width:768px){nav.sidebar{display:none}main{padding:20px}}
+nav.sidebar{width:280px;min-width:280px;background:var(--bg-sidebar,var(--bg,#0d1117));border-right:1px solid var(--border,#30363d);padding:16px 0;overflow-y:auto;position:sticky;top:0;height:100vh}nav.sidebar .logo{padding:12px 20px;font-size:1.1rem;font-weight:700;color:var(--accent,#58a6ff);border-bottom:1px solid var(--border,#30363d);margin-bottom:8px}nav.sidebar a{display:block;padding:6px 20px;color:var(--text-dim,#8b949e);text-decoration:none;font-size:0.85rem;transition:all 0.15s}nav.sidebar a:hover{background:var(--hover,#21262d);color:var(--text,#e6edf3)}nav.sidebar a.active{color:var(--accent,#58a6ff);background:rgba(88,166,255,0.08);border-left:2px solid var(--accent,#58a6ff)}nav.sidebar .section-title{padding:14px 20px 6px;margin-top:8px;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--accent,#58a6ff);font-weight:700;border-top:1px solid var(--border,#30363d)}.sidebar-search{padding:8px 12px;border-bottom:1px solid var(--border,#30363d);margin-bottom:8px}.sidebar-search input{width:100%;padding:8px 10px;background:var(--code-bg,#1c2128);border:1px solid var(--border,#30363d);border-radius:6px;color:var(--text,#e6edf3);font-size:0.85rem;outline:none}.sidebar-search input:focus{border-color:var(--accent,#58a6ff)}.search-results{max-height:300px;overflow-y:auto}.search-results a{padding:4px 8px;font-size:0.8rem;border-radius:4px}.search-results .search-heading{font-size:0.75rem;color:var(--text-dim,#8b949e);padding-left:16px}.search-results:empty{display:none}@media(max-width:768px){nav.sidebar{display:none}}
+
+</style>
+</head>
+<body>
+<nav class="sidebar">
+<div class="logo">Documentation</div>
+<div class="sidebar-search">
+<input type="text" id="doc-search" placeholder="Search docs..." autocomplete="off">
+<div id="search-results" class="search-results"></div>
+</div>
+<div id="sidebar-nav-links">
+<a href="../index.html" class="nav-root">vLLM Documentation</a>
+<div class="section-title">Overview</div>
+<a href="../01-overview/README.html">Overview</a>
+<div class="section-title">Getting Started</div>
+<a href="../02-getting-started/README.html">Getting Started</a>
+<a href="../02-getting-started/installation.html">Installation</a>
+<a href="../02-getting-started/quickstart.html">Quickstart</a>
+<div class="section-title">Architecture</div>
+<a href="../03-architecture/README.html">Architecture Overview</a>
+<div class="section-title">Models</div>
+<a href="../04-models/README.html">Models</a>
+<a href="../04-models/adding-new-model.html">Adding a New Model Architecture</a>
+<a href="../04-models/model-interfaces.html">Model Interfaces</a>
+<a href="../04-models/model-loading.html">Model Loading</a>
+<a href="../04-models/multimodal-models.html">Multimodal Model Support</a>
+<a href="../04-models/registry-internals.html">Model Registry Internals</a>
+<a href="../04-models/supported-models.html">Supported Models</a>
+<div class="section-title">Serving</div>
+<a href="../05-serving/README.html">Serving</a>
+<div class="section-title">Configuration</div>
+<a href="../06-configuration/README.html">Configuration Reference</a>
+<a href="../06-configuration/additional-configs.html">Additional Configuration Classes</a>
+<a href="../06-configuration/cache-config.html">CacheConfig</a>
+<a href="../06-configuration/compilation-config.html">CompilationConfig</a>
+<a href="../06-configuration/environment-variables.html">Environment Variables</a>
+<a href="../06-configuration/model-config.html">ModelConfig</a>
+<a href="../06-configuration/parallel-config.html">ParallelConfig</a>
+<a href="../06-configuration/scheduler-config.html">SchedulerConfig</a>
+<a href="../06-configuration/speculative-config.html">SpeculativeConfig</a>
+<a href="../06-configuration/vllm-config.html">VllmConfig — The Unified Configuration Container</a>
+<div class="section-title">Distributed</div>
+<a href="../07-distributed/README.html">Distributed Inference</a>
+<a href="../07-distributed/context-parallelism.html">Context Parallelism</a>
+<a href="../07-distributed/data-parallelism.html">Data Parallelism</a>
+<a href="../07-distributed/ec-transfer.html">EC Transfer (Encoder Cache Transfer)</a>
+<a href="../07-distributed/elastic-ep.html">Elastic Expert Parallelism (EPLB)</a>
+<a href="../07-distributed/expert-parallelism.html">Expert Parallelism</a>
+<a href="../07-distributed/kv-transfer.html">KV Cache Transfer for Disaggregated Prefill</a>
+<a href="../07-distributed/multiproc-executor.html">Multiprocess Executor</a>
+<a href="../07-distributed/pipeline-parallelism.html">Pipeline Parallelism</a>
+<a href="../07-distributed/ray-executor.html">Ray-Based Distributed Execution</a>
+<a href="../07-distributed/tensor-parallelism.html">Tensor Parallelism</a>
+<a href="../07-distributed/weight-transfer.html">Weight Transfer for RLHF</a>
+<div class="section-title">Features</div>
+<a href="../08-features/README.html">Features</a>
+<div class="section-title">Structured Output</div>
+<a href="../08-features/structured-output/backend-guidance.html">llguidance Backend</a>
+<a href="../08-features/structured-output/backend-lm-format-enforcer.html">lm-format-enforcer Backend</a>
+<a href="../08-features/structured-output/backend-outlines.html">Outlines Backend</a>
+<a href="../08-features/structured-output/backend-xgrammar.html">xgrammar Backend</a>
+<a href="../08-features/structured-output/code-examples.html">Structured Output Code Examples</a>
+<a href="../08-features/structured-output/guided-decoding-backend.html">`guided_decoding_backend` Configuration</a>
+<a href="../08-features/structured-output/overview.html">Structured Output Overview</a>
+<a href="../08-features/structured-output/response-format.html">`response_format` Parameter</a>
+<div class="section-title">Hardware</div>
+<a href="../09-hardware/README.html">Hardware Support</a>
+<a href="../09-hardware/alt-arch.html">ARM, ppc64le, and s390x Support</a>
+<a href="../09-hardware/cpu.html">CPU Platform</a>
+<a href="../09-hardware/cuda.html">NVIDIA CUDA Platform</a>
+<a href="../09-hardware/hardware-ci.html">Hardware CI</a>
+<a href="../09-hardware/overview.html">Platform Support Overview</a>
+<a href="../09-hardware/rocm.html">AMD ROCm Platform</a>
+<a href="../09-hardware/tpu.html">Google TPU Platform</a>
+<a href="../09-hardware/xpu.html">Intel XPU Platform</a>
+<div class="section-title">Compilation</div>
+<a href="../10-compilation/README.html">Compilation & Optimization</a>
+<a href="../10-compilation/caching.html">Compilation Caching</a>
+<a href="../10-compilation/config-reference.html">CompilationConfig Reference</a>
+<a href="../10-compilation/cuda-graphs.html">CUDA Graph Capture</a>
+<a href="../10-compilation/decorators.html">`@support_torch_compile` Decorator</a>
+<a href="../10-compilation/overview.html">Compilation Overview</a>
+<a href="../10-compilation/piecewise.html">Piecewise Compilation</a>
+<div class="section-title">Lora</div>
+<a href="../10-lora/README.html">LoRA Adapters</a>
+<a href="../10-lora/dynamic-loading.html">Dynamic LoRA Loading and Unloading</a>
+<a href="../10-lora/lora-config.html">LoRAConfig</a>
+<a href="../10-lora/lora-layers.html">LoRA Layers</a>
+<a href="../10-lora/lora-model-manager.html">LoRAModelManager</a>
+<a href="../10-lora/lora-request.html">LoRARequest</a>
+<a href="../10-lora/lora-resolvers.html">LoRA Resolvers</a>
+<a href="../10-lora/punica-kernels.html">Punica Kernels</a>
+<div class="section-title">Multimodal</div>
+<a href="../10-multimodal/README.html">Multimodal Support</a>
+<a href="../10-multimodal/audio-inputs.html">Audio Inputs</a>
+<a href="../10-multimodal/cache.html">Multimodal Cache</a>
+<a href="../10-multimodal/config.html">MultiModalConfig</a>
+<a href="../10-multimodal/encoder-budget.html">Encoder Budget</a>
+<a href="../10-multimodal/evs.html">EVS — Efficient Video Sampling</a>
+<a href="../10-multimodal/examples.html">Multimodal Code Examples</a>
+<a href="../10-multimodal/image-inputs.html">Image Inputs</a>
+<a href="../10-multimodal/registry.html">Multimodal Registry</a>
+<a href="../10-multimodal/video-inputs.html">Video Inputs</a>
+<div class="section-title">Performance</div>
+<a href="../10-performance/README.html">Performance & Benchmarking</a>
+<div class="section-title">Speculative Decoding</div>
+<a href="../10-speculative-decoding/README.html">Speculative Decoding</a>
+<a href="../10-speculative-decoding/configuration.html">Speculative Decoding Configuration</a>
+<a href="../10-speculative-decoding/eagle.html">EAGLE Speculative Decoding</a>
+<a href="../10-speculative-decoding/medusa.html">Medusa Speculative Decoding</a>
+<a href="../10-speculative-decoding/metrics.html">Speculative Decoding Metrics</a>
+<a href="../10-speculative-decoding/mtp.html">Multi-Token Prediction (MTP)</a>
+<a href="../10-speculative-decoding/ngram.html">N-gram Speculative Decoding</a>
+<a href="../10-speculative-decoding/suffix-decoding.html">Suffix Decoding</a>
+<div class="section-title">Observability</div>
+<a href="../11-observability/README.html">Observability</a>
+<a href="../11-observability/endpoints.html">Observability API Endpoints</a>
+<a href="../11-observability/instrumentator.html">FastAPI Instrumentator & `/metrics` Endpoint</a>
+<a href="../11-observability/logging.html">Structured Logging</a>
+<a href="../11-observability/metrics.html">Prometheus Metrics Reference</a>
+<a href="../11-observability/observability-config.html">ObservabilityConfig Reference</a>
+<a href="../11-observability/tracing.html">OpenTelemetry Tracing</a>
+<div class="section-title">Api Reference</div>
+<a href="../12-api-reference/README.html">API Reference</a>
+<a href="../12-api-reference/anthropic-messages-api.html">Anthropic Messages API</a>
+<a href="../12-api-reference/audio-transcriptions.html">POST /v1/audio/transcriptions</a>
+<a href="../12-api-reference/auth-ssl.html">Authentication, CORS, and SSL Configuration</a>
+<a href="../12-api-reference/batch-inference.html">Batch Inference</a>
+<a href="../12-api-reference/cache-management.html">Cache Management</a>
+<a href="../12-api-reference/chat-completions.html">POST /v1/chat/completions</a>
+<a href="../12-api-reference/cli-args.html">vllm serve — CLI Arguments</a>
+<a href="../12-api-reference/completions.html">POST /v1/completions</a>
+<a href="../12-api-reference/disaggregated-prefill.html">Disaggregated Prefill Proxy</a>
+<a href="../12-api-reference/elastic-expert-parallelism.html">Elastic Expert Parallelism</a>
+<a href="../12-api-reference/error-handling.html">Error Handling and HTTP Status Codes</a>
+<a href="../12-api-reference/grpc-api.html">gRPC API</a>
+<a href="../12-api-reference/health-version-load.html">Health, Version, Load & Server Info</a>
+<a href="../12-api-reference/lora-management.html">LoRA Management</a>
+<a href="../12-api-reference/mcp-server.html">MCP Server Protocol</a>
+<a href="../12-api-reference/models.html">GET /v1/models</a>
+<a href="../12-api-reference/pooling-endpoints.html">Pooling Endpoints</a>
+<a href="../12-api-reference/profiling.html">Profiling Endpoints</a>
+<a href="../12-api-reference/responses.html">POST /v1/responses and GET /v1/responses/{id}</a>
+<a href="../12-api-reference/rlhf-endpoints.html">RLHF Endpoints</a>
+<a href="../12-api-reference/sagemaker-api.html">SageMaker Endpoints</a>
+<a href="../12-api-reference/serving-utilities.html">Serving Utilities</a>
+<a href="../12-api-reference/sleep-wake.html">Sleep / Wake Endpoints</a>
+<div class="section-title">Contributing</div>
+<a href="../13-contributing/README.html">Contributing to vLLM</a>
+<a href="../13-contributing/adding-new-model.html">Adding a New Model</a>
+<a href="../13-contributing/buildkite-test-areas.html">Buildkite Test Areas</a>
+<a href="../13-contributing/ci-cd.html">CI/CD Pipeline</a>
+<a href="../13-contributing/code-style.html">Code Style & Linting</a>
+<a href="../13-contributing/dev-environment.html">Development Environment Setup</a>
+<a href="../13-contributing/pr-process.html">Pull Request Process</a>
+<a href="../13-contributing/release-process.html">Release Process</a>
+<a href="../13-contributing/security.html">Security Policy</a>
+<div class="section-title">Attention Backends</div>
+<a href="../14-attention-backends/README.html">Attention Backends</a>
+<a href="../14-attention-backends/backend-selection.html">Backend Selection</a>
+<a href="../14-attention-backends/cpu-attn.html">CPU Attention Backend</a>
+<a href="../14-attention-backends/flash-attn.html">FlashAttention Backend</a>
+<a href="../14-attention-backends/flashinfer.html">FlashInfer Backend</a>
+<a href="../14-attention-backends/flex-attention.html">Flex Attention Backend</a>
+<a href="../14-attention-backends/mamba-attn.html">Mamba SSM Backends</a>
+<a href="../14-attention-backends/mla-attn.html">MLA (Multi-head Latent Attention) Backends</a>
+<a href="../14-attention-backends/rocm-attn.html">ROCm Attention Backends</a>
+<a href="../14-attention-backends/tree-attn.html">Tree Attention Backend</a>
+<a href="../14-attention-backends/triton-attn.html">Triton Attention Backend</a>
+<div class="section-title">Quantization</div>
+<a href="../14-quantization/README.html">Quantization Overview</a>
+<a href="../14-quantization/awq.html">AWQ: Activation-Aware Weight Quantization</a>
+<a href="../14-quantization/bitsandbytes.html">BitsAndBytes Quantization</a>
+<a href="../14-quantization/compressed-tensors.html">Compressed-Tensors Quantization</a>
+<a href="../14-quantization/fp8.html">FP8 Quantization</a>
+<a href="../14-quantization/gguf.html">GGUF Quantization</a>
+<a href="../14-quantization/gptq.html">GPTQ Quantization</a>
+<a href="../14-quantization/kv-cache.html">KV Cache Quantization</a>
+<a href="../14-quantization/modelopt.html">ModelOpt (NVIDIA) Quantization</a>
+<a href="../14-quantization/mxfp4.html">MXFP4: Microscaling FP4 Quantization</a>
+<a href="../14-quantization/torchao.html">TorchAO Quantization</a>
+<div class="section-title">Benchmarking</div>
+<a href="../15-benchmarking/README.html">Benchmarking & Performance</a>
+<a href="../15-benchmarking/attention-benchmarks.html">Attention Benchmarks</a>
+<a href="../15-benchmarking/auto-tune.html">Auto-Tune Scripts</a>
+<a href="../15-benchmarking/disagg-benchmarks.html">Disaggregated Serving Benchmarks</a>
+<a href="../15-benchmarking/kernel-benchmarks.html">Kernel Benchmarks</a>
+<a href="../15-benchmarking/lm-eval.html">LM Eval Harness Integration</a>
+<a href="../15-benchmarking/performance-tuning.html">Performance Tuning Guide</a>
+<a href="../15-benchmarking/result-interpretation.html">Benchmark Result Interpretation Guide</a>
+<a href="../15-benchmarking/serving-benchmarks.html">Serving Benchmarks</a>
+<div class="section-title">Deployment</div>
+<a href="../15-deployment/README.html">Deployment Guide</a>
+<a href="../15-deployment/disaggregated-prefill.html">Disaggregated Prefill Deployment</a>
+<a href="../15-deployment/docker-bake.html">Multi-Stage Docker Builds</a>
+<a href="../15-deployment/docker.html">Docker Deployment</a>
+<a href="../15-deployment/elastic-ep.html">Elastic Expert Parallelism Deployment</a>
+<a href="../15-deployment/kubernetes.html">Kubernetes Deployment</a>
+<a href="../15-deployment/multi-node.html">Multi-Node Deployment</a>
+<a href="../15-deployment/sagemaker.html">AWS SageMaker Deployment</a>
+<a href="../15-deployment/ssl-tls.html">SSL/TLS Configuration</a>
+<div class="section-title">Engine Scheduler</div>
+<a href="../15-engine-scheduler/README.html">Engine & Scheduler Internals</a>
+<a href="../15-engine-scheduler/detokenizer.html">Detokenizer</a>
+<a href="../15-engine-scheduler/input-processor.html">Input Processor</a>
+<a href="../15-engine-scheduler/kv-offloading.html">KV Offloading</a>
+<a href="../15-engine-scheduler/output-processor.html">Output Processor</a>
+<a href="../15-engine-scheduler/request-queue.html">Request Queue</a>
+<a href="../15-engine-scheduler/sampling.html">Sampling</a>
+<a href="../15-engine-scheduler/scheduler-algorithm.html">Scheduler Algorithm</a>
+<a href="../15-engine-scheduler/scheduler-output.html">SchedulerOutput</a>
+<a href="../15-engine-scheduler/tokenizer-internals.html">Tokenizer Internals</a>
+</div>
+</nav>
+<main>
+<div class="breadcrumb"><a href="../index.html">Home</a> &rsaquo; <a href="../04-models/README.html">Models</a> &rsaquo; Model Registry Internals</div>
+<h1>Model Registry Internals</h1>
+<h1 id="model-registry-internals">Model Registry Internals</h1>
+<p>The model registry is the central lookup table that maps HuggingFace architecture class names to vLLM model implementations. It lives in <code>vllm/model_executor/models/registry.py</code> and is the first thing consulted when vLLM loads any model.</p>
+<h2 id="architecture-overview">Architecture Overview<a href="#architecture-overview" class="heading-anchor" aria-label="Link">#</a></h2>
+<pre class="mermaid">graph TD
+    A["ModelConfig<br/>(architectures field)"] --> B["_ModelRegistry.resolve_model_cls()"]
+    B --> C{Architecture<br/>registered?}
+    C -->|Yes| D["_LazyRegisteredModel<br/>or _RegisteredModel"]
+    C -->|No| E["_try_resolve_transformers()"]
+    E -->|Found| F["TransformersForCausalLM<br/>backend"]
+    E -->|Not found| G["ValueError: unsupported"]
+    D --> H["load_model_cls()"]
+    H --> I["importlib.import_module()"]
+    I --> J["nn.Module subclass"]</pre>
+<h2 id="registry-data-structures">Registry Data Structures<a href="#registry-data-structures" class="heading-anchor" aria-label="Link">#</a></h2>
+<h3 id="_modelinfo-frozen-dataclass"><code>_ModelInfo</code> (Frozen Dataclass)<a href="#_modelinfo-frozen-dataclass" class="heading-anchor" aria-label="Link">#</a></h3>
+<p><code>_ModelInfo</code> is a frozen dataclass that captures all capability flags for a model class <strong>without</strong> importing the model into the main process. It is computed once and cached to disk.</p>
+<pre class="highlight"><code class="language-python">@dataclass(frozen=True)
+class _ModelInfo:
+    architecture: str
+    is_text_generation_model: bool
+    is_pooling_model: bool
+    attn_type: AttnTypeStr
+    default_seq_pooling_type: SequencePoolingType
+    default_tok_pooling_type: TokenPoolingType
+    supports_cross_encoding: bool
+    supports_late_interaction: bool
+    supports_multimodal: bool
+    supports_multimodal_raw_input_only: bool
+    requires_raw_input_tokens: bool
+    supports_multimodal_encoder_tp_data: bool
+    supports_pp: bool
+    has_inner_state: bool
+    is_attention_free: bool
+    is_hybrid: bool
+    has_noops: bool
+    supports_mamba_prefix_caching: bool
+    supports_transcription: bool
+    supports_transcription_only: bool</code></pre>
+<p><code>_ModelInfo</code> is constructed from a live model class via <code>_ModelInfo.from_model_cls(model_cls)</code>, which calls all the interface-checking functions from <code>interfaces.py</code> and <code>interfaces_base.py</code>.</p>
+<h3 id="_baseregisteredmodel-abstract-base"><code>_BaseRegisteredModel</code> (Abstract Base)<a href="#_baseregisteredmodel-abstract-base" class="heading-anchor" aria-label="Link">#</a></h3>
+<pre class="highlight"><code class="language-python">class _BaseRegisteredModel(ABC):
+    @abstractmethod
+    def inspect_model_cls(self) -&gt; _ModelInfo: ...
+
+    @abstractmethod
+    def load_model_cls(self) -&gt; type[nn.Module]: ...</code></pre>
+<p>Two concrete implementations exist:</p>
+<h3 id="_registeredmodel"><code>_RegisteredModel</code><a href="#_registeredmodel" class="heading-anchor" aria-label="Link">#</a></h3>
+<p>Used for models that have <strong>already been imported</strong> into the main process (e.g., via <code>ModelRegistry.register_model()</code> with a live class):</p>
+<pre class="highlight"><code class="language-python">@dataclass(frozen=True)
+class _RegisteredModel(_BaseRegisteredModel):
+    interfaces: _ModelInfo
+    model_cls: type[nn.Module]
+
+    @staticmethod
+    def from_model_cls(model_cls: type[nn.Module]):
+        return _RegisteredModel(
+            interfaces=_ModelInfo.from_model_cls(model_cls),
+            model_cls=model_cls,
+        )
+
+    def inspect_model_cls(self) -&gt; _ModelInfo:
+        return self.interfaces
+
+    def load_model_cls(self) -&gt; type[nn.Module]:
+        return self.model_cls</code></pre>
+<h3 id="_lazyregisteredmodel"><code>_LazyRegisteredModel</code><a href="#_lazyregisteredmodel" class="heading-anchor" aria-label="Link">#</a></h3>
+<p>Used for all built-in vLLM models. The model module is <strong>not imported</strong> until needed, which avoids CUDA initialization in the main process:</p>
+<pre class="highlight"><code class="language-python">@dataclass(frozen=True)
+class _LazyRegisteredModel(_BaseRegisteredModel):
+    module_name: str   # e.g. "vllm.model_executor.models.llama"
+    class_name: str    # e.g. "LlamaForCausalLM"
+
+    def load_model_cls(self) -&gt; type[nn.Module]:
+        mod = importlib.import_module(self.module_name)
+        return getattr(mod, self.class_name)</code></pre>
+<h4 id="lazy-inspection-with-subprocess-isolation">Lazy Inspection with Subprocess Isolation</h4>
+<p>When <code>inspect_model_cls()</code> is called on a <code>_LazyRegisteredModel</code>, it must import the model class to read its capability flags. To avoid initializing CUDA in the main process (which would break forked subprocesses), this inspection runs in a <strong>separate subprocess</strong>:</p>
+<pre class="highlight"><code class="language-python">def inspect_model_cls(self) -&gt; _ModelInfo:
+    # Check disk cache first
+    mi = self._load_modelinfo_from_cache(module_hash)
+    if mi is not None:
+        return mi
+
+    # Run in subprocess to avoid CUDA init
+    mi = _run_in_subprocess(
+        lambda: _ModelInfo.from_model_cls(self.load_model_cls())
+    )
+
+    # Save to disk cache
+    self._save_modelinfo_to_cache(mi, module_hash)
+    return mi</code></pre>
+<h4 id="model-info-caching">Model Info Caching</h4>
+<p><code>_LazyRegisteredModel</code> caches <code>_ModelInfo</code> to disk at <code>$VLLM_CACHE_ROOT/modelinfos/&lt;module&gt;-&lt;class&gt;.json</code>. The cache is keyed by a SHA hash of the model's source file. If the source file changes (e.g., after a vLLM upgrade), the cache is invalidated and rebuilt.</p>
+<p>Cache file format:
+<pre class="highlight"><code class="language-json">{
+  "hash": "&lt;sha256 of source file&gt;",
+  "modelinfo": {
+    "architecture": "LlamaForCausalLM",
+    "is_text_generation_model": true,
+    "supports_pp": true,
+    ...
+  }
+}</code></pre></p>
+<h3 id="_modelregistry"><code>_ModelRegistry</code><a href="#_modelregistry" class="heading-anchor" aria-label="Link">#</a></h3>
+<p>The main registry class, instantiated as the module-level singleton <code>ModelRegistry</code>:</p>
+<pre class="highlight"><code class="language-python">@dataclass
+class _ModelRegistry:
+    models: dict[str, _BaseRegisteredModel]</code></pre>
+<h4 id="key-methods">Key Methods</h4>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>get_supported_archs()</code></td>
+<td>Returns the set of all registered architecture names</td>
+</tr>
+<tr>
+<td><code>register_model(arch, cls)</code></td>
+<td>Register an external model (OOT registration)</td>
+</tr>
+<tr>
+<td><code>inspect_model_cls(archs, config)</code></td>
+<td>Return <code>(_ModelInfo, arch)</code> without loading weights</td>
+</tr>
+<tr>
+<td><code>resolve_model_cls(archs, config)</code></td>
+<td>Return <code>(nn.Module class, arch)</code> for model loading</td>
+</tr>
+<tr>
+<td><code>is_text_generation_model(archs, config)</code></td>
+<td>Check if model generates text</td>
+</tr>
+<tr>
+<td><code>is_pooling_model(archs, config)</code></td>
+<td>Check if model is a pooling/embedding model</td>
+</tr>
+<tr>
+<td><code>is_multimodal_model(archs, config)</code></td>
+<td>Check if model supports multimodal inputs</td>
+</tr>
+<tr>
+<td><code>is_pp_supported_model(archs, config)</code></td>
+<td>Check if model supports pipeline parallelism</td>
+</tr>
+<tr>
+<td><code>is_transcription_model(archs, config)</code></td>
+<td>Check if model supports audio transcription</td>
+</tr>
+<tr>
+<td><code>is_attention_free_model(archs, config)</code></td>
+<td>Check if model has no attention (e.g., Mamba)</td>
+</tr>
+<tr>
+<td><code>is_hybrid_model(archs, config)</code></td>
+<td>Check if model has both attention and SSM layers</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-global-modelregistry-singleton">The Global <code>ModelRegistry</code> Singleton<a href="#the-global-modelregistry-singleton" class="heading-anchor" aria-label="Link">#</a></h2>
+<p>At module load time, <code>ModelRegistry</code> is constructed from all built-in model dictionaries:</p>
+<pre class="highlight"><code class="language-python">ModelRegistry = _ModelRegistry(
+    {
+        model_arch: _LazyRegisteredModel(
+            module_name=f"vllm.model_executor.models.{mod_relname}",
+            class_name=cls_name,
+        )
+        for model_arch, (mod_relname, cls_name) in _VLLM_MODELS.items()
+    }
+)</code></pre>
+<p><code>_VLLM_MODELS</code> is the union of:
+- <code>_TEXT_GENERATION_MODELS</code>
+- <code>_EMBEDDING_MODELS</code>
+- <code>_CROSS_ENCODER_MODELS</code>
+- <code>_MULTIMODAL_MODELS</code>
+- <code>_SPECULATIVE_DECODING_MODELS</code>
+- <code>_TRANSFORMERS_SUPPORTED_MODELS</code>
+- <code>_TRANSFORMERS_BACKEND_MODELS</code></p>
+<h2 id="architecture-resolution-flow">Architecture Resolution Flow<a href="#architecture-resolution-flow" class="heading-anchor" aria-label="Link">#</a></h2>
+<p>When vLLM needs to load a model, it calls <code>ModelRegistry.resolve_model_cls(architectures, model_config)</code>. The resolution follows this priority order:</p>
+<pre class="mermaid">flowchart TD
+    A["resolve_model_cls(archs, config)"] --> B{model_impl == 'transformers'?}
+    B -->|Yes| C["_try_resolve_transformers()"]
+    C -->|Found| Z["Return (cls, arch)"]
+    B -->|No| D{All archs unregistered AND<br/>convert_type == 'none'?}
+    D -->|Yes| E["_try_resolve_transformers() fallback"]
+    E -->|Found| Z
+    D -->|No| F["For each arch:<br/>_normalize_arch()"]
+    F --> G["_try_load_model_cls()"]
+    G -->|Found| Z
+    G -->|Not found| H["_try_resolve_transformers() last resort"]
+    H -->|Found| Z
+    H -->|Not found| I["_raise_for_unsupported()"]</pre>
+<h3 id="architecture-normalization">Architecture Normalization<a href="#architecture-normalization" class="heading-anchor" aria-label="Link">#</a></h3>
+<p><code>_normalize_arch()</code> handles the case where a model config specifies an architecture that is a variant of a registered one (e.g., a pooling variant of a generation model). It uses <code>try_match_architecture_defaults()</code> from <code>vllm.config</code> to find the base architecture.</p>
+<h3 id="transformers-backend-fallback">Transformers Backend Fallback<a href="#transformers-backend-fallback" class="heading-anchor" aria-label="Link">#</a></h3>
+<p>If an architecture is not registered in vLLM's built-in registry, the system attempts to use the HuggingFace Transformers backend via <code>_try_resolve_transformers()</code>. This checks:</p>
+<ol>
+<li>Whether the architecture is already a <code>_TRANSFORMERS_BACKEND_MODELS</code> entry</li>
+<li>Whether the model's <code>auto_map</code> in <code>hf_config</code> contains an <code>AutoModel</code> entry</li>
+<li>Whether the architecture exists in the <code>transformers</code> library</li>
+</ol>
+<h2 id="out-of-tree-oot-model-registration">Out-of-Tree (OOT) Model Registration<a href="#out-of-tree-oot-model-registration" class="heading-anchor" aria-label="Link">#</a></h2>
+<p>External models can be registered at runtime using <code>ModelRegistry.register_model()</code>:</p>
+<pre class="highlight"><code class="language-python">from vllm import ModelRegistry
+
+# Register with a live class (eager import)
+from my_package.models import MyCustomModel
+ModelRegistry.register_model("MyCustomForCausalLM", MyCustomModel)
+
+# Register lazily (preferred — avoids CUDA init)
+ModelRegistry.register_model(
+    "MyCustomForCausalLM",
+    "my_package.models:MyCustomModel"
+)</code></pre>
+<p>The lazy string format is <code>"&lt;module_path&gt;:&lt;ClassName&gt;"</code>. This is the preferred approach because it avoids importing CUDA-dependent code in the main process before forking workers.</p>
+<blockquote>
+<p><strong>Warning:</strong> If you register an architecture that is already registered, vLLM will log a warning and overwrite the existing entry.</p>
+</blockquote>
+<h2 id="subprocess-execution">Subprocess Execution<a href="#subprocess-execution" class="heading-anchor" aria-label="Link">#</a></h2>
+<p>The <code>_run_in_subprocess()</code> function serializes a callable using <code>cloudpickle</code>, passes it to a fresh Python interpreter via stdin, and reads the result from a temporary file:</p>
+<pre class="highlight"><code class="language-python">def _run_in_subprocess(fn: Callable[[], _T]) -&gt; _T:
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_filepath = os.path.join(tempdir, "registry_output.tmp")
+        input_bytes = cloudpickle.dumps((fn, output_filepath))
+        returned = subprocess.run(
+            _SUBPROCESS_COMMAND,  # [sys.executable, "-m", "vllm.model_executor.models.registry"]
+            input=input_bytes,
+            capture_output=True
+        )
+        returned.check_returncode()
+        with open(output_filepath, "rb") as f:
+            return pickle.load(f)</code></pre>
+<p>The subprocess entry point is the <code>_run()</code> function at the bottom of <code>registry.py</code>, which is invoked when the module is run as <code>__main__</code>.</p>
+<h2 id="see-also">See Also<a href="#see-also" class="heading-anchor" aria-label="Link">#</a></h2>
+<ul>
+<li><a href="supported-models.html">Supported Models</a></li>
+<li><a href="model-interfaces.html">Model Interfaces</a></li>
+<li><a href="adding-new-model.html">Adding a New Model</a></li>
+</ul>
+<div class="page-nav">
+<a href="multimodal-models.html"><div class="nav-label">← Previous</div><div class="nav-title">Multimodal Model Support</div></a>
+<a href="supported-models.html" class="nav-next"><div class="nav-label">Next →</div><div class="nav-title">Supported Models</div></a>
+</div>
+<div class="last-updated">Generated by SASVA AI &mdash; 2026-04-05</div>
+</main>
+<aside class="toc-aside">
+<div class="toc-title">On this page</div>
+<a href="#architecture-overview" class="" data-anchor="architecture-overview">Architecture Overview</a>
+<a href="#registry-data-structures" class="" data-anchor="registry-data-structures">Registry Data Structures</a>
+<a href="#_modelinfo-frozen-dataclass" class="toc-h3" data-anchor="_modelinfo-frozen-dataclass">_ModelInfo (Frozen Dataclass)</a>
+<a href="#_baseregisteredmodel-abstract-base" class="toc-h3" data-anchor="_baseregisteredmodel-abstract-base">_BaseRegisteredModel (Abstract Base)</a>
+<a href="#_registeredmodel" class="toc-h3" data-anchor="_registeredmodel">_RegisteredModel</a>
+<a href="#_lazyregisteredmodel" class="toc-h3" data-anchor="_lazyregisteredmodel">_LazyRegisteredModel</a>
+<a href="#_modelregistry" class="toc-h3" data-anchor="_modelregistry">_ModelRegistry</a>
+<a href="#the-global-modelregistry-singleton" class="" data-anchor="the-global-modelregistry-singleton">The Global ModelRegistry Singleton</a>
+<a href="#architecture-resolution-flow" class="" data-anchor="architecture-resolution-flow">Architecture Resolution Flow</a>
+<a href="#architecture-normalization" class="toc-h3" data-anchor="architecture-normalization">Architecture Normalization</a>
+<a href="#transformers-backend-fallback" class="toc-h3" data-anchor="transformers-backend-fallback">Transformers Backend Fallback</a>
+<a href="#out-of-tree-oot-model-registration" class="" data-anchor="out-of-tree-oot-model-registration">Out-of-Tree (OOT) Model Registration</a>
+<a href="#subprocess-execution" class="" data-anchor="subprocess-execution">Subprocess Execution</a>
+<a href="#see-also" class="" data-anchor="see-also">See Also</a>
+</aside>
+<button class="back-to-top" id="back-to-top" title="Back to top">↑</button>
+<div class="mermaid-overlay" id="mermaid-overlay">
+  <div class="mermaid-overlay-inner" id="mermaid-overlay-inner"></div>
+</div>
+<script>
+mermaid.initialize({startOnLoad:true,theme:"dark",securityLevel:"loose",flowchart:{useMaxWidth:true,htmlLabels:true},themeVariables:{primaryColor:"#1f6feb",primaryTextColor:"#e6edf3",primaryBorderColor:"#58a6ff",lineColor:"#8b949e",secondaryColor:"#21262d",tertiaryColor:"#161b22"}});
+hljs.highlightAll();
+</script>
+<script>
+(function(){
+  var currentPath = location.pathname;
+  var links = document.querySelectorAll('#sidebar-nav-links a');
+  for(var i=0;i<links.length;i++){
+    var href = links[i].getAttribute('href');
+    if(!href) continue;
+    // Resolve the href to an absolute path for accurate comparison
+    // This handles both relative (../section/page.html) and same-dir (page.html) links
+    var a = document.createElement('a');
+    a.href = href;
+    if(a.pathname === currentPath){
+      links[i].classList.add('active');
+    }
+  }
+  var idx=[{"t": "Overview", "p": "01-overview/README.html", "h": ["Why vLLM?", "PagedAttention", "Continuous Batching", "Core Design Philosophy", "The V1 Engine", "Key Features at a Glance", "Performance", "Further Reading"]}, {"t": "Getting Started", "p": "02-getting-started/README.html", "h": ["In This Section"]}, {"t": "Installation", "p": "02-getting-started/installation.html", "h": ["Installation Decision Tree", "System Requirements", "CUDA (NVIDIA GPU) — Recommended", "Prerequisites", "Install", "Verify", "CUDA Docker Image", "ROCm (AMD GPU)", "Supported AMD GPU Architectures", "ROCm Docker Image", "Build ROCm Image from Source", "Install ROCm Dependencies Manually", "CPU-only Installation", "Install from PyPI (CPU)", "CPU Docker Image", "TPU (Google Cloud TPU)", "TPU Docker Image", "Manual TPU Installation", "XPU (Intel GPU)", "XPU Docker Image"]}, {"t": "Quickstart", "p": "02-getting-started/quickstart.html", "h": ["Prerequisites", "Basic Text Generation", "Chat Inference", "Multi-GPU Inference", "Greedy Decoding (Deterministic)", "Multiple Completions per Prompt", "Start the Server", "Check Server Health", "List Available Models", "Making Your First API Call", "Using the OpenAI Python Client", "End-to-End Flow", "Quick Reference", "Offline Inference", "Online Serving", "Next Steps"]}, {"t": "Architecture Overview", "p": "03-architecture/README.html", "h": ["System Layers", "V1 Engine Pipeline", "AsyncLLM → EngineCoreClient → EngineCore → Executor → Worker", "Executor and Workers", "ZMQ-Based IPC", "PagedAttention: Block-Based KV Cache", "Block Pool", "KV Cache Specs", "Prefix Caching", "Continuous Batching", "How It Works", "Prefill and Decode Interleaving", "Chunked Prefill", "Request Lifecycle", "Request Status Transitions", "Plugin System", "Entry Point Groups", "Writing a Plugin", "Controlling Plugin Loading", "Custom Model Registration"]}, {"t": "Models", "p": "04-models/README.html", "h": ["In This Section", "Quick Reference", "Supported Model Categories", "Loading a Model", "Registering a Custom Model"]}, {"t": "Adding a New Model Architecture", "p": "04-models/adding-new-model.html", "h": ["Overview", "Step 1: Create the Model File", "Minimal Text Generation Model", "Key Requirements", "Pipeline Parallelism Support", "For a text generation model:", "For an embedding/pooling model:", "For a multimodal model:", "Aliasing to an existing implementation", "Step 3: Add a Test Entry", "Step 4: Implement Weight Loading", "Step 5: Adding Multimodal Support", "Minimal Multimodal Model", "Implementing a Multimodal Processor", "Step 6: Adding Embedding Model Support", "Step 7: Verify Your Model", "Common Pitfalls", "CUDA Initialization in Main Process", "Weight Name Mismatches", "Pipeline Parallelism Boundary"]}, {"t": "Model Interfaces", "p": "04-models/model-interfaces.html", "h": ["Interface Hierarchy", "Additional Interfaces", "Interface Checking Functions", "Implementing a New Interface", "See Also"]}, {"t": "Model Loading", "p": "04-models/model-loading.html", "h": ["Load Format Overview", "Loader Architecture", "Loading from HuggingFace Hub", "File Priority", "Offline Mode", "ModelScope Support", "Loading from Local Paths", "GGUF Format", "Local GGUF File", "HuggingFace Repo + Filename", "HuggingFace Repo + Quantization Type", "GGUF Weight Mapping", "Dummy Weights", "Sharded State Format", "BitsAndBytes In-Flight Quantization", "Custom Model Loaders", "Weight Loading Utilities", "Dictionary Overrides", "Callable Overrides (Python API)", "Quantization Config Override"]}, {"t": "Multimodal Model Support", "p": "04-models/multimodal-models.html", "h": ["Architecture Overview", "Supported Modalities", "Key Methods", "Model Component Marking", "The MultiModal Registry", "Registering a Processor", "Processor Components", "Vision Encoders", "CLIP Vision Encoder", "SigLIP Vision Encoder", "Dynamic Resolution", "Audio Encoders", "Whisper Encoder", "Qwen2 Audio Encoder", "Cross-Modal Attention", "Encoder-Decoder Models", "Prefix Fusion", "Interleaved Fusion", "Multimodal Input Types", "Pre-computed Embeddings"]}, {"t": "Model Registry Internals", "p": "04-models/registry-internals.html", "h": ["Architecture Overview", "Registry Data Structures", "Architecture Resolution Flow", "Architecture Normalization", "Transformers Backend Fallback", "Out-of-Tree (OOT) Model Registration", "Subprocess Execution", "See Also"]}, {"t": "Supported Models", "p": "04-models/supported-models.html", "h": ["Text Generation Models (Decoder-only)", "Multimodal Models", "Embedding / Pooling Models", "Cross-Encoder Models", "Speculative Decoding Models", "Transformers Backend Models", "Models by Family", "Llama Family", "Mistral / Mixtral Family", "Qwen Family", "DeepSeek Family", "Gemma Family", "GPT Family", "BERT / Encoder Family", "Falcon Family", "Phi Family", "Mamba / SSM Family", "LLaVA Family", "InternVL Family", "Granite Family (IBM)"]}, {"t": "Serving", "p": "05-serving/README.html", "h": ["Starting the Server", "Server Architecture", "Supported APIs", "Configuration", "High-Throughput Configuration", "Low-Latency Configuration", "Memory-Constrained Configuration", "Authentication and Security", "Related Documentation"]}, {"t": "Configuration Reference", "p": "06-configuration/README.html", "h": ["Configuration Architecture", "Pages in This Section", "Quick Start Examples", "Minimal Configuration", "High-Throughput Serving", "Low-Latency Interactive Serving", "Memory-Constrained Deployment"]}, {"t": "Additional Configuration Classes", "p": "06-configuration/additional-configs.html", "h": ["LoRAConfig", "When to Use", "Fields", "Configuration Examples", "Using LoRA with the LLM API", "Hash Computation", "MultiModalConfig", "Fields", "Limit Per Prompt Format", "Configuration via LLM API", "ObservabilityConfig", "Fields", "Computed Properties", "Configuration Examples", "OffloadConfig", "Offload Backends", "Fields", "UVAOffloadConfig", "PrefetchOffloadConfig", "Configuration Examples"]}, {"t": "CacheConfig", "p": "06-configuration/cache-config.html", "h": ["Overview", "Fields", "Block Size", "GPU Memory", "Cache Data Type", "Prefix Caching", "CPU Swap Space", "KV Cache Offloading", "Sliding Window", "Mamba Cache", "KV Sharing", "Derived Fields (Set After Profiling)", "Configuration Examples", "Default Configuration", "High-Memory Utilization for Maximum Throughput", "FP8 KV Cache for Memory Savings", "Disable Prefix Caching (for Unique Prompts)", "KV Cache Offloading to CPU", "Explicit Cache Size", "Memory Profiling"]}, {"t": "CompilationConfig", "p": "06-configuration/compilation-config.html", "h": ["Overview", "Compilation Mode", "CUDA Graph Mode", "Top-Level Compilation Fields", "CUDA Graph Capture Configuration", "Auto-Generated Capture Sizes", "Inductor Compilation Configuration", "PassConfig — Custom Fusion Passes", "Fusion Pass Fields", "Dynamic Shapes Configuration", "Additional Fields", "Optimization Level Presets", "Configuration Examples", "Disable Compilation (Development/Debugging)", "Custom CUDA Graph Sizes", "Enable All Fusion Passes", "CLI Shorthand", "Related Pages"]}, {"t": "Environment Variables", "p": "06-configuration/environment-variables.html", "h": ["How Environment Variables Work", "Installation-Time Variables", "Path and Cache Variables", "Networking and Distributed Variables", "Worker and Process Variables", "Data Parallel Variables", "Ray Variables", "Logging Variables", "Compilation and Performance Variables", "Model Loading Variables", "API Server Variables", "LoRA Variables", "Multimodal Variables", "CPU Backend Variables", "ROCm / AMD GPU Variables", "TPU / XLA Variables", "MoE and Quantization Variables", "FlashInfer Variables", "Usage Statistics Variables", "S3 / Object Storage Variables"]}, {"t": "ModelConfig", "p": "06-configuration/model-config.html", "h": ["Overview", "Core Fields", "Model Identity", "Data Type", "Context Length", "Quantization", "Tokenizer", "Model Runner", "Inference Behavior", "Generation Config", "Multimodal", "Logits Processing", "Pooling", "Configuration Examples", "Loading a Local Model", "Quantized Model with Custom Tokenizer", "Embedding / Pooling Model", "Model with Remote Code", "Multimodal Model", "Derived Properties"]}, {"t": "ParallelConfig", "p": "06-configuration/parallel-config.html", "h": ["Overview", "Core Parallelism Fields", "Expert Parallelism (MoE)", "All-to-All Backends", "EPLBConfig", "Distributed Executor Backend", "Ray vs. Multiprocessing", "Data Parallelism Configuration", "Multi-Node Configuration", "Advanced Options", "Derived Fields", "Configuration Examples", "Single-GPU (Default)", "4-GPU Tensor Parallelism", "2-Node, 8-GPU Pipeline + Tensor Parallelism", "MoE Model with Expert Parallelism", "Data Parallel Serving (Multiple Replicas)", "Parallelism Strategy Selection Guide", "Related Pages"]}, {"t": "SchedulerConfig", "p": "06-configuration/scheduler-config.html", "h": ["Overview", "Fields", "Batch Size Limits", "Chunked Prefill", "Scheduling Policy", "Async Scheduling", "Streaming", "Hybrid KV Cache", "Custom Scheduler", "Multimodal", "Runner Type", "Initialization Variables", "Default Factory", "Configuration Examples", "High-Throughput Batch Processing", "Low-Latency Interactive Serving", "Priority-Based Scheduling", "Concurrent Long Prefills", "Throughput vs. Latency Trade-offs", "Hash Computation"]}, {"t": "SpeculativeConfig", "p": "06-configuration/speculative-config.html", "h": ["Overview", "Speculative Methods", "Fields", "Core Configuration", "Draft Model Configuration", "N-gram Proposer", "Advanced Options", "Suffix Decoding", "Internal Fields (Set During Initialization)", "Configuration Examples", "Draft Model Speculation", "EAGLE Speculation", "N-gram Speculation (No Draft Model)", "DeepSeek MTP (Multi-Token Prediction)", "Suffix Decoding", "Method Selection Guide", "Performance Considerations", "Hash Computation", "Related Pages"]}, {"t": "VllmConfig — The Unified Configuration Container", "p": "06-configuration/vllm-config.html", "h": ["Overview", "Class Definition", "Fields", "Optimization Levels", "Performance Modes", "Configuration Hashing", "Context Management", "Optimization Level to Compilation Config Mapping", "Usage in Engine Initialization", "Related Pages"]}, {"t": "Distributed Inference", "p": "07-distributed/README.html", "h": ["Parallelism Dimensions", "Combined Topology", "Quick Start", "Documentation Pages", "Initialization Flow", "Cross-References"]}, {"t": "Context Parallelism", "p": "07-distributed/context-parallelism.html", "h": ["Overview", "Prefill Context Parallelism (PCP)", "Configuration", "Process Group", "Decode Context Parallelism (DCP)", "Configuration", "Constraint", "DCP Communication Backends", "Process Group", "KV Cache Interleaving", "Combined CP and TP", "Communication Pattern", "Performance Considerations", "Related Pages"]}, {"t": "Data Parallelism", "p": "07-distributed/data-parallelism.html", "h": ["Overview", "MoE and Wide EP", "DP Group Initialization", "Configuration Parameters", "Load Balancing Modes", "Internal Load Balancing (default)", "Disaggregated Serving", "Prefill Instance Configuration", "Decode Instance Configuration", "DP Synchronization", "Related Pages"]}, {"t": "EC Transfer (Encoder Cache Transfer)", "p": "07-distributed/ec-transfer.html", "h": ["Use Case", "Architecture", "EC Connector Framework", "Connector Roles", "EC Roles", "Worker-Side API", "Scheduler-Side API", "Configuration", "Example Configuration", "Available Connectors", "ECExampleConnector", "EC Transfer State", "Writing a Custom EC Connector", "Relationship to KV Transfer", "Related Pages"]}, {"t": "Elastic Expert Parallelism (EPLB)", "p": "07-distributed/elastic-ep.html", "h": ["Motivation", "Key Concepts", "Logical vs Physical Experts", "Expert Mapping", "EPLB Algorithm", "Step 1: Collect Load Statistics", "Step 2: Replicate Hot Experts", "Step 3: Pack Experts onto GPUs", "Step 4: Transfer Expert Weights", "Configuration", "EPLBConfig Parameters", "Async EPLB", "CUDA Event Synchronization", "EPLB Process Group", "Elastic EP (Dynamic Scaling)", "Scale-Up State Machine", "Stateless Groups", "Load Balancedness Logging", "Related Pages"]}, {"t": "Expert Parallelism", "p": "07-distributed/expert-parallelism.html", "h": ["MoE Expert Sharding", "EP vs TP for MoE Layers", "EP Group Size", "Process Group Initialization", "All-to-All Communication", "Expert Placement Strategies", "Linear (default)", "Round-Robin", "Configuration Reference", "Interaction with EPLB", "Interaction with Data Parallelism", "Related Pages"]}, {"t": "KV Cache Transfer for Disaggregated Prefill", "p": "07-distributed/kv-transfer.html", "h": ["Architecture", "KV Connector Framework", "Base Class", "Connector Roles", "Available Connectors", "NIXL Connector", "Features", "Configuration", "P2P NCCL Connector", "Metadata", "LMCache Connectors", "Mooncake Connector", "Hybrid Memory Allocator (HMA)", "KV Transfer State", "KV Events", "Writing a Custom Connector", "Related Pages"]}, {"t": "Multiprocess Executor", "p": "07-distributed/multiproc-executor.html", "h": ["When to Use", "Architecture", "IPC Communication", "MessageQueue", "ZMQ Socket Types", "SpinCondition", "Worker Process Lifecycle", "Spawning", "Ready Signaling", "Death Detection", "Collective RPC", "Non-blocking Execution", "Output Rank", "Worker Health Monitoring", "Multi-Node Support", "Async Scheduling", "Related Pages"]}, {"t": "Pipeline Parallelism", "p": "07-distributed/pipeline-parallelism.html", "h": ["Stage Assignment", "Combined with Tensor Parallelism", "Process Group API", "Micro-batching and Concurrency", "Configuration", "Constraints", "Inter-Stage Communication", "Worker Organization", "Performance Considerations", "Related Pages"]}, {"t": "Ray-Based Distributed Execution", "p": "07-distributed/ray-executor.html", "h": ["When to Use Ray", "Architecture", "Placement Groups", "Custom Placement Groups", "Bundle Index Override", "Worker Initialization", "Worker Rank Assignment", "Compiled DAG Execution", "DAG Channel Types", "Environment Variable Propagation", "CUDA Visibility", "Collective RPC", "Nsight Profiling", "Multi-Node Setup", "Related Pages"]}, {"t": "Tensor Parallelism", "p": "07-distributed/tensor-parallelism.html", "h": ["How Weight Sharding Works", "Vocabulary Parallel Embedding", "Communication Pattern", "Configuration", "Constraints", "Process Group", "Communication Operations", "Custom All-Reduce", "Sequence Parallelism", "Performance Tips", "Related Pages"]}, {"t": "Weight Transfer for RLHF", "p": "07-distributed/weight-transfer.html", "h": ["Use Case", "Architecture", "Backends", "NCCL Backend", "IPC Backend", "Base Class", "Configuration", "Factory", "Rank Calculation", "Packed Tensor Protocol", "Related Pages"]}, {"t": "Features", "p": "08-features/README.html", "h": ["Structured Output", "Quick Start", "Via OpenAI API", "Structured Output Pages", "Prefix Caching", "Tool Calling", "Chunked Prefill", "Related Sections"]}, {"t": "llguidance Backend", "p": "08-features/structured-output/backend-guidance.html", "h": ["Overview", "Initialization", "Grammar Serialization", "JSON Schema Processing", "Grammar Compilation", "Token Acceptance", "Bitmask Filling", "Error Handling", "Supported Constraint Types", "Unsupported JSON Schema Features", "Whitespace Control", "Structural Tag Support", "Configuration", "Example: JSON Schema", "Example: EBNF Grammar", "Example: Regex", "See Also"]}, {"t": "lm-format-enforcer Backend", "p": "08-features/structured-output/backend-lm-format-enforcer.html", "h": ["Overview", "Initialization", "Grammar Compilation", "Character-Level Parsers", "Token Acceptance", "Bitmask Filling", "Termination Detection", "Rollback", "Supported Constraint Types", "Speculative Decoding Limitation", "Validation", "Example: JSON Schema", "Example: Regex", "Example: Choice", "Limitations Summary", "See Also"]}, {"t": "Outlines Backend", "p": "08-features/structured-output/backend-outlines.html", "h": ["Overview", "Initialization", "Vocabulary Construction", "Grammar Compilation", "Index Caching", "Termination Delay", "Bitmask Filling", "Token Acceptance", "Supported Constraint Types", "Regex Validation", "Unsupported Regex Features", "Universal Start State Requirement", "Caching", "In-Memory Cache (Default)", "On-Disk Cache", "Speculative Decoding", "Example: JSON Schema", "Example: Regex", "Example: Choice", "See Also"]}, {"t": "xgrammar Backend", "p": "08-features/structured-output/backend-xgrammar.html", "h": ["Overview", "Initialization", "Mistral Tokenizer Handling", "Grammar Compilation", "Lark Grammar Conversion", "Key Methods", "Speculative Decoding Support", "Compiler Cache", "Supported JSON Schema Features", "Supported String Formats", "Validation", "Configuration", "Whitespace Control", "Example: JSON Schema", "Example: EBNF Grammar", "See Also"]}, {"t": "Structured Output Code Examples", "p": "08-features/structured-output/code-examples.html", "h": ["Offline Inference Examples", "JSON Schema with Pydantic", "JSON Schema from a Dict", "Regex Constraint", "Choice Constraint", "EBNF Grammar Constraint", "JSON Object (No Schema)", "Batch Processing with Multiple Constraints", "Online Serving Examples (OpenAI API)", "Start the Server", "Structural Tag for Tool Calling", "Streaming with JSON Schema", "Async Examples", "Backend-Specific Examples", "Force xgrammar Backend", "Force guidance Backend", "Force outlines Backend", "Error Handling", "See Also"]}, {"t": "`guided_decoding_backend` Configuration", "p": "08-features/structured-output/guided-decoding-backend.html", "h": ["Configuration Overview", "Configuration Methods", "Via CLI (Server Mode)", "Via Python API (Offline Mode)", "Per-Request Backend Override", "Environment Variables", "Backend Capability Matrix", "Reasoning Model Configuration", "Async Grammar Compilation", "See Also"]}, {"t": "Structured Output Overview", "p": "08-features/structured-output/overview.html", "h": ["Constraint Types", "How It Works", "1. Validation and Backend Selection", "2. Grammar Compilation", "3. Token Bitmask Application", "Constraint Type Details", "JSON Schema", "Regex", "Grammar (EBNF)", "Choice", "JSON Object", "Structural Tag", "Backend Comparison", "Key Classes", "Reasoning Model Support", "See Also"]}, {"t": "`response_format` Parameter", "p": "08-features/structured-output/response-format.html", "h": ["Supported Format Types", "Request Structure", "Python Example with Pydantic", "Request Structure", "Python Example", "Internal Mapping", "Streaming Support", "Validation Errors", "See Also"]}, {"t": "Hardware Support", "p": "09-hardware/README.html", "h": ["Supported Platforms", "Quick Start by Platform", "NVIDIA GPU", "AMD GPU (ROCm)", "Intel GPU (XPU)", "CPU", "Google TPU", "Platform Capability Matrix", "See Also"]}, {"t": "ARM, ppc64le, and s390x Support", "p": "09-hardware/alt-arch.html", "h": ["Architecture Summary", "ARM (AArch64)", "Overview", "Dockerfile", "Data Types on ARM", "libgomp Preload", "CI Test Script", "ppc64le (IBM POWER)", "Overview", "Dockerfile", "Data Types on ppc64le", "libgomp Preload", "CI Test Script", "s390x (IBM Z)", "Overview", "Dockerfile", "CI Test Script", "Buildkite CI Configuration", "Quantization on Alternative Architectures", "Related Pages"]}, {"t": "CPU Platform", "p": "09-hardware/cpu.html", "h": ["Source File", "Supported Architectures", "Key Platform Properties", "Platform Detection", "Supported Data Types", "x86 ISA Extensions", "AMX (Advanced Matrix Extensions)", "AVX-512 Kernel Selection", "Attention Backend", "KV Cache Memory Management", "NUMA-Aware CPU Binding", "OpenMP Configuration", "ARM/POWER libgomp Workaround", "Compilation Backend", "Distributed Inference", "Block Size", "Inference Mode", "Limitations", "Docker Images", "x86_64 / ARM64 (Unified)"]}, {"t": "NVIDIA CUDA Platform", "p": "09-hardware/cuda.html", "h": ["Source File", "Supported Architectures", "Class Hierarchy", "Key Platform Properties", "Attention Backends", "Standard Attention (non-MLA)", "MLA Attention (DeepSeek-style)", "Vision Transformer (ViT) Attention", "MLA Block Size Configuration", "Supported Data Types", "FP8 Support", "NVML Integration", "NVLink Detection", "Distributed Communication", "CUDA Graph Support", "Custom AllReduce", "Worker Configuration", "Device Control", "Multi-GPU Warning", "Building for Specific Architectures"]}, {"t": "Hardware CI", "p": "09-hardware/hardware-ci.html", "h": ["CI Structure", "AMD ROCm CI", "CPU CI", "Test Steps", "Source File Dependencies", "Distributed Smoke Test", "Multi-Modal Sharding", "Intel GPU (XPU) CI", "XPU Test Coverage", "GH200 (Grace Hopper) CI", "Ascend NPU CI", "TPU CI", "CI Environment Variables", "Adding New Hardware Tests", "Related Pages"]}, {"t": "Platform Support Overview", "p": "09-hardware/overview.html", "h": ["Supported Platforms", "Platform Interface Architecture", "Key Class Attributes", "Platform Identification", "Device Capability", "Key Abstract Methods", "CPU Architecture Detection", "Platform Detection Flow", "Platform Capability Matrix", "Feature Support by Platform", "Out-of-Tree Platform Plugins", "Related Pages"]}, {"t": "AMD ROCm Platform", "p": "09-hardware/rocm.html", "h": ["Source File", "Supported GPU Architectures", "CDNA (Compute DNA) — Data Center GPUs", "RDNA (Radeon DNA) — Consumer/Workstation GPUs", "Architecture Detection", "GFX Capability Mapping", "Key Platform Properties", "Supported Quantization Methods", "Attention Backends", "Standard Attention (non-MLA)", "MLA Attention (DeepSeek-style)", "ViT Attention", "AITER Kernels", "Custom Paged Attention", "Flash Attention on RDNA", "HIP/CUDA Environment Variable Sync", "Device ID Map", "Building the ROCm Docker Image", "ROCm-Specific C Extensions", "Distributed Communication"]}, {"t": "Google TPU Platform", "p": "09-hardware/tpu.html", "h": ["Source File", "Supported Hardware", "Architecture Overview", "Platform Detection", "1. Pathways TPU Proxy", "2. Direct libtpu", "TpuPlatform Implementation", "XLA Compilation", "XLA Cache", "Recompilation Detection", "Pallas Kernels", "TPU-Specific Configuration", "Bucket Padding", "Pathways Integration", "Docker Image", "Inference Mode", "CI Test Suite", "Installation", "Offline Inference Example", "Limitations"]}, {"t": "Intel XPU Platform", "p": "09-hardware/xpu.html", "h": ["Source File", "Supported Hardware", "Key Platform Properties", "IPEX and Kernel Extensions", "Attention Backends", "Backend Selection Logic", "ViT Attention Backends", "XCCL Distributed Communication", "XPU Graph Support", "Device Control", "Supported Data Types", "FP8 Support", "Memory Management", "Block Swapping", "LoRA Support", "Worker Configuration", "KV Transfer (P/D Disaggregation)", "UCX Memory Cache", "Building the XPU Docker Image", "Running XPU Tests"]}, {"t": "Compilation & Optimization", "p": "10-compilation/README.html", "h": ["Why Compile?", "Compilation Modes", "Mode 0 — NONE", "Mode 1 — STOCK_TORCH_COMPILE", "Mode 2 — DYNAMO_TRACE_ONCE", "Mode 3 — VLLM_COMPILE (Default)", "Compilation Pipeline Overview", "Key Source Files", "In This Section", "Cross-References"]}, {"t": "Compilation Caching", "p": "10-compilation/caching.html", "h": ["Cache Architecture", "Cache Key Computation", "Cache Directory Structure", "VllmSerializableFunction", "StandaloneCompiledArtifacts", "Inserting Artifacts", "Loading Artifacts", "CompilerManager", "Cache Initialization", "Cache Save", "Code Hash Verification", "Cache Save Formats", "AOT Compilation", "Disabling the Cache", "Mega AOT Artifact", "Monitoring Cache Usage", "See Also"]}, {"t": "CompilationConfig Reference", "p": "10-compilation/config-reference.html", "h": ["Quick Start", "Top-Level Compilation Control", "CUDA Graph Configuration", "Inductor Compilation", "Pass Configuration", "Fusion Passes", "ROCm-Specific Passes", "Example: Enable Fusion Passes", "Dynamic Shapes Configuration", "Complete Example", "Environment Variable Overrides", "See Also"]}, {"t": "CUDA Graph Capture", "p": "10-compilation/cuda-graphs.html", "h": ["How CUDA Graphs Work", "CUDA Graph Modes", "PIECEWISE Mode", "FULL Mode", "FULL_AND_PIECEWISE Mode (Default)", "The CUDAGraphWrapper", "CUDAGraphEntry", "Capture and Replay Logic", "Static Input Requirement", "CUDAGraphOptions", "Capture Sizes", "Custom Capture Sizes", "CUDA Graph Logging", "Memory Pool Sharing", "Warmup Runs", "Debugging CUDA Graphs", "Clearing CUDA Graphs", "See Also"]}, {"t": "`@support_torch_compile` Decorator", "p": "10-compilation/decorators.html", "h": ["Overview", "Basic Usage", "Usage with Arguments", "Parameters", "How It Works", "MRO Injection", "Dynamic Dimension Marking", "AOT Compilation Support", "Compilation Counter", "Real-World Example", "Compilation Pipeline Diagram", "See Also"]}, {"t": "Compilation Overview", "p": "10-compilation/overview.html", "h": ["Why Compile LLMs?", "The Four Compilation Modes", "Mode 0 — NONE (Eager)", "Mode 1 — STOCK_TORCH_COMPILE", "Mode 2 — DYNAMO_TRACE_ONCE", "Mode 3 — VLLM_COMPILE (Default for V1)", "Mode Comparison", "Compilation Startup Time", "Dynamic Shapes", "Environment Variables", "See Also"]}, {"t": "Piecewise Compilation", "p": "10-compilation/piecewise.html", "h": ["The Problem: Attention and CUDA Graphs", "Graph Splitting", "Default Splitting Ops", "Piecewise Graph Structure", "The PiecewiseBackend", "Shape Ranges", "Runtime Dispatch", "PiecewiseCompileInterpreter", "Inductor Graph Partition (Alternative)", "Compilation Flow Diagram", "Encoder Compilation", "See Also"]}, {"t": "LoRA Adapters", "p": "10-lora/README.html", "h": ["What Is LoRA?", "vLLM Multi-LoRA Architecture", "Quick Start", "Loading LoRA at Server Startup", "Per-Request Adapter Selection (OpenAI API)", "Offline Inference with LoRA", "Section Contents", "Supported Models", "Supported LoRA Features", "Cross-References"]}, {"t": "Dynamic LoRA Loading and Unloading", "p": "10-lora/dynamic-loading.html", "h": ["Enabling Dynamic Loading", "API Endpoints", "Usage Examples", "Loading an Adapter", "Using the Loaded Adapter", "Replacing an Adapter In-Place", "Unloading an Adapter", "Python Client Example", "Protocol Classes", "Implementation Details", "Listing Loaded Adapters", "SageMaker Integration", "See Also"]}, {"t": "LoRAConfig", "p": "10-lora/lora-config.html", "h": ["Class Definition", "Fields", "Configuration via CLI", "Configuration via Python", "Memory Sizing", "Validation Summary", "Hash Computation", "See Also"]}, {"t": "LoRA Layers", "p": "10-lora/lora-layers.html", "h": ["How Layer Patching Works", "Class Hierarchy", "Stacked Weight Tensors", "Layer Types", "Tensor Parallelism and LoRA", "Supported Quantization", "See Also"]}, {"t": "LoRAModelManager", "p": "10-lora/lora-model-manager.html", "h": ["Architecture Overview", "Two-Level Cache", "Constructor", "Key Properties", "Adapter Lifecycle Methods", "LRU Behavior", "Factory Function", "Multimodal Support", "See Also"]}, {"t": "LoRARequest", "p": "10-lora/lora-request.html", "h": ["Class Definition", "Fields", "Validation", "Properties", "Equality and Hashing", "Usage Examples", "Basic Usage", "Multiple Adapters in the Same Batch", "Force-Reloading an Adapter", "With Base Model Name", "Relationship to Other Components", "See Also"]}, {"t": "LoRA Resolvers", "p": "10-lora/lora-resolvers.html", "h": ["Architecture", "How It Works", "Configuration", "Registration", "Expected Directory Structure", "How It Works", "Adapter Name Format", "Repo Discovery", "Configuration", "Registration", "Writing a Custom Resolver", "Environment Variables Summary", "See Also"]}, {"t": "Punica Kernels", "p": "10-lora/punica-kernels.html", "h": ["The Core Problem", "Two-Step LoRA Computation", "Step 1: Shrink (lora_a projection)", "Step 2: Expand (lora_b projection)", "State Tensors", "Abstract Interface", "Initialization", "MoE LoRA Kernels", "Platform-Specific Implementations", "CUDA Graph Specialization", "Performance Characteristics", "Environment Variables", "See Also"]}, {"t": "Multimodal Support", "p": "10-multimodal/README.html", "h": ["Overview", "Supported Modalities", "In This Section", "Quick Start", "Offline Inference with an Image", "Online Serving via OpenAI-Compatible API", "Key Source Files", "Cross-References"]}, {"t": "Audio Inputs", "p": "10-multimodal/audio-inputs.html", "h": ["Audio Type Aliases", "Offline Inference", "Waveform + Sample Rate", "Multiple Audio Items", "Fetching Audio from a URL", "Whisper (Speech-to-Text)", "Online Serving (OpenAI-Compatible API)", "Base64 Audio URL", "Audio Processing Internals", "AudioMediaIO", "AudioSpec and Channel Normalization", "AudioResampler", "Audio Chunking", "Extracting Audio from Video", "Encoding Audio for API Calls", "Controlling Audio Limits", "Supported Audio Models", "Related Pages"]}, {"t": "Multimodal Cache", "p": "10-multimodal/cache.html", "h": ["Architecture", "Cache Types", "MultiModalProcessorOnlyCache", "MultiModalProcessorSenderCache (LRU)", "ShmObjectStoreSenderCache (SHM)", "MultiModalCache Utility Class", "Cache Configuration", "Cache Key: MultiModalHasher", "User-Provided UUIDs", "Cache Eviction", "Cache Statistics", "Receiver Caches", "Memory Considerations", "Related Pages"]}, {"t": "MultiModalConfig", "p": "10-multimodal/config.html", "h": ["Configuration Reference", "Core Settings", "Cache Settings", "Processor Settings", "Encoder Settings", "Video Settings", "Legacy Format (count only)", "Configurable Format (with options)", "Mixed Format", "Dummy Options Classes", "Complete Example", "Related Pages"]}, {"t": "Encoder Budget", "p": "10-multimodal/encoder-budget.html", "h": ["Overview", "MultiModalBudget", "Key Attributes", "Budget Computation", "Getting Max Tokens Per Item", "Per-Prompt and Per-Batch Limits", "Embedding-Only Modalities", "Chunked Multimodal Input", "Configuration", "Skip MM Profiling", "Related Pages"]}, {"t": "EVS — Efficient Video Sampling", "p": "10-multimodal/evs.html", "h": ["Motivation", "How EVS Works", "Core Functions", "Enabling EVS", "MRope Position Recomputation", "Chunked Prefill Support", "Qwen3-VL Support", "Supported Models", "Performance Impact", "Related Pages"]}, {"t": "Multimodal Code Examples", "p": "10-multimodal/examples.html", "h": ["Image in Chat Completion (Online API)", "Single Image from URL", "Single Image from Base64", "Multiple Images", "Local File Image", "Image in Offline Inference", "PIL Image", "Image from URL (Offline)", "Batch Image Inference", "Audio Transcription (Online API)", "Whisper Speech-to-Text", "Audio from URL", "Audio Transcription (Offline Inference)", "Whisper Offline", "Ultravox Audio-Language Model", "Video Understanding (Online API)", "Video Understanding (Offline Inference)", "Mixed Modalities (Omni Models)", "Qwen2.5-Omni (Audio + Video)", "Pre-computed Embeddings"]}, {"t": "Image Inputs", "p": "10-multimodal/image-inputs.html", "h": ["Image Type Aliases", "Offline Inference", "PIL Image", "Multiple Images", "Fetching Images from URLs", "Pre-computed Image Embeddings", "Online Serving (OpenAI-Compatible API)", "Image from HTTP URL", "Image from Local File", "Image from Base64", "Multiple Images", "Image Processing Internals", "ImageMediaIO", "Image Utilities", "Controlling Image Limits", "Image Hashing and Caching", "Related Pages"]}, {"t": "Multimodal Registry", "p": "10-multimodal/registry.html", "h": ["Global Registry", "Architecture", "Registering a Processor", "Real Example: BLIP-2", "Factory Protocols", "ProcessingInfoFactory", "MultiModalProcessorFactory", "DummyInputsBuilderFactory", "BaseProcessingInfo", "Example: Supported Modality Limits", "SupportsMultiModal Interface", "Registry Methods", "Cache Factory Methods", "Timing Registry", "Writing a Custom Processor", "Related Pages"]}, {"t": "Video Inputs", "p": "10-multimodal/video-inputs.html", "h": ["Video Type Aliases", "Dependencies", "Video Backends", "Offline Inference", "Video from URL", "Video from Local File", "Controlling Frame Count", "FPS-Based Sampling", "Online Serving (OpenAI-Compatible API)", "Video from HTTP URL", "Video from Base64", "Video Processing Internals", "VideoMediaIO", "OpenCV Video Backend", "Frame Recovery", "Video Utilities", "Encoding Video for API Calls", "Controlling Video Limits", "Video Token Pruning (EVS)", "Supported Video Models"]}, {"t": "Performance & Benchmarking", "p": "10-performance/README.html", "h": ["Performance Overview", "Quick Benchmarks", "Key Performance Metrics", "See Also"]}, {"t": "Speculative Decoding", "p": "10-speculative-decoding/README.html", "h": ["Overview", "Why It Works", "Acceptance Rate and Speedup", "Available Methods", "Quick Start", "EAGLE Speculative Decoding", "N-gram Speculative Decoding", "MTP (DeepSeek-V3)", "Architecture", "Configuration Reference", "Metrics and Observability", "Pages in This Section", "Cross-References"]}, {"t": "Speculative Decoding Configuration", "p": "10-speculative-decoding/configuration.html", "h": ["SpeculativeConfig", "Core Parameters", "Draft Model Parameters", "Parallelism Parameters", "Advanced Control Parameters", "N-gram Parameters", "Suffix Decoding Parameters", "Complete Configuration Examples", "EAGLE with Tree Attention", "EAGLE-3", "DeepSeek-V3 with MTP", "N-gram (GPU)", "Suffix Decoding", "Medusa", "OpenAI-Compatible Server", "Validation and Error Handling", "Related Pages"]}, {"t": "EAGLE Speculative Decoding", "p": "10-speculative-decoding/eagle.html", "h": ["Overview", "How EAGLE Works", "Draft Phase", "Tree Attention", "EAGLE-3 Auxiliary Hidden States", "Implementation", "Core Classes", "Weight Sharing", "Supported Models", "Configuration", "Parallel Drafting", "Disabling Padded Drafter Batch", "Local Argmax Reduction", "Performance Tips", "Related Pages"]}, {"t": "Medusa Speculative Decoding", "p": "10-speculative-decoding/medusa.html", "h": ["Overview", "Architecture", "Medusa Head Structure", "Forward Pass", "MedusaProposer", "Model Loading", "Token Map Optimization", "Configuration", "Basic Setup", "Medusa Config Parameters", "Specifying Number of Heads", "Differences from EAGLE", "Limitations", "Related Pages"]}, {"t": "Speculative Decoding Metrics", "p": "10-speculative-decoding/metrics.html", "h": ["Key Metrics", "Acceptance Rate", "Mean Acceptance Length (MAL)", "Per-Position Acceptance Rate", "Draft and Accepted Throughput", "Implementation", "SpecDecodingStats", "SpecDecodingLogging", "Sample Log Output", "Prometheus Metrics", "Available Counters", "PromQL Queries", "Implementation", "SpecDecodeMetadata", "Tuning for Performance", "Token Budget", "Monitoring Acceptance Rate Over Time", "Related Pages"]}, {"t": "Multi-Token Prediction (MTP)", "p": "10-speculative-decoding/mtp.html", "h": ["Overview", "Supported Models", "DeepSeek MTP Implementation", "Architecture", "Layer Reuse for Multiple Speculative Tokens", "Ernie MTP Implementation", "Configuration", "Basic Setup", "Auto-Detection", "Configuration Parameters", "Quantization", "How MTP Differs from EAGLE", "Model Config Override", "Related Pages"]}, {"t": "N-gram Speculative Decoding", "p": "10-speculative-decoding/ngram.html", "h": ["Overview", "CPU N-gram Proposer", "Implementation", "Initialization", "GPU N-gram Proposer", "Implementation", "Configuration", "Basic Setup", "Configuration Parameters", "When to Use N-gram Decoding", "CPU vs GPU Comparison", "Related Pages"]}, {"t": "Suffix Decoding", "p": "10-speculative-decoding/suffix-decoding.html", "h": ["Overview", "Architecture", "SuffixDecodingProposer", "Two-Level Caching", "Request Lifecycle", "Dynamic Speculation Length", "Probability Filtering", "Configuration", "Basic Setup", "Configuration Parameters", "Disabling Global Cache", "Tuning for Your Workload", "When to Use Suffix Decoding", "Comparison with N-gram Decoding", "Related Pages"]}, {"t": "Observability", "p": "11-observability/README.html", "h": ["What's Covered", "Architecture Overview", "Quick Start", "Enable Prometheus Metrics", "Enable OpenTelemetry Tracing", "Enable JSON Logging", "Key Metrics at a Glance", "Cross-References"]}, {"t": "Observability API Endpoints", "p": "11-observability/endpoints.html", "h": ["Overview", "Example Request", "Example Response", "Prometheus Scrape Configuration", "Kubernetes ServiceMonitor (Prometheus Operator)", "Kubernetes Pod Annotations (Prometheus auto-discovery)", "Implementation Details", "Overview", "Query Parameters", "Example Request", "Response Schema", "Response Fields", "Implementation", "Use Cases", "Endpoint Exclusions from Metrics", "Related Pages"]}, {"t": "FastAPI Instrumentator & `/metrics` Endpoint", "p": "11-observability/instrumentator.html", "h": ["Architecture", "Integration Code", "Key Design Decisions", "Endpoint Details", "Sample Output", "Scraping Configuration", "HTTP Request Metrics (from Instrumentator)", "Multiprocess Mode", "ORCA Load Reporting", "Related Pages"]}, {"t": "Structured Logging", "p": "11-observability/logging.html", "h": ["Logger Architecture", "Log Format", "Environment Variables", "Color Detection", "Log Scopes", "Formatters", "Default Logging Configuration", "Custom Logging Configuration", "Silencing a Specific Logger", "Disabling All vLLM Logging", "Stats Logging", "Access Log Filtering", "Function Call Tracing (Debug)", "Suppressing Logging Temporarily", "httpx Log Level", "Related Pages"]}, {"t": "Prometheus Metrics Reference", "p": "11-observability/metrics.html", "h": ["Metric Labels", "Scheduler State Metrics", "Engine Sleep State", "Token Throughput Counters", "Prompt Token Sources", "Request Outcome Counters", "Prefix Cache Metrics", "Multi-Modal Cache Metrics", "Request Latency Histograms", "Token Latency Histograms", "Request Parameter Histograms", "KV Cache Residency Metrics (Optional)", "Speculative Decoding Metrics", "Speculative Decoding PromQL Queries", "LoRA Metrics", "WebSocket Metrics (Realtime API)", "Model FLOPs Utilization (MFU) Metrics", "MFU PromQL Queries", "Configuration Info Metric", "Multiprocess Prometheus Support"]}, {"t": "ObservabilityConfig Reference", "p": "11-observability/observability-config.html", "h": ["Configuration Fields", "Complete Configuration Example", "Via CLI", "Via Python API", "Field Summary Table", "Validation Rules", "Related Pages"]}, {"t": "OpenTelemetry Tracing", "p": "11-observability/tracing.html", "h": ["Architecture", "Installation", "Configuration", "Tracer Initialization", "Main Process", "Worker Processes", "OTLP Export Protocol", "Instrumentation API", "Span Attributes", "Latency Attributes", "Resource Attributes", "Context Propagation", "W3C TraceContext Headers", "Extracting Context from HTTP Requests", "Propagating Context to Worker Processes", "Detailed Trace Modules", "Checking Tracing Availability", "Example: Jaeger Setup", "Example: Grafana Tempo Setup", "Trace Flow for a Single Request"]}, {"t": "API Reference", "p": "12-api-reference/README.html", "h": ["OpenAI-Compatible APIs", "Additional Protocol APIs", "Pooling &amp; Embedding APIs", "Serving Utilities", "Operational Endpoints", "Advanced / Distributed APIs", "Endpoint Availability Matrix"]}, {"t": "Anthropic Messages API", "p": "12-api-reference/anthropic-messages-api.html", "h": ["Endpoints", "Request Body", "Request Fields", "Message Format", "Tool Definition", "Tool Choice", "Non-Streaming Response", "Streaming Response", "Request Body", "Response", "Internal Translation", "Error Responses", "Usage Example", "Streaming Example"]}, {"t": "POST /v1/audio/transcriptions", "p": "12-api-reference/audio-transcriptions.html", "h": ["Endpoints", "POST /v1/audio/transcriptions", "Request", "Response Formats", "Streaming Response", "Examples", "Basic Transcription", "Transcription with Language Hint", "Streaming Transcription", "Raw HTTP Request (curl)", "Verbose JSON with Timestamps", "POST /v1/audio/translations", "Starting the Server for Transcription", "Related Pages"]}, {"t": "Authentication, CORS, and SSL Configuration", "p": "12-api-reference/auth-ssl.html", "h": ["Authentication", "API Key Authentication", "Request ID Headers", "CORS Configuration", "Examples", "SSL / TLS Configuration", "Basic SSL Setup", "SSL Configuration Options", "Mutual TLS (mTLS)", "Automatic Certificate Refresh", "Generating Self-Signed Certificates (Development)", "Custom Middleware", "Security Best Practices", "Related Pages"]}, {"t": "Batch Inference", "p": "12-api-reference/batch-inference.html", "h": ["Overview", "Supported Endpoints", "Input File Format", "BatchRequestInput Fields", "Output File Format", "BatchRequestOutput Fields", "Running Batch Inference", "Command Line", "CLI Arguments", "Examples", "Audio Transcription in Batch Mode", "Generating Input Files", "Python Helper", "Reading Output Files", "Progress Tracking", "Error Handling", "Related Pages"]}, {"t": "Cache Management", "p": "12-api-reference/cache-management.html", "h": ["Availability", "Endpoints", "Query Parameters", "Examples", "Response", "Example", "Response", "Example", "Response", "Use Cases", "Development and Testing", "After Weight Updates (RLHF)", "External Cache Connectors", "Cache Architecture"]}, {"t": "POST /v1/chat/completions", "p": "12-api-reference/chat-completions.html", "h": ["Endpoint", "Request Schema", "Core OpenAI-Compatible Fields", "vLLM Sampling Extensions", "vLLM Extra Parameters", "Stream Options", "Response Schema", "Non-Streaming Response", "Streaming Response (SSE)", "Response Fields", "Examples", "Basic Chat Completion", "Streaming", "Tool / Function Calling", "Vision (Multimodal) Input", "JSON Schema Output", "Raw HTTP Request", "Request Flow", "Additional Endpoint", "Render Chat Completion"]}, {"t": "vllm serve — CLI Arguments", "p": "12-api-reference/cli-args.html", "h": ["Quick Start", "Argument Groups", "Positional &amp; Top-Level", "Frontend / Server Arguments", "Network", "Authentication", "CORS", "SSL / TLS", "Logging", "HTTP Server Tuning", "Middleware", "Chat &amp; Templates", "Tool Calling", "LoRA Modules", "Miscellaneous Frontend", "Model Arguments", "Load Arguments", "Parallelism Arguments", "Cache &amp; Memory Arguments", "Scheduler Arguments"]}, {"t": "POST /v1/completions", "p": "12-api-reference/completions.html", "h": ["Endpoint", "Request Schema", "Core OpenAI-Compatible Fields", "vLLM Sampling Extensions", "vLLM Extra Parameters", "Response Schema", "Non-Streaming Response", "Streaming Response (SSE)", "Response Fields", "Examples", "Basic Completion", "Multiple Completions", "Echo Prompt with Logprobs", "Streaming Completion", "Raw HTTP Request", "Token ID Prompt", "Default Sampling Parameters", "Related Pages"]}, {"t": "Disaggregated Prefill Proxy", "p": "12-api-reference/disaggregated-prefill.html", "h": ["Overview", "Endpoints", "Request", "Non-Streaming Response", "Streaming Response", "Availability", "Request Body", "Response", "Implementation", "KV Transfer Parameters", "Disaggregated Prefill Architecture", "Starting in Tokens-Only Mode"]}, {"t": "Elastic Expert Parallelism", "p": "12-api-reference/elastic-expert-parallelism.html", "h": ["Overview", "Endpoints", "Request Body", "Response", "Example", "Request", "Response", "ScalingMiddleware", "Scaling Workflow", "Use Cases", "Dynamic Scaling Based on Load", "Health Check During Scaling", "Configuration"]}, {"t": "Error Handling and HTTP Status Codes", "p": "12-api-reference/error-handling.html", "h": ["Error Response Format", "ErrorResponse Fields", "HTTP Status Codes", "200 OK", "400 Bad Request", "401 Unauthorized", "404 Not Found", "422 Unprocessable Entity", "500 Internal Server Error", "501 Not Implemented", "Exception Handlers", "Error Flow", "Handling Errors in Client Code", "Python (OpenAI SDK)", "Raw HTTP (curl)", "Error Stack Traces", "Message Sanitization", "VLLMValidationError", "Related Pages"]}, {"t": "gRPC API", "p": "12-api-reference/grpc-api.html", "h": ["Overview", "Service Definition", "RPC Methods", "Key Parameters", "Structured Output Constraints", "Streaming Flow", "Python Client Example", "Using grpcurl", "Server Implementation Notes"]}, {"t": "Health, Version, Load & Server Info", "p": "12-api-reference/health-version-load.html", "h": ["Endpoints", "Response", "Implementation", "Kubernetes Liveness Probe", "Response", "Response", "Use Cases", "Query Parameters", "Response", "Response Fields", "JSON Config Format", "Response", "Prometheus Scrape Config", "Monitoring Dashboard", "Summary"]}, {"t": "LoRA Management", "p": "12-api-reference/lora-management.html", "h": ["Enabling Runtime LoRA Updates", "Endpoints", "Request", "Response", "Example", "Using with HuggingFace Hub", "Request", "Response", "Example", "Using Loaded Adapters", "SageMaker Integration", "Workflow", "Pre-loading Adapters at Startup"]}, {"t": "MCP Server Protocol", "p": "12-api-reference/mcp-server.html", "h": ["Overview", "MCPToolServer", "Initialization", "Tool Schema Adaptation", "Session Management", "DemoToolServer", "Built-in Tools", "Tool Interface", "MCP Protocol Flow", "Configuration", "Required Dependencies", "Tool Schema Format", "Duplicate Server Handling"]}, {"t": "GET /v1/models", "p": "12-api-reference/models.html", "h": ["Endpoint", "Response Schema", "Response Fields", "ModelCard Fields", "ModelPermission Fields", "Examples", "List Models with Python", "Raw HTTP Request", "Example Output with LoRA Adapters", "Served Model Names", "LoRA Module Configuration", "Related Pages"]}, {"t": "Pooling Endpoints", "p": "12-api-reference/pooling-endpoints.html", "h": ["Endpoint Summary", "Common Request Parameters", "Input Formats", "Request", "Response", "Batch Embeddings", "Python Example", "Request", "Response", "Request Formats", "Response", "Request", "Response", "Request", "Response", "Architecture", "Starting a Pooling Server"]}, {"t": "Profiling Endpoints", "p": "12-api-reference/profiling.html", "h": ["Availability", "Endpoints", "Request", "Response", "Request", "Response", "Profiling Workflow", "Python Example", "Profiler Configuration", "Analyzing Profiles"]}, {"t": "POST /v1/responses and GET /v1/responses/{id}", "p": "12-api-reference/responses.html", "h": ["Endpoints", "POST /v1/responses", "Request Schema", "Response Schema", "Streaming Events", "GET /v1/responses/{response_id}", "Path Parameters", "Query Parameters", "Response", "POST /v1/responses/{response_id}/cancel", "Path Parameters", "Response", "Examples", "Basic Text Response", "Multi-Turn Conversation", "Streaming Response", "Tool Use", "Retrieve a Response", "Raw HTTP Request", "Architecture"]}, {"t": "RLHF Endpoints", "p": "12-api-reference/rlhf-endpoints.html", "h": ["Availability", "Endpoints", "Query Parameters", "Pause Modes", "Request", "Response", "Request", "Response", "Request", "Response", "Request Body", "Response", "Request Body", "Response", "Query Parameters", "Response", "RLHF Workflow", "Python Example", "Weight Transfer Engine"]}, {"t": "SageMaker Endpoints", "p": "12-api-reference/sagemaker-api.html", "h": ["Endpoints", "Response", "Request Routing", "Request Body", "Response", "Error Response", "SageMaker Integration Features", "Adapter Injection", "Stateful Session Management", "LoRA Adapter Management", "Deployment Configuration", "Docker Container", "SageMaker Model Definition", "Invoking the Endpoint", "Bootstrap"]}, {"t": "Serving Utilities", "p": "12-api-reference/serving-utilities.html", "h": ["Endpoints", "Completion-Style Request", "Chat-Style Request", "Response", "Example", "Request", "Response", "Example", "Error Handling", "Enabling the Endpoint", "Response", "Example", "Architecture"]}, {"t": "Sleep / Wake Endpoints", "p": "12-api-reference/sleep-wake.html", "h": ["Availability", "Endpoints", "Query Parameters", "Sleep Levels", "Request", "Response", "Query Parameters", "Request", "Response", "Request", "Response", "Sleep/Wake Workflow", "Python Example", "Use Cases", "Cost Optimization", "RLHF Integration"]}, {"t": "Contributing to vLLM", "p": "13-contributing/README.html", "h": ["What's in This Section", "Quick Start for Contributors", "Community Resources", "Code of Conduct", "License"]}, {"t": "Adding a New Model", "p": "13-contributing/adding-new-model.html", "h": ["When to Add a Model Here vs. Upstream", "Contributor Checklist", "Quick Reference: Key Files", "Step-by-Step Summary", "1. Implement the Model", "2. Register in the Model Registry", "3. Add a Test Entry", "4. Verify Correctness", "5. Test Parallelism", "Common Pitfalls", "Weight Key Mismatches", "Multimodal Input Processing", "LoRA Compatibility", "Cross-References"]}, {"t": "Buildkite Test Areas", "p": "13-contributing/buildkite-test-areas.html", "h": ["Overview", "Test Area Descriptions", "CI Environment Variables", "Pytest Markers", "Adding a New Test Area"]}, {"t": "CI/CD Pipeline", "p": "13-contributing/ci-cd.html", "h": ["Architecture Overview", "GitHub Actions", "Pre-Commit / Lint Workflow", "macOS Smoke Test", "Unit Test Workflows", "Code Coverage", "Buildkite Hardware CI", "Trigger Conditions", "Hardware Pools", "Test Pipeline Structure", "Buildkite Test Collector", "Hardware CI Scripts", "Release Validation CI", "Interpreting CI Results", "GitHub Actions", "Buildkite", "Re-Running Failed Jobs", "Local CI Simulation"]}, {"t": "Code Style & Linting", "p": "13-contributing/code-style.html", "h": ["Ruff Configuration", "Enabled Rule Sets", "Ignored Rules", "Per-File Ignores", "Docstring Formatting", "Running Ruff", "mypy Type Checking", "How mypy Runs in Pre-Commit", "Running mypy Manually", "Custom Pre-Commit Hooks", "Typos Check", "Summary of All Checks", "Editor Integration", "VS Code", "PyCharm / IntelliJ"]}, {"t": "Development Environment Setup", "p": "13-contributing/dev-environment.html", "h": ["Prerequisites", "Step 1: Fork and Clone", "Step 2: Create a Virtual Environment", "Step 3: Install in Editable Mode", "CUDA Build (default on Linux with CUDA)", "CPU-Only Build", "Build Dependencies", "Build Acceleration", "Step 4: Install Development Dependencies", "Step 5: Install Pre-Commit Hooks", "Step 6: Verify the Installation", "Environment Variables for Development", "Directory Structure Overview", "Troubleshooting"]}, {"t": "Pull Request Process", "p": "13-contributing/pr-process.html", "h": ["PR Lifecycle Overview", "Opening a Pull Request", "Before You Open", "PR Title and Description", "Draft PRs", "CODEOWNERS", "Autolabeling", "Review Process", "Review Requirements", "Review Etiquette", "Addressing Review Feedback", "Mergify", "Merge Conditions", "Merge Queue", "Merge Method", "Labels That Affect Mergify", "Stale Bot", "Stale PR Policy", "Preventing Staleness", "Reopening Closed PRs"]}, {"t": "Release Process", "p": "13-contributing/release-process.html", "h": ["Release Cadence", "Version Numbering", "Release Branch Management", "Branch Cut", "Release Candidate Tags", "Final Tag", "Monitoring for Reverts", "Cherry-Pick Criteria", "Allowed Cherry-Picks", "Not Allowed", "Cherry-Pick Process", "Performance Validation", "Benchmark Infrastructure", "Validation Steps", "PyPI Publishing", "Build System", "Supported Python Versions", "Docker Images", "Release Notes", "Version Detection"]}, {"t": "Security Policy", "p": "13-contributing/security.html", "h": ["Reporting Security Issues", "What to Include in Your Report", "Issue Triage", "Severity Classification", "CRITICAL Severity (CVSS ≥ 9.0)", "HIGH Severity (CVSS 7.0–8.9)", "MODERATE Severity (CVSS 4.0–6.9)", "LOW Severity (CVSS &lt; 4.0)", "Threat Model", "Prenotification Policy", "How Prenotification Works", "Eligibility for Prenotification", "Joining the Prenotification Group", "Removal from the Group", "GitHub Security Advisories", "Security Best Practices for Operators", "Coordinated Disclosure Timeline"]}, {"t": "Attention Backends", "p": "14-attention-backends/README.html", "h": ["Overview", "Pages in This Section", "Quick Reference: Backend Names", "Cross-References"]}, {"t": "Backend Selection", "p": "14-attention-backends/backend-selection.html", "h": ["Architecture Overview", "AttentionSelectorConfig", "Platform Delegation", "KV Cache Layout Side Effect", "AttentionBackendEnum", "MambaAttentionBackendEnum", "Registering Custom Backends", "CUDA Backend Priority Order", "Standard Attention (non-MLA)", "MLA Attention", "ROCm Backend Priority Order", "CPU Backend", "Backend Validation", "Backend Selection Decision Tree", "Forcing a Specific Backend", "See Also"]}, {"t": "CPU Attention Backend", "p": "14-attention-backends/cpu-attn.html", "h": ["Overview", "Backend Class", "Supported Configurations", "KV Cache Shape", "ISA Selection", "Prefill vs Decode Split", "Mixed Batch (x86, ARM, s390x)", "Split Batch (other architectures)", "Metadata", "Forward Pass", "Encoder Attention", "SDPA Forward", "Limitations", "KV Cache Space Configuration", "See Also"]}, {"t": "FlashAttention Backend", "p": "14-attention-backends/flash-attn.html", "h": ["Version Fallback Rules", "Platform-Specific Sources", "Backend Class", "Supported Configurations", "KV Cache Shape", "Attention Metadata", "Metadata Builder", "AOT Scheduling (FA3 Only)", "Forward Pass", "Standard Decode/Prefill Path", "Cascade Attention (Prefix Caching)", "FP8 KV Cache", "Encoder Attention", "CUDA Graph Support", "Sliding Window Attention", "Attention Sinks", "See Also"]}, {"t": "FlashInfer Backend", "p": "14-attention-backends/flashinfer.html", "h": ["Overview", "Backend Class", "Supported Configurations", "KV Cache Shape", "Workspace Management", "CpuGpuBuffer", "Prefill vs Decode Paths", "Prefill (Standard)", "Decode (Standard)", "TRTLLM Path (Blackwell)", "FP8 KV Cache with Prefill", "Metadata Structure", "Cascade Attention", "CUDA Graph Support", "Batch-Invariant Mode", "Decode Context Parallelism (DCP)", "See Also"]}, {"t": "Flex Attention Backend", "p": "14-attention-backends/flex-attention.html", "h": ["Overview", "Backend Class", "Supported Configurations", "KV Cache Shape", "Metadata", "Physical-to-Logical Block Mapping", "Garbage Value Protection", "Reused Physical Blocks", "Mask Mod Functions", "Default Causal Mask", "Sliding Window Mask", "Document Mask (Batch Packing)", "Multimodal Prefix Mask", "Forward Pass", "Score Mod Functions", "Compilation", "Limitations", "Use Cases", "See Also"]}, {"t": "Mamba SSM Backends", "p": "14-attention-backends/mamba-attn.html", "h": ["Overview", "Batch Reordering", "State Index Management", "Chunked Prefill", "CUDA Graph Support", "Mamba1 Backend", "Mamba2 Backend", "Additional Metadata", "Chunk Metadata Computation", "Initial State Preparation", "Speculative Decoding Support", "Other SSM Backends", "SHORT_CONV", "LINEAR", "GDN_ATTN", "Hybrid Models", "See Also"]}, {"t": "MLA (Multi-head Latent Attention) Backends", "p": "14-attention-backends/mla-attn.html", "h": ["MLA Computation Model", "Key Dimensions (DeepSeek V3)", "KV Cache Format", "Backend Overview", "FlashMLA Backend", "Supported Configurations", "Block Size Enforcement", "Decode Kernel", "CutlassMLA Backend", "Supported Configurations", "SM100 Workspace", "CUDA Graph Support", "FlashInfer MLA Backend", "Supported Configurations", "Workspace", "CUDA Graph Support", "Decode Kernel", "FlashAttn MLA Backend", "Requirements", "Triton MLA Backend"]}, {"t": "ROCm Attention Backends", "p": "14-attention-backends/rocm-attn.html", "h": ["Backend Hierarchy", "Environment Variables", "ROCM_ATTN Backend", "Supported Configurations", "KV Cache Shape", "Forward Pass", "KV Cache Update", "Fused RoPE + KV Cache", "ROCM_AITER_FA Backend", "Key Features", "Metadata Structure", "Chunked Context Metadata", "Context Parallelism Gather Kernel", "FP8 Shuffle Layout", "ROCM_AITER_UNIFIED_ATTN Backend", "Differences from ROCM_ATTN", "Implementation", "ROCM_AITER_MLA Backend", "Choosing a ROCm Backend", "See Also"]}, {"t": "Tree Attention Backend", "p": "14-attention-backends/tree-attn.html", "h": ["Overview", "Backend Class", "Supported Configurations", "KV Cache Shape", "Tree Attention Bias", "Construction", "Example", "Metadata", "Metadata Builder", "Drafting Support", "Forward Pass", "KV Cache Update", "Speculative Decoding Integration", "See Also"]}, {"t": "Triton Attention Backend", "p": "14-attention-backends/triton-attn.html", "h": ["Overview", "Backend Class", "Supported Configurations", "KV Cache Shape", "2D vs 3D Kernel Dispatch", "3D Kernel (small batches)", "2D Kernel (large batches)", "Metadata", "Multimodal Prefix Range", "Forward Pass", "FP8 KV Cache", "Encoder Attention", "CUDA Graph Support", "Triton Kernel Details", "ROCm-Specific Notes", "See Also"]}, {"t": "Quantization Overview", "p": "14-quantization/README.html", "h": ["Why Quantize?", "Quantization Taxonomy", "Weight-Only Quantization", "Weight + Activation Quantization (W8A8, W4A8, etc.)", "KV Cache Quantization", "Calibration", "Quantization Scheme Selection Flow", "Supported Quantization Methods", "Selecting a Quantization Method", "Architecture: QuantizationConfig and QuantizeMethodBase", "Registering Custom Quantization", "Further Reading", "Cross-References"]}, {"t": "AWQ: Activation-Aware Weight Quantization", "p": "14-quantization/awq.html", "h": ["How AWQ Works", "AWQConfig", "Parameters", "Config File Keys", "Pack Factor", "Backend Selection", "Weight Layout", "Apply Method", "Marlin Weight Preparation", "Hardware Requirements", "MoE Support", "Usage Examples", "Loading a Pre-Quantized AWQ Model", "Specifying AWQ Explicitly", "Tensor Parallel with AWQ", "Accuracy and Performance", "Supported Models", "Related Pages"]}, {"t": "BitsAndBytes Quantization", "p": "14-quantization/bitsandbytes.html", "h": ["Overview", "Version Requirements", "BitsAndBytesConfig", "Parameters", "Hardware Requirements", "4-bit NF4 Quantization", "How NF4 Works", "Double Quantization", "Weight Storage", "8-bit INT8 Quantization", "Weight Storage", "Layer Method Dispatch", "Layer Skipping Logic", "Usage Examples", "4-bit NF4 Loading", "8-bit INT8 Loading", "From a Pre-Quantized BnB Checkpoint", "Skipping Specific Layers", "Memory Comparison", "Compute Dtype"]}, {"t": "Compressed-Tensors Quantization", "p": "14-quantization/compressed-tensors.html", "h": ["Overview", "CompressedTensorsConfig", "Config File", "Supported Quantization Schemes", "WNA16 — Weight-Only Integer Quantization", "W8A8 FP8 — FP8 Weight and Activation", "W8A8 INT8 — INT8 Weight and Activation", "W8A16 FP8 — FP8 Weight-Only", "W4A8 FP8 — 4-bit Weight, FP8 Activation", "W4A8 INT — 4-bit Weight, INT8 Activation", "W4A16 NvFP4 — NVIDIA FP4 Weight-Only", "W4A4 NvFP4 — NVIDIA FP4 Weight and Activation", "W4A16 MXFP4 — Microscaling FP4", "Sparse Quantization: 2:4 Structured Sparsity", "Sparse + Quantized", "Scheme Selection Logic", "Target Matching", "KV Cache Quantization", "Transform Support", "Usage Examples"]}, {"t": "FP8 Quantization", "p": "14-quantization/fp8.html", "h": ["Overview", "Fp8Config", "Parameters", "Config File Keys", "Activation Schemes", "Dynamic Activation Quantization", "Static Activation Quantization", "Per-Tensor vs Per-Channel vs Block-Wise", "Per-Tensor Scaling", "Per-Channel Scaling", "Block-Wise Scaling (DeepSeek-style)", "Layer Method Dispatch", "Marlin Fallback", "KV Cache Scaling", "Usage Examples", "Loading a Pre-Quantized FP8 Model", "Online FP8 Quantization (No Checkpoint)", "Static FP8 with Calibration", "Block-Wise FP8 (DeepSeek-V3 style)", "Hardware Requirements"]}, {"t": "GGUF Quantization", "p": "14-quantization/gguf.html", "h": ["Overview", "GGUF Quantization Types", "Unquantized Types", "Standard Quantization Types", "K-Quant Types (Block Quantization)", "I-Matrix Quantization Types", "GGUFConfig", "Layer Method Dispatch", "Loading GGUF Files", "Direct GGUF Loading", "Loading from Hugging Face Hub", "Specifying the GGUF File", "Dequantization Kernels", "MMQ Kernels", "Fused Layer Handling", "Precision Notes", "Choosing a GGUF Quantization Level", "Related Pages"]}, {"t": "GPTQ Quantization", "p": "14-quantization/gptq.html", "h": ["How GPTQ Works", "GPTQConfig", "Parameters", "Config File Keys", "Dynamic Per-Layer Configuration", "Supported Bit-Widths", "Supported Configurations", "Hardware Requirements", "Marlin Weight Repacking", "Activation Reordering with Marlin", "MoE Support", "Backend Selection Flow", "Usage Examples", "Loading a Pre-Quantized GPTQ Model", "Forcing Marlin Backend", "Tensor Parallel GPTQ", "AutoRound Models", "Accuracy and Performance", "Comparison: GPTQ vs AWQ", "Related Pages"]}, {"t": "KV Cache Quantization", "p": "14-quantization/kv-cache.html", "h": ["Overview", "How KV Cache Quantization Works", "BaseKVCacheMethod", "Scale Parameters", "Scale Loading Logic", "Scale Validation", "FP8 Formats", "NVIDIA: E4M3FN", "AMD: E4M3FNUZ", "Enabling FP8 KV Cache", "Via Command Line", "Via Python API", "With Pre-Calibrated Scales", "Combined with Weight Quantization", "Dynamic vs Static KV Scales", "Static Scales (from checkpoint)", "Dynamic Scales (calculated at runtime)", "Memory Savings", "Accuracy Considerations", "Supported Quantization Configs"]}, {"t": "ModelOpt (NVIDIA) Quantization", "p": "14-quantization/modelopt.html", "h": ["Overview", "Supported Quantization Algorithms", "ModelOptFp8Config", "Hardware Requirements", "FP8 Variants", "ModelOptNvFp4Config", "ModelOptMxFp8Config", "ModelOptMixedPrecisionConfig", "Config File Format", "Module Exclusion", "KV Cache Quantization", "Weight Processing", "FP8 Per-Tensor", "Usage Examples", "Loading a ModelOpt FP8 Model", "ModelOpt FP8 with KV Cache", "ModelOpt NvFP4", "Comparison: ModelOpt vs Standard FP8", "Related Pages"]}, {"t": "MXFP4: Microscaling FP4 Quantization", "p": "14-quantization/mxfp4.html", "h": ["Overview", "Mxfp4Config", "Backend Selection", "Backend Selection Logic", "LoRA Compatibility", "MoE Method", "Weight Layout", "XPU Support", "Usage Examples", "Loading an MXFP4 Model", "Environment Variables for Backend Selection", "OCP MX Specification", "Accuracy vs Performance", "Hardware Support", "Related Pages"]}, {"t": "TorchAO Quantization", "p": "14-quantization/torchao.html", "h": ["Overview", "TorchAOConfig", "Parameters", "Hardware Requirements", "Configuration Loading", "From HuggingFace Config", "From Config File", "From Config Dict JSON String", "Per-Module Configuration", "Module Skipping Logic", "Weight Quantization", "Hardware-Optimized Packing", "Supported TorchAO Configurations", "Usage Examples", "Loading a Pre-Quantized TorchAO Model", "Online Quantization with TorchAO", "Creating a TorchAO Config File", "Comparison with Other Methods", "Related Pages"]}, {"t": "Benchmarking & Performance", "p": "15-benchmarking/README.html", "h": ["Overview", "Sections", "Quick Start", "Benchmark Locations", "Cross-References"]}, {"t": "Attention Benchmarks", "p": "15-benchmarking/attention-benchmarks.html", "h": ["Architecture", "Quick Start", "Batch Specification Grammar", "Grammar Rule", "Examples", "Python API", "Key Functions", "Command-Line Options", "Key Steps", "Backend Names", "MLA Backends", "Python API", "Pre-configured YAML Benchmarks", "Parameter Sweeps", "Sweep a Backend Parameter", "Sweep a Model Parameter", "Hardware Requirements", "Tips for Reliable Results", "Related Pages"]}, {"t": "Auto-Tune Scripts", "p": "15-benchmarking/auto-tune.html", "h": ["Overview", "Configuration Variables", "Running", "How It Works", "Output", "Example Use Cases", "Prerequisites", "Usage", "JSON Configuration File", "Output", "GCS Upload", "Parameter Selection Guidelines", "Related Pages"]}, {"t": "Disaggregated Serving Benchmarks", "p": "15-benchmarking/disagg-benchmarks.html", "h": ["What Is Disaggregated Prefill?", "Configuration", "Running the Benchmark", "Chunked Prefill Setup", "Disaggregated Prefill Setup", "Proxy Servers", "Benchmark Execution", "Visualizing Results", "Expected Results", "KV Transfer Configuration", "Related Pages"]}, {"t": "Kernel Benchmarks", "p": "15-benchmarking/kernel-benchmarks.html", "h": ["Directory Layout", "CUTLASS W8A8 Benchmarks", "Kernels Benchmarked", "Running W8A8 Benchmarks", "Weight Shape Presets", "CUTLASS Sparse Benchmarks", "Kernels Benchmarked", "Running Sparse Benchmarks", "Fused Kernel Benchmarks", "Benchmark Parameters", "Implementations Compared", "Running Fused Kernel Benchmarks", "Example: Paged Attention Benchmark", "Example: MoE Benchmark", "Benchmark Infrastructure", "Interpreting Results", "Related Pages"]}, {"t": "LM Eval Harness Integration", "p": "15-benchmarking/lm-eval.html", "h": ["Overview", "Test Files", "Running LM Eval Tests", "Prerequisites", "Offline Evaluation (Python API)", "Server Evaluation (OpenAI API)", "Supported Tasks", "Accuracy Baselines", "Quantization Accuracy Tests", "Distributed Accuracy Tests", "TPU-Specific Configuration", "Integration with CI", "Related Pages"]}, {"t": "Performance Tuning Guide", "p": "15-benchmarking/performance-tuning.html", "h": ["Key Performance Dimensions", "GPU Memory Utilization", "Recommendations", "Finding the Safe Maximum", "Batch Size Tuning", "Chunked Prefill", "When to Enable", "Chunk Size Selection", "Prefix Caching", "Measuring Cache Hit Rate", "Benchmarking with Prefix Caching", "Tensor Parallelism", "TP Scaling Efficiency", "Quantization for Performance", "Speculative Decoding", "Benchmarking Speculative Decoding", "Attention Backend Selection", "Benchmarking Backends", "Compilation and CUDA Graphs", "Profiling"]}, {"t": "Benchmark Result Interpretation Guide", "p": "15-benchmarking/result-interpretation.html", "h": ["Core Metrics", "Time to First Token (TTFT)", "Time per Output Token (TPOT)", "Inter-Token Latency (ITL)", "End-to-End Latency (E2EL)", "Throughput Metrics", "Key Observations", "Percentile Analysis", "Throughput vs Latency Trade-off", "Goodput and SLOs", "Reading Attention Benchmark Results", "Reading CUTLASS Benchmark Results", "LM Eval Accuracy Results", "Common Performance Issues", "Related Pages"]}, {"t": "Serving Benchmarks", "p": "15-benchmarking/serving-benchmarks.html", "h": ["CLI Overview", "Usage", "Key Options", "Output", "Usage", "Supported Datasets", "Key Options", "Output", "Setup", "Key Options", "Supported Backends", "Traffic Patterns", "Goodput Measurement", "Output Metrics", "Result File Format", "Related Pages"]}, {"t": "Deployment Guide", "p": "15-deployment/README.html", "h": ["Contents", "Deployment Topology Overview", "Quick Reference", "Minimal Docker Run", "Multi-Node with Ray", "Disaggregated Prefill", "Related Documentation"]}, {"t": "Disaggregated Prefill Deployment", "p": "15-deployment/disaggregated-prefill.html", "h": ["Architecture", "KV Transfer Configuration", "Configuration Fields", "Online Serving Setup", "Step 1: Start the Prefill Instance", "Step 2: Start the Decode Instance", "Step 3: Start the Proxy Server", "Step 4: Send Requests", "Using the Example Script", "Offline Inference Setup", "Proxy Server Details", "Proxy CLI Arguments", "KV Load Failure Policy", "Multi-Node Disaggregated Prefill", "Related Pages"]}, {"t": "Multi-Stage Docker Builds", "p": "15-deployment/docker-bake.html", "h": ["Dockerfile Stages", "Build Arguments Reference", "Image Labels", "Default Build (openai target)", "Build Specific Target", "Override Variables", "Preview Resolved Config", "Multi-Platform Build", "Version Management", "Platform-Specific Dockerfiles", "Related Pages"]}, {"t": "Docker Deployment", "p": "15-deployment/docker.html", "h": ["Official Images", "Prerequisites", "Single GPU", "Specific GPU Selection", "With HuggingFace Token (Gated Models)", "Environment Variables", "Networking", "Model &amp; Cache", "Performance", "CUDA Compatibility", "Logging &amp; Observability", "GPU Passthrough Details", "NVIDIA Runtime", "GPU Memory Sharing", "CUDA Forward Compatibility", "Docker Compose Example", "SageMaker Image Variant", "KV Connector Dependencies", "Related Pages"]}, {"t": "Elastic Expert Parallelism Deployment", "p": "15-deployment/elastic-ep.html", "h": ["Overview", "Prerequisites", "Starting a Server with Elastic EP", "Key Arguments", "All-to-All Backends", "Scaling API", "Scaling State Machine", "Scale-Up (Existing Engine)", "Scale-Up (New Engine)", "Scale-Down (Remaining Engine)", "Scale-Down (Removing Engine)", "Expert Weight Transfer", "EPLB Reshuffling", "Benchmarking", "Configuration Reference", "Related Pages"]}, {"t": "Kubernetes Deployment", "p": "15-deployment/kubernetes.html", "h": ["Prerequisites", "Complete Deployment Manifest", "GPU Resource Requests", "Single GPU", "Multi-GPU (Tensor Parallelism)", "Shared Memory", "Node Selectors and Tolerations", "Node Labels", "GPU Taints", "Node Affinity (Advanced)", "Health Probes", "Probe Timing Guidelines", "Secrets Management", "Persistent Volume for Model Cache", "Horizontal Pod Autoscaler", "Multi-Node Kubernetes Deployment", "Environment Variables in Kubernetes", "Related Pages"]}, {"t": "Multi-Node Deployment", "p": "15-deployment/multi-node.html", "h": ["Architecture", "Head Node", "Worker Nodes", "Start vLLM on the Head Node", "Head Node", "Worker Nodes", "Start vLLM After Cluster is Ready", "Script Arguments", "Method 3: Multiprocessing Backend (No Ray)", "Multiprocessing Configuration Fields", "Parallelism Strategy for Multi-Node", "Environment Variables for Multi-Node", "Networking Requirements", "Troubleshooting", "Workers Not Joining", "NCCL Errors", "Timeout During Model Loading", "Related Pages"]}, {"t": "AWS SageMaker Deployment", "p": "15-deployment/sagemaker.html", "h": ["SageMaker Container Standards", "Environment Variable Mapping", "Supported Request Types", "Decorator Behaviors", "Deploying to SageMaker", "Step 1: Push the Image to ECR", "Step 2: Create a SageMaker Model", "Step 3: Create an Endpoint Configuration", "Step 4: Create the Endpoint", "Step 5: Invoke the Endpoint", "SageMaker Instance Types", "Stateful Sessions", "LoRA Adapter Injection", "Related Pages"]}, {"t": "SSL/TLS Configuration", "p": "15-deployment/ssl-tls.html", "h": ["CLI Arguments", "Basic HTTPS Setup", "Step 1: Generate a Self-Signed Certificate (Development)", "Step 2: Start vLLM with SSL", "Step 3: Test the HTTPS Endpoint", "Mutual TLS (mTLS)", "Enabling Hot-Reload", "How It Works", "SSL in Docker", "SSL in Kubernetes", "Cipher Suite Configuration", "API Key Authentication", "Related Pages"]}, {"t": "Engine & Scheduler Internals", "p": "15-engine-scheduler/README.html", "h": ["Overview", "In This Section", "Key Source Directories", "Cross-References"]}, {"t": "Detokenizer", "p": "15-engine-scheduler/detokenizer.html", "h": ["Architecture", "Base Class: IncrementalDetokenizer", "Factory Method", "BaseIncrementalDetokenizer", "Output Text Buffering", "FastIncrementalDetokenizer", "Decoding Each Token", "Error Recovery", "SlowIncrementalDetokenizer", "Incremental Decoding Algorithm", "Stop String Detection", "Performance Comparison", "Related Pages"]}, {"t": "Input Processor", "p": "15-engine-scheduler/input-processor.html", "h": ["Architecture", "InputProcessor Class", "Processing Steps", "Parameter Validation", "Tokenization", "Truncation Side", "Multimodal Preprocessing", "Encoder Cache Size Validation", "Multimodal Position Sorting", "Request ID Uniqueness", "Encoder-Decoder Models", "Prompt Length Validation", "Vocabulary Validation", "EngineCoreRequest", "Related Pages"]}, {"t": "KV Offloading", "p": "15-engine-scheduler/kv-offloading.html", "h": ["Overview", "Core Abstractions", "OffloadingManager", "LoadStoreSpec", "PrepareStoreOutput", "LRU Eviction Policy", "Lookup", "Store with Eviction", "ARC Eviction Policy", "CPU Backend", "CPU Offloading Configuration", "Enabling CPU Offloading", "Worker-Side Offloading", "Block Status", "Offloading Events", "Integration with Scheduler", "Performance Considerations", "Related Pages"]}, {"t": "Output Processor", "p": "15-engine-scheduler/output-processor.html", "h": ["Architecture", "RequestState", "Key Fields", "Output Kinds", "Stop Condition Checking", "Stop String Detection", "Repetition Detection", "Logprob Computation", "Logprob Modes", "Flat Logprobs", "RequestOutputCollector", "Stream Interval", "Streaming Input (Resumable Requests)", "Finish Reasons", "Pooling Outputs", "OpenTelemetry Tracing", "Related Pages"]}, {"t": "Request Queue", "p": "15-engine-scheduler/request-queue.html", "h": ["Scheduling Policies", "RequestQueue Abstract Interface", "FCFS Queue", "FCFS Ordering", "Priority Queue", "Priority Ordering", "Queue Operations Summary", "Factory Function", "Scheduler Queue Architecture", "Configuring the Scheduling Policy", "Related Pages"]}, {"t": "Sampling", "p": "15-engine-scheduler/sampling.html", "h": ["SamplingParams Reference", "Key Parameters Explained", "Sampler Architecture", "The Sampler Class", "Forward Pass", "SamplingMetadata", "Temperature Scaling", "Greedy Sampling", "Top-K / Top-P Sampling", "Platform-Specific Implementations", "Triton Kernel", "Penalties", "Repetition Penalty", "Frequency Penalty", "Presence Penalty", "Min-P Sampling", "Logprob Computation", "Logprob Modes", "Beam Search", "Allowed Token IDs"]}, {"t": "Scheduler Algorithm", "p": "15-engine-scheduler/scheduler-algorithm.html", "h": ["Design Philosophy", "Scheduler State Machine", "Request Status Lifecycle", "Phase 1: Schedule Running Requests", "Phase 2: Schedule Waiting Requests", "Prefill Scheduling", "Prefix Cache Hits", "Decode Scheduling", "Chunked Prefill", "Mamba Block-Aligned Chunking", "Preemption", "Scheduling Constraints", "Pause States", "Async Scheduling", "Speculative Decoding Integration", "Related Pages"]}, {"t": "SchedulerOutput", "p": "15-engine-scheduler/scheduler-output.html", "h": ["SchedulerOutput Dataclass", "Data Flow", "NewRequestData", "Construction", "CachedRequestData", "Resumed vs. Cached Requests", "Scheduled Tokens", "Encoder Inputs", "Common Prefix Blocks", "Finished Request IDs", "Empty SchedulerOutput", "GrammarOutput", "Related Pages"]}, {"t": "Tokenizer Internals", "p": "15-engine-scheduler/tokenizer-internals.html", "h": ["Architecture", "TokenizerLike Protocol", "Tokenizer Registry", "Auto-Detection Logic", "CachedHfTokenizer", "Global Tokenizer Cache", "Truncation Side", "Fast vs. Slow Tokenizers", "Model-Specific Tokenizers", "MistralTokenizer", "DeepseekV32Tokenizer", "Grok2Tokenizer", "QwenVLTokenizer", "GGUF Tokenizer Support", "ModelScope Support", "Detokenizer Utilities", "Configuration", "Usage Example", "Related Pages"]}, {"t": "vLLM Documentation", "p": "index.html", "h": ["What's New", "V1 Engine — Complete Redesign", "Elastic Expert Parallelism (EPLB)", "Multi-Token Prediction (MTP)", "MXFP4 Quantization", "FlashInfer as Default on Blackwell", "Quick Start", "Offline Inference", "Online Serving (OpenAI-Compatible)", "Multi-GPU Serving", "Documentation Sections", "Quick Reference", "Common CLI Flags", "Key Environment Variables", "Key API Endpoints", "Architecture at a Glance", "Feature Highlights", "PagedAttention", "Continuous Batching", "Speculative Decoding"]}];
+  var searchInput=document.getElementById('doc-search');
+  var searchResults=document.getElementById('search-results');
+  var navLinks=document.getElementById('sidebar-nav-links');
+  if(!searchInput||!searchResults||!navLinks)return;
+  var depth=(location.pathname.match(/\//g)||[]).length;
+  var prefix='';
+  var docsIdx=location.pathname.indexOf('/docs/');
+  if(docsIdx>=0){var after=location.pathname.substring(docsIdx+6);var parts=after.split('/');prefix='../'.repeat(Math.max(0,parts.length-1));}
+  searchInput.addEventListener('input',function(){
+    var q=this.value.toLowerCase().trim();
+    if(!q){searchResults.innerHTML='';navLinks.style.display='';return;}
+    navLinks.style.display='none';
+    var hits=[];
+    for(var i=0;i<idx.length;i++){
+      var item=idx[i];var score=0;
+      if(item.t.toLowerCase().indexOf(q)>=0)score+=10;
+      for(var j=0;j<item.h.length;j++){if(item.h[j].toLowerCase().indexOf(q)>=0)score+=3;}
+      if(score>0)hits.push({item:item,score:score});
+    }
+    hits.sort(function(a,b){return b.score-a.score;});
+    var html='';
+    for(var k=0;k<Math.min(hits.length,15);k++){
+      var h=hits[k].item;
+      html+='<a href="'+prefix+h.p+'">'+h.t+'</a>';
+      var mh=[];for(var m=0;m<h.h.length;m++){if(h.h[m].toLowerCase().indexOf(q)>=0)mh.push(h.h[m]);}
+      for(var n=0;n<Math.min(mh.length,2);n++){html+='<div class="search-heading">↳ '+mh[n]+'</div>';}
+    }
+    if(!hits.length)html='<div style="padding:8px 12px;color:var(--text-dim);font-size:0.8rem">No results</div>';
+    searchResults.innerHTML=html;
+  });
+})();
+</script>
+<script>
+(function(){
+  // Mermaid expand buttons — added AFTER mermaid renders (so button is on wrapper, not inside pre)
+  var overlay=document.getElementById('mermaid-overlay');
+  var overlayInner=document.getElementById('mermaid-overlay-inner');
+  function _addMermaidButtons(){
+    document.querySelectorAll('.mermaid,pre.mermaid').forEach(function(el){
+      if(el.dataset.expandAdded)return;
+      el.dataset.expandAdded='1';
+      // Wrap in a div so the button is a sibling of pre, not inside it
+      var wrapper=document.createElement('div');
+      wrapper.style.cssText='position:relative;display:inline-block;width:100%;';
+      el.parentNode.insertBefore(wrapper,el);
+      wrapper.appendChild(el);
+      var btn=document.createElement('button');
+      btn.className='mermaid-expand';btn.textContent='⛶';btn.title='Expand diagram';
+      btn.addEventListener('click',function(e){
+        e.stopPropagation();
+        var clone=el.cloneNode(true);
+        delete clone.dataset.expandAdded;
+        clone.removeAttribute('data-expand-added');
+        clone.style.cssText='background:none;border:none;padding:0;margin:0;text-align:center;min-width:70vw;max-width:90vw;';
+        // Clear overlay content safely, keep close button
+        overlayInner.innerHTML='';
+        var closeBtn=document.createElement('button');
+        closeBtn.className='mermaid-overlay-close';closeBtn.textContent='×';closeBtn.title='Close';
+        closeBtn.addEventListener('click',function(){overlay.classList.remove('open');});
+        overlayInner.appendChild(clone);
+        overlayInner.appendChild(closeBtn);
+        overlay.classList.add('open');
+        // Re-run mermaid on the clone after it's in the DOM
+        setTimeout(function(){
+          if(window.mermaid){
+            try{mermaid.run({nodes:[clone]});}catch(err){}
+          }
+        },50);
+      });
+      wrapper.appendChild(btn);
+    });
+  }
+  // Wait for mermaid to finish rendering before adding buttons (mermaid init runs above)
+  setTimeout(_addMermaidButtons,800);
+  if(overlay){
+    overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.classList.remove('open');});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')overlay.classList.remove('open');});
+  }
+  // Code copy buttons
+  document.querySelectorAll('pre').forEach(function(pre){
+    if(pre.classList.contains('mermaid'))return;
+    var btn=document.createElement('button');
+    btn.className='code-copy';btn.textContent='Copy';
+    btn.addEventListener('click',function(){
+      var code=pre.querySelector('code');
+      var text=code?code.textContent:pre.textContent;
+      navigator.clipboard.writeText(text).then(function(){btn.textContent='Copied!';setTimeout(function(){btn.textContent='Copy';},2000);});
+    });
+    pre.appendChild(btn);
+  });
+  // Back to top
+  var btt=document.getElementById('back-to-top');
+  if(btt){
+    window.addEventListener('scroll',function(){btt.style.display=window.scrollY>300?'flex':'none';});
+    btt.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+  }
+  // TOC active scroll tracking
+  var tocLinks=document.querySelectorAll('.toc-aside a[data-anchor]');
+  if(tocLinks.length>0){
+    var headingEls=[];
+    tocLinks.forEach(function(l){var el=document.getElementById(l.dataset.anchor);if(el)headingEls.push({el:el,link:l});});
+    var tocAside=document.querySelector('.toc-aside');
+    var onScroll=function(){
+      var scrollPos=window.scrollY+80;
+      var active=null;
+      for(var i=0;i<headingEls.length;i++){if(headingEls[i].el.offsetTop<=scrollPos)active=headingEls[i];}
+      tocLinks.forEach(function(l){l.classList.remove('toc-active');});
+      if(active){
+        active.link.classList.add('toc-active');
+        // Scroll active link into view within the TOC panel, not the page
+        if(tocAside){
+          var linkTop=active.link.offsetTop-tocAside.offsetTop;
+          var visibleTop=tocAside.scrollTop;
+          var visibleBottom=visibleTop+tocAside.clientHeight;
+          if(linkTop<visibleTop+40||linkTop>visibleBottom-40){
+            tocAside.scrollTop=linkTop-tocAside.clientHeight/2;
+          }
+        }
+      }
+    };
+    window.addEventListener('scroll',onScroll);
+    onScroll();
+    // Prevent TOC links from scrolling the TOC panel to top on click
+    tocLinks.forEach(function(l){
+      l.addEventListener('click',function(e){
+        e.preventDefault();
+        var anchor=l.dataset.anchor;
+        var target=document.getElementById(anchor);
+        if(target){target.scrollIntoView({behavior:'smooth',block:'start'});}
+      });
+    });
+  }
+  // Persist sidebar scroll position across page navigations
+  var sidebarEl=document.querySelector('nav.sidebar');
+  if(sidebarEl){
+    var sidebarKey='sasva-sidebar-scroll';
+    // Restore scroll position on page load
+    var savedScroll=sessionStorage.getItem(sidebarKey);
+    if(savedScroll){sidebarEl.scrollTop=parseInt(savedScroll,10);}
+    // Save scroll position before navigating away
+    document.querySelectorAll('#sidebar-nav-links a').forEach(function(a){
+      a.addEventListener('click',function(){
+        sessionStorage.setItem(sidebarKey,String(sidebarEl.scrollTop));
+      });
+    });
+    // Also scroll active item into view on load
+    var activeLink=sidebarEl.querySelector('a.active');
+    if(activeLink&&!savedScroll){
+      var linkOffset=activeLink.offsetTop-sidebarEl.offsetTop;
+      sidebarEl.scrollTop=Math.max(0,linkOffset-sidebarEl.clientHeight/2);
+    }
+  }
+})();
+</script>
+</body>
+</html>
