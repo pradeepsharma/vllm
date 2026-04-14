@@ -1,0 +1,24 @@
+# Runtime data — never commit task data
+tasks.json
+
+# Python bytecode caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# pytest cache
+.pytest_cache/
+
+# Package build artefacts
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Coverage reports
+.coverage
+htmlcov/
