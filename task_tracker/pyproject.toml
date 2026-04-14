@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "task-tracker"
 version = "0.1.0"
-description = "A Python CLI task tracker built with Click and Rich"
+description = "A simple CLI task tracker built with Click and Rich"
 authors = [{ name = "Task Tracker" }]
 readme = "README.md"
 requires-python = ">=3.10"
@@ -27,6 +27,10 @@ task = "task_tracker.cli:cli"
 
 [project.optional-dependencies]
 dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+]
+test = [
     "pytest>=7.0",
     "pytest-cov",
 ]
