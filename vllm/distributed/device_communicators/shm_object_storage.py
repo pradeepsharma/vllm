@@ -14,6 +14,7 @@ from unittest.mock import patch
 
 import torch
 
+from vllm.distributed.utils import MAX_SAFE_PICKLE_SIZE
 from vllm.logger import init_logger
 
 logger = init_logger(__name__)

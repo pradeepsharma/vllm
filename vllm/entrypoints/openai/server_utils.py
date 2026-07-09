@@ -297,4 +297,157 @@ def _log_streaming_response(response, response_body: list) -> None:
     return buffered_iterator()
 
 
-async def log_response(request: Request, call_next) -> Response:\n    \"\"\"Log the response body for debugging.\"\"\"\n    response = await call_next(request)\n\n    if response.status_code >= 400:\n        response_body = b\"\"\n        async for chunk in response.body_iterator:\n            response_body += chunk\n\n        try:\n            response_data = json.loads(response_body)\n            logger.error(\n                \"Response error: %s\",\n                response_data,\n            )\n        except json.JSONDecodeError:\n            logger.error(\n                \"Response error: %s\",\n                response_body.decode(\"utf-8\", errors=\"replace\"),\n            )\n\n        # Return a new response with the original body\n        return Response(\n            content=response_body,\n            status_code=response.status_code,\n            headers=dict(response.headers),\n            media_type=response.media_type,\n        )\n\n    return response\n\n\nasync def http_exception_handler(req: Request, exc: HTTPException):\n    if req.app.state.args.log_error_stack:\n        logger.exception(\n            \"HTTPException caught. Request id: %s\",\n            req.state.request_metadata.request_id\n            if hasattr(req.state, \"request_metadata\")\n            else None,\n        )\n    err = ErrorResponse(\n        error=ErrorInfo(\n            message=sanitize_message(exc.detail),\n            type=HTTPStatus(exc.status_code).phrase,\n            code=exc.status_code,\n        )\n    )\n    return JSONResponse(err.model_dump(), status_code=exc.status_code)\n\n\nasync def validation_exception_handler(req: Request, exc: RequestValidationError):\n    if req.app.state.args.log_error_stack:\n        logger.exception(\n            \"RequestValidationError caught. Request id: %s\",\n            req.state.request_metadata.request_id\n            if hasattr(req.state, \"request_metadata\")\n            else None,\n        )\n\n    param = None\n    errors = exc.errors()\n    for error in errors:\n        if \"ctx\" in error and \"error\" in error[\"ctx\"]:\n            ctx_error = error[\"ctx\"][\"error\"]\n            if isinstance(ctx_error, VLLMValidationError):\n                param = ctx_error.parameter\n                break\n\n    exc_str = str(exc)\n    errors_str = str(errors)\n\n    if errors and errors_str and errors_str != exc_str:\n        message = f\"{exc_str} {errors_str}\"\n    else:\n        message = exc_str\n\n    err = ErrorResponse(\n        error=ErrorInfo(\n            message=sanitize_message(message),\n            type=HTTPStatus.BAD_REQUEST.phrase,\n            code=HTTPStatus.BAD_REQUEST,\n            param=param,\n        )\n    )\n    return JSONResponse(err.model_dump(), status_code=HTTPStatus.BAD_REQUEST)\n\n\nasync def engine_error_handler(req: Request, exc: Exception):\n    if req.app.state.args.log_error_stack:\n        logger.exception(\n            \"Engine error caught. Request id: %s\",\n            req.state.request_metadata.request_id\n            if hasattr(req.state, \"request_metadata\")\n            else None,\n        )\n    err = ErrorResponse(\n        error=ErrorInfo(\n            message=sanitize_message(str(exc)),\n            type=\"InternalServerError\",\n            code=500,\n        )\n    )\n    return JSONResponse(err.model_dump(), status_code=500)\n\n\nasync def exception_handler(req: Request, exc: Exception):\n    if req.app.state.args.log_error_stack:\n        logger.exception(\n            \"Unhandled exception caught. Request id: %s\",\n            req.state.request_metadata.request_id\n            if hasattr(req.state, \"request_metadata\")\n            else None,\n        )\n    err = ErrorResponse(\n        error=ErrorInfo(\n            message=sanitize_message(str(exc)),\n            type=\"InternalServerError\",\n            code=500,\n        )\n    )\n    return JSONResponse(err.model_dump(), status_code=500)\n\n\n_running_tasks: set[asyncio.Task] = set()\n\n\n@asynccontextmanager\nasync def lifespan(app: FastAPI):\n    try:\n        if app.state.log_stats:\n            engine_client: EngineClient = app.state.engine_client\n\n            async def _force_log():\n                while True:\n                    await asyncio.sleep(envs.VLLM_LOG_STATS_INTERVAL)\n                    await engine_client.do_log_stats()\n\n            task = asyncio.create_task(_force_log())\n            _running_tasks.add(task)\n            task.add_done_callback(_running_tasks.remove)\n        else:\n            task = None\n\n        # Mark the startup heap as static so that it's ignored by GC.\n        # Reduces pause times of oldest generation collections.\n        freeze_gc_heap()\n        try:\n            yield\n        finally:\n            if task is not None:\n                task.cancel()\n    finally:\n        # Ensure app state including engine ref is gc'd\n        del app.state
+async def log_response(request: Request, call_next) -> Response:
+    """Log the response body for debugging."""
+    response = await call_next(request)
+
+    if response.status_code >= 400:
+        response_body = b""
+        async for chunk in response.body_iterator:
+            response_body += chunk
+
+        try:
+            response_data = json.loads(response_body)
+            logger.error(
+                "Response error: %s",
+                response_data,
+            )
+        except json.JSONDecodeError:
+            logger.error(
+                "Response error: %s",
+                response_body.decode("utf-8", errors="replace"),
+            )
+
+        # Return a new response with the original body
+        return Response(
+            content=response_body,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            media_type=response.media_type,
+        )
+
+    return response
+
+
+async def http_exception_handler(req: Request, exc: HTTPException):
+    if req.app.state.args.log_error_stack:
+        logger.exception(
+            "HTTPException caught. Request id: %s",
+            req.state.request_metadata.request_id
+            if hasattr(req.state, "request_metadata")
+            else None,
+        )
+    err = ErrorResponse(
+        error=ErrorInfo(
+            message=sanitize_message(exc.detail),
+            type=HTTPStatus(exc.status_code).phrase,
+            code=exc.status_code,
+        )
+    )
+    return JSONResponse(err.model_dump(), status_code=exc.status_code)
+
+
+async def validation_exception_handler(req: Request, exc: RequestValidationError):
+    if req.app.state.args.log_error_stack:
+        logger.exception(
+            "RequestValidationError caught. Request id: %s",
+            req.state.request_metadata.request_id
+            if hasattr(req.state, "request_metadata")
+            else None,
+        )
+
+    param = None
+    errors = exc.errors()
+    for error in errors:
+        if "ctx" in error and "error" in error["ctx"]:
+            ctx_error = error["ctx"]["error"]
+            if isinstance(ctx_error, VLLMValidationError):
+                param = ctx_error.parameter
+                break
+
+    exc_str = str(exc)
+    errors_str = str(errors)
+
+    if errors and errors_str and errors_str != exc_str:
+        message = f"{exc_str} {errors_str}"
+    else:
+        message = exc_str
+
+    err = ErrorResponse(
+        error=ErrorInfo(
+            message=sanitize_message(message),
+            type=HTTPStatus.BAD_REQUEST.phrase,
+            code=HTTPStatus.BAD_REQUEST,
+            param=param,
+        )
+    )
+    return JSONResponse(err.model_dump(), status_code=HTTPStatus.BAD_REQUEST)
+
+
+async def engine_error_handler(req: Request, exc: Exception):
+    if req.app.state.args.log_error_stack:
+        logger.exception(
+            "Engine error caught. Request id: %s",
+            req.state.request_metadata.request_id
+            if hasattr(req.state, "request_metadata")
+            else None,
+        )
+    err = ErrorResponse(
+        error=ErrorInfo(
+            message=sanitize_message(str(exc)),
+            type="InternalServerError",
+            code=500,
+        )
+    )
+    return JSONResponse(err.model_dump(), status_code=500)
+
+
+async def exception_handler(req: Request, exc: Exception):
+    if req.app.state.args.log_error_stack:
+        logger.exception(
+            "Unhandled exception caught. Request id: %s",
+            req.state.request_metadata.request_id
+            if hasattr(req.state, "request_metadata")
+            else None,
+        )
+    err = ErrorResponse(
+        error=ErrorInfo(
+            message=sanitize_message(str(exc)),
+            type="InternalServerError",
+            code=500,
+        )
+    )
+    return JSONResponse(err.model_dump(), status_code=500)
+
+
+_running_tasks: set[asyncio.Task] = set()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        if app.state.log_stats:
+            engine_client: EngineClient = app.state.engine_client
+
+            async def _force_log():
+                while True:
+                    await asyncio.sleep(envs.VLLM_LOG_STATS_INTERVAL)
+                    await engine_client.do_log_stats()
+
+            task = asyncio.create_task(_force_log())
+            _running_tasks.add(task)
+            task.add_done_callback(_running_tasks.remove)
+        else:
+            task = None
+
+        # Mark the startup heap as static so that it's ignored by GC.
+        # Reduces pause times of oldest generation collections.
+        freeze_gc_heap()
+        try:
+            yield
+        finally:
+            if task is not None:
+                task.cancel()
+    finally:
+        # Ensure app state including engine ref is gc'd
+        del app.state

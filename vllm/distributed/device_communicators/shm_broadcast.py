@@ -27,7 +27,7 @@ from zmq import (  # type: ignore
 )
 
 import vllm.envs as envs
-from vllm.distributed.utils import StatelessProcessGroup, sched_yield
+from vllm.distributed.utils import MAX_SAFE_PICKLE_SIZE, StatelessProcessGroup, sched_yield
 from vllm.logger import init_logger
 from vllm.platforms import current_platform
 from vllm.utils.network_utils import (
@@ -760,6 +760,11 @@ class MessageQueue:
                         buf_len = from_bytes_big(buf[offset:buf_offset])
                         offset = buf_offset + buf_len
                         all_buffers.append(buf[buf_offset:offset])
+                    if len(all_buffers[0]) > MAX_SAFE_PICKLE_SIZE:
+                        raise ValueError(
+                            f"Received pickle data of size {len(all_buffers[0])} bytes exceeds "
+                            f"maximum safe size of {MAX_SAFE_PICKLE_SIZE} bytes"
+                        )
                     obj = pickle.loads(all_buffers[0], buffers=all_buffers[1:])
             if overflow:
                 obj = MessageQueue.recv(self.local_socket, timeout)
@@ -775,6 +780,11 @@ class MessageQueue:
         if not socket.poll(timeout=timeout_ms):
             raise TimeoutError
         recv, *recv_oob = socket.recv_multipart(copy=False)
+        if len(recv) > MAX_SAFE_PICKLE_SIZE:
+            raise ValueError(
+                f"Received pickle data of size {len(recv)} bytes exceeds "
+                f"maximum safe size of {MAX_SAFE_PICKLE_SIZE} bytes"
+            )
         return pickle.loads(recv, buffers=recv_oob)
 
     def broadcast_object(self, obj=None):

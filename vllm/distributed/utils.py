@@ -279,7 +279,13 @@ class StatelessProcessGroup:
     def recv(self, tensor: torch.Tensor, src: int) -> torch.Tensor:
         """Receive a tensor from a source rank."""
         key = f"send_tensor/{self.rank}/{self.recv_src_counter[src]}"
-        received = pickle.loads(self.store.get(key))
+        data = self.store.get(key)
+        if len(data) > MAX_SAFE_PICKLE_SIZE:
+            raise ValueError(
+                f"Received pickle data of size {len(data)} bytes exceeds "
+                f"maximum safe size of {MAX_SAFE_PICKLE_SIZE} bytes"
+            )
+        received = pickle.loads(data)
         self.recv_src_counter[src] += 1
         tensor.copy_(received)
         return tensor
