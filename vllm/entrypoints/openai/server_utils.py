@@ -40,7 +40,8 @@ class AuthenticationMiddleware:
     -----
     There are two cases in which authentication is skipped:
         1. The HTTP method is OPTIONS.
-        2. The request path matches one of the unauthenticated_paths (e.g. /health, /ping, /metrics).
+        2. The request path is in the unauthenticated_paths allowlist
+           (default: {"/health", "/ping", "/metrics"}).
     """
 
     def __init__(
@@ -80,14 +81,12 @@ class AuthenticationMiddleware:
         root_path = scope.get("root_path", "")
         url_path = URL(scope=scope).path.removeprefix(root_path)
         headers = Headers(scope=scope)
-        
-        # Check if the path is in the unauthenticated paths allowlist
+        # Type narrow to satisfy mypy.
+        # Authenticate ALL paths EXCEPT those in the unauthenticated_paths allowlist
         is_unauthenticated_path = any(
             url_path == p or url_path.startswith(p + "/")
             for p in self.unauthenticated_paths
         )
-        
-        # Authenticate all paths EXCEPT those in the allowlist
         if not is_unauthenticated_path and not self.verify_token(headers):
             response = JSONResponse(content={"error": "Unauthorized"}, status_code=401)
             return response(scope, receive, send)
