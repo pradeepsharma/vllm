@@ -18,6 +18,7 @@ import torch.multiprocessing as mp
 
 import vllm.envs as envs
 from vllm.distributed.device_communicators.cuda_wrapper import CudaRTLibrary
+from vllm.distributed.utils import MAX_SAFE_PICKLE_SIZE
 from vllm.logger import init_logger
 from vllm.model_executor.layers.batch_invariant import (
     vllm_is_batch_invariant,
@@ -358,6 +359,12 @@ def gpu_p2p_access_check(src: int, tgt: int) -> bool:
                     f"{returned.stderr.decode()}"
                 ) from e
             with open(output_file.name, "rb") as f:
+                file_size = os.path.getsize(f.name)
+                if file_size > MAX_SAFE_PICKLE_SIZE:
+                    raise ValueError(
+                        f"Pickle file size {file_size} bytes exceeds "
+                        f"maximum safe size of {MAX_SAFE_PICKLE_SIZE} bytes"
+                    )
                 result = pickle.load(f)
         for _i, _j, r in zip(batch_src, batch_tgt, result):
             cache[f"{_i}->{_j}"] = r
@@ -375,7 +382,13 @@ def gpu_p2p_access_check(src: int, tgt: int) -> bool:
 __all__ = ["gpu_p2p_access_check"]
 
 if __name__ == "__main__":
-    batch_src, batch_tgt, output_file = pickle.loads(sys.stdin.buffer.read())
+    stdin_data = sys.stdin.buffer.read(MAX_SAFE_PICKLE_SIZE + 1)
+    if len(stdin_data) > MAX_SAFE_PICKLE_SIZE:
+        raise ValueError(
+            f"Received pickle data of size {len(stdin_data)} bytes exceeds "
+            f"maximum safe size of {MAX_SAFE_PICKLE_SIZE} bytes"
+        )
+    batch_src, batch_tgt, output_file = pickle.loads(stdin_data)
     result = can_actually_p2p(batch_src, batch_tgt)
     with open(output_file, "wb") as f:
         f.write(pickle.dumps(result))
