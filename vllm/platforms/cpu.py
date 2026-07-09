@@ -86,7 +86,7 @@ class CpuPlatform(Platform):
         ):
             if (
                 subprocess.check_output(
-                    ["sysctl -n hw.optional.arm.FEAT_BF16"], shell=True
+                    ["sysctl", "-n", "hw.optional.arm.FEAT_BF16"]
                 ).strip()
                 == b"1"
             ):
@@ -367,7 +367,7 @@ class CpuPlatform(Platform):
 
         # Init LogicalCPUInfo from lscpu
         lscpu_output = subprocess.check_output(
-            "lscpu -J -e=CPU,CORE,NODE", shell=True, text=True
+            ["lscpu", "-J", "-e=CPU,CORE,NODE"], text=True
         )
         lscpu_output = re.sub(r'"node":\s*-\s*(,|\n)', r'"node": 0\1', lscpu_output)
         logical_cpu_list: list[LogicalCPUInfo] = json.loads(
