@@ -5,6 +5,10 @@
 # Adapted from
 # https://github.com/NVIDIA/Megatron-LM/blob/main/megatron/core/tensor_parallel/utils.py
 # Copyright (c) 2022, NVIDIA CORPORATION. All rights reserved.
+
+# SECURITY: pickle.loads here operates on data from trusted distributed workers only.
+# Do not expose these paths to untrusted input.
+
 import dataclasses
 import os
 import pickle
@@ -33,6 +37,10 @@ from vllm.utils.network_utils import get_tcp_uri
 from vllm.utils.system_utils import suppress_stdout
 
 logger = init_logger(__name__)
+
+# Maximum safe size for pickle deserialization to prevent memory exhaustion attacks
+# Set to 512 MB as a reasonable limit for distributed tensor communication
+MAX_SAFE_PICKLE_SIZE = 512 * 1024 * 1024
 
 # We prefer to use os.sched_yield as it results in tighter polling loops,
 # measured to be around 3e-7 seconds. However on earlier versions of Python
@@ -192,9 +200,13 @@ class StatelessProcessGroup:
 
     def recv_obj(self, src: int) -> Any:
         """Receive an object from a source rank."""
-        obj = pickle.loads(
-            self.store.get(f"send_to/{self.rank}/{self.recv_src_counter[src]}")
-        )
+        data = self.store.get(f"send_to/{self.rank}/{self.recv_src_counter[src]}")
+        if len(data) > MAX_SAFE_PICKLE_SIZE:
+            raise ValueError(
+                f"Received pickle data of size {len(data)} bytes exceeds "
+                f"maximum safe size of {MAX_SAFE_PICKLE_SIZE} bytes"
+            )
+        obj = pickle.loads(data)
         self.recv_src_counter[src] += 1
         return obj
 
@@ -212,7 +224,13 @@ class StatelessProcessGroup:
             return obj
         else:
             key = f"broadcast_from/{src}/{self.broadcast_recv_src_counter[src]}"
-            recv_obj = pickle.loads(self.store.get(key))
+            data = self.store.get(key)
+            if len(data) > MAX_SAFE_PICKLE_SIZE:
+                raise ValueError(
+                    f"Received pickle data of size {len(data)} bytes exceeds "
+                    f"maximum safe size of {MAX_SAFE_PICKLE_SIZE} bytes"
+                )
+            recv_obj = pickle.loads(data)
             self.broadcast_recv_src_counter[src] += 1
             return recv_obj
 
@@ -240,7 +258,13 @@ class StatelessProcessGroup:
             return tensor
         else:
             key = f"broadcast_tensor/{src}/{self.broadcast_recv_src_counter[src]}"
-            tensor = pickle.loads(self.store.get(key))
+            data = self.store.get(key)
+            if len(data) > MAX_SAFE_PICKLE_SIZE:
+                raise ValueError(
+                    f"Received pickle data of size {len(data)} bytes exceeds "
+                    f"maximum safe size of {MAX_SAFE_PICKLE_SIZE} bytes"
+                )
+            tensor = pickle.loads(data)
             self.broadcast_recv_src_counter[src] += 1
             return tensor
 

@@ -236,12 +236,14 @@ class FrontendArgs(BaseFrontendArgs):
     while keeping logs for other endpoints."""
     allow_credentials: bool = False
     """Allow credentials."""
-    allowed_origins: list[str] = field(default_factory=lambda: ["*"])
-    """Allowed origins."""
-    allowed_methods: list[str] = field(default_factory=lambda: ["*"])
-    """Allowed methods."""
-    allowed_headers: list[str] = field(default_factory=lambda: ["*"])
-    """Allowed headers."""
+    allowed_origins: list[str] = field(default_factory=lambda: [])
+    """Allowed origins. Defaults to empty list (no origins allowed).
+    Operators must explicitly configure allowed origins. Setting this to ["*"]
+    with allow_credentials=True is a security risk and will be rejected."""
+    allowed_methods: list[str] = field(default_factory=lambda: ["GET", "POST", "OPTIONS"])
+    """Allowed HTTP methods. Defaults to ["GET", "POST", "OPTIONS"]."""
+    allowed_headers: list[str] = field(default_factory=lambda: ["Authorization", "Content-Type", "X-Request-Id"])
+    """Allowed HTTP headers. Defaults to ["Authorization", "Content-Type", "X-Request-Id"]."""
     api_key: list[str] | None = None
     """If provided, the server will require one of these keys to be presented in
     the header."""
@@ -253,8 +255,10 @@ class FrontendArgs(BaseFrontendArgs):
     """The CA certificates file."""
     enable_ssl_refresh: bool = False
     """Refresh SSL Context when SSL certificate files change"""
-    ssl_cert_reqs: int = int(ssl.CERT_NONE)
-    """Whether client certificate is required (see stdlib ssl module's)."""
+    ssl_cert_reqs: int = int(ssl.CERT_REQUIRED)
+    """Whether client certificate is required. Defaults to CERT_REQUIRED for
+    security. When mTLS is configured, the server will require valid client
+    certificates. Set to CERT_NONE only if client certificates are not needed."""
     ssl_ciphers: str | None = None
     """SSL cipher suites for HTTPS (TLS 1.2 and below only).
     Example: 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-CHACHA20-POLY1305'"""
@@ -371,6 +375,21 @@ def validate_parsed_serve_args(args: argparse.Namespace):
         raise TypeError("Error: --enable-auto-tool-choice requires --tool-call-parser")
     if args.enable_log_outputs and not args.enable_log_requests:
         raise TypeError("Error: --enable-log-outputs requires --enable-log-requests")
+
+    # Validate CORS configuration: allow_credentials=True with allowed_origins=["*"]
+    # is a security risk and must be rejected
+    if (
+        hasattr(args, "allow_credentials")
+        and args.allow_credentials
+        and hasattr(args, "allowed_origins")
+        and "*" in args.allowed_origins
+    ):
+        raise ValueError(
+            "Error: CORS configuration is insecure. Setting allow_credentials=True "
+            "with allowed_origins=['*'] allows any origin to access credentials. "
+            "Please either: (1) set allow_credentials=False, or "
+            "(2) specify explicit allowed_origins instead of ['*']."
+        )
 
 
 def create_parser_for_docs() -> FlexibleArgumentParser:

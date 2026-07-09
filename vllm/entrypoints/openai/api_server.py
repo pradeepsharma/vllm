@@ -243,6 +243,15 @@ def build_app(
         register_pooling_api_routers(app, supported_tasks)
 
     app.root_path = args.root_path
+
+    # Warn if CORS is configured with wildcard origins (legacy behavior)
+    if args.allowed_origins == ["*"]:
+        logger.warning(
+            "CORS is configured with allowed_origins=['*']. This allows any origin "
+            "to access the API. For production deployments, please explicitly "
+            "configure allowed_origins with specific domains."
+        )
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=args.allowed_origins,
@@ -261,7 +270,11 @@ def build_app(
     if tokens := [key for key in (args.api_key or [envs.VLLM_API_KEY]) if key]:
         from vllm.entrypoints.openai.server_utils import AuthenticationMiddleware
 
-        app.add_middleware(AuthenticationMiddleware, tokens=tokens)
+        app.add_middleware(
+            AuthenticationMiddleware,
+            tokens=tokens,
+            unauthenticated_paths=frozenset({"/health", "/ping", "/metrics"}),
+        )
 
     if args.enable_request_id_headers:
         from vllm.entrypoints.openai.server_utils import XRequestIdMiddleware
@@ -319,6 +332,13 @@ async def init_app_state(
             stacklevel=2,
         )
         supported_tasks = _FALLBACK_SUPPORTED_TASKS
+
+    # Warn if no API key is configured
+    if not (args.api_key or envs.VLLM_API_KEY):
+        logger.warning(
+            "No API key configured — server is unauthenticated. "
+            "Set --api-key or VLLM_API_KEY."
+        )
 
     if args.served_model_name is not None:
         served_model_names = args.served_model_name

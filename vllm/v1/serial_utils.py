@@ -4,6 +4,7 @@
 import dataclasses
 import importlib
 import pickle
+import warnings
 from collections.abc import Callable, Sequence
 from functools import partial
 from inspect import isclass
@@ -52,12 +53,23 @@ MMF_CLASS_TO_FACTORY: dict[type[BaseMultiModalField], str] = {
 
 bytestr: TypeAlias = bytes | bytearray | memoryview | zmq.Frame
 
+# Track if we've already emitted the insecure serialization warning
+_insecure_serialization_warning_emitted = False
+
 
 def _log_insecure_serialization_warning():
-    logger.warning_once(
-        "Allowing insecure serialization using pickle due to "
-        "VLLM_ALLOW_INSECURE_SERIALIZATION=1"
-    )
+    """Emit a one-time startup warning when VLLM_ALLOW_INSECURE_SERIALIZATION is enabled."""
+    global _insecure_serialization_warning_emitted
+    if not _insecure_serialization_warning_emitted:
+        _insecure_serialization_warning_emitted = True
+        logger.warning(
+            "VLLM_ALLOW_INSECURE_SERIALIZATION is enabled. Only use this in trusted environments."
+        )
+        warnings.warn(
+            "VLLM_ALLOW_INSECURE_SERIALIZATION is enabled. Only use this in trusted environments.",
+            SecurityWarning,
+            stacklevel=3
+        )
 
 
 def _typestr(val: Any) -> tuple[str, str] | None:
