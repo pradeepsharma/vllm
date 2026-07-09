@@ -34,18 +34,30 @@ logger = init_logger("vllm.entrypoints.openai.server_utils")
 class AuthenticationMiddleware:
     """
     Pure ASGI middleware that authenticates each request by checking
-    if the Authorization Bearer token exists and equals anyof "{api_key}".
+    if the Authorization Bearer token exists and equals one of the configured
+    API keys.
 
     Notes
     -----
-    There are two cases in which authentication is skipped:
+    Authentication is skipped for:
         1. The HTTP method is OPTIONS.
-        2. The request path doesn't start with /v1 (e.g. /health).
+        2. The request path is in the unauthenticated_paths allowlist
+           (default: /health, /ping, /metrics).
+    
+    All other paths require valid authentication when API keys are configured.
     """
 
-    def __init__(self, app: ASGIApp, tokens: list[str]) -> None:
+    def __init__(
+        self,
+        app: ASGIApp,
+        tokens: list[str],
+        unauthenticated_paths: frozenset[str] | None = None,
+    ) -> None:
         self.app = app
         self.api_tokens = [hashlib.sha256(t.encode("utf-8")).digest() for t in tokens]
+        if unauthenticated_paths is None:
+            unauthenticated_paths = frozenset({"/health", "/ping", "/metrics"})
+        self.unauthenticated_paths = unauthenticated_paths
 
     def verify_token(self, headers: Headers) -> bool:
         authorization_header_value = headers.get("Authorization")
@@ -64,6 +76,18 @@ class AuthenticationMiddleware:
 
         return token_match
 
+    def _is_path_unauthenticated(self, url_path: str) -> bool:
+        """
+        Check if the given path is in the unauthenticated paths allowlist.
+        
+        A path is considered unauthenticated if it exactly matches an entry
+        in the allowlist or if it starts with an allowlist entry followed by '/'.
+        """
+        for allowed_path in self.unauthenticated_paths:
+            if url_path == allowed_path or url_path.startswith(allowed_path + "/"):
+                return True
+        return False
+
     def __call__(self, scope: Scope, receive: Receive, send: Send) -> Awaitable[None]:
         if scope["type"] not in ("http", "websocket") or scope["method"] == "OPTIONS":
             # scope["type"] can be "lifespan" or "startup" for example,
@@ -72,8 +96,9 @@ class AuthenticationMiddleware:
         root_path = scope.get("root_path", "")
         url_path = URL(scope=scope).path.removeprefix(root_path)
         headers = Headers(scope=scope)
-        # Type narrow to satisfy mypy.
-        if url_path.startswith("/v1") and not self.verify_token(headers):
+        
+        # Authenticate all paths EXCEPT those in the unauthenticated allowlist
+        if not self._is_path_unauthenticated(url_path) and not self.verify_token(headers):
             response = JSONResponse(content={"error": "Unauthorized"}, status_code=401)
             return response(scope, receive, send)
         return self.app(scope, receive, send)
@@ -266,104 +291,42 @@ def _log_streaming_response(response, response_body: list) -> None:
                     if full_content:
                         # Truncate if too long
                         if len(full_content) > 2048:
-                            full_content = full_content[:2048] + ""
-                            "...[truncated]"
-                        logger.info(
-                            "response_body={streaming_complete: content=%r, chunks=%d}",
-                            full_content,
-                            chunk_count,
-                        )
-                    else:
-                        logger.info(
-                            "response_body={streaming_complete: no_content, chunks=%d}",
-                            chunk_count,
-                        )
-                    return
+                            full_content = full_content[:2048] + "...[truncated]"
+                        logger.info("Response content: %s", full_content)
 
-    response.body_iterator = iterate_in_threadpool(buffered_iterator())
-    logger.info("response_body={streaming_started: chunks=%d}", len(response_body))
+    return buffered_iterator()
 
 
-def _log_non_streaming_response(response_body: list) -> None:
-    """Log non-streaming response."""
-    try:
-        decoded_body = response_body[0].decode()
-        logger.info("response_body={%s}", decoded_body)
-    except UnicodeDecodeError:
-        logger.info("response_body={<binary_data>}")
-
-
-async def log_response(request: Request, call_next):
+async def log_response(request: Request, call_next) -> Response:
+    """Log the response body for debugging."""
     response = await call_next(request)
-    response_body = [section async for section in response.body_iterator]
-    response.body_iterator = iterate_in_threadpool(iter(response_body))
-    # Check if this is a streaming response by looking at content-type
-    content_type = response.headers.get("content-type", "")
-    is_streaming = content_type == "text/event-stream; charset=utf-8"
 
-    # Log response body based on type
-    if not response_body:
-        logger.info("response_body={<empty>}")
-    elif is_streaming:
-        _log_streaming_response(response, response_body)
-    else:
-        _log_non_streaming_response(response_body)
+    if response.status_code >= 400:
+        response_body = b""
+        async for chunk in response.body_iterator:
+            response_body += chunk
+
+        try:
+            response_data = json.loads(response_body)
+            logger.error(
+                "Response error: %s",
+                response_data,
+            )
+        except json.JSONDecodeError:
+            logger.error(
+                "Response error: %s",
+                response_body.decode("utf-8", errors="replace"),
+            )
+
+        # Return a new response with the original body
+        return Response(
+            content=response_body,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            media_type=response.media_type,
+        )
+
     return response
-
-
-async def engine_error_handler(
-    req: Request, exc: EngineDeadError | EngineGenerateError
-):
-    """
-    VLLM V1 AsyncLLM catches exceptions and returns
-    only two types: EngineGenerateError and EngineDeadError.
-
-    EngineGenerateError is raised by the per request generate()
-    method. This error could be request specific (and therefore
-    recoverable - e.g. if there is an error in input processing).
-
-    EngineDeadError is raised by the background output_handler
-    method. This error is global and therefore not recoverable.
-
-    We register these @app.exception_handlers to return nice
-    responses to the end user if they occur and shut down if needed.
-    See https://fastapi.tiangolo.com/tutorial/handling-errors/
-    for more details on how exception handlers work.
-
-    If an exception is encountered in a StreamingResponse
-    generator, the exception is not raised, since we already sent
-    a 200 status. Rather, we send an error message as the next chunk.
-    Since the exception is not raised, this means that the server
-    will not automatically shut down. Instead, we use the watchdog
-    background task for check for errored state.
-    """
-
-    if req.app.state.args.log_error_stack:
-        logger.exception(
-            "Engine Exception caught. Request id: %s",
-            req.state.request_metadata.request_id
-            if hasattr(req.state, "request_metadata")
-            else None,
-        )
-
-    terminate_if_errored(
-        server=req.app.state.server,
-        engine=req.app.state.engine_client,
-    )
-    return Response(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-
-async def exception_handler(req: Request, exc: Exception):
-    if req.app.state.args.log_error_stack:
-        logger.exception(
-            "Exception caught. Request id: %s",
-            req.state.request_metadata.request_id
-            if hasattr(req.state, "request_metadata")
-            else None,
-        )
-
-    err = create_error_response(exc)
-    return JSONResponse(err.model_dump(), status_code=err.error.code)
 
 
 async def http_exception_handler(req: Request, exc: HTTPException):
@@ -419,6 +382,42 @@ async def validation_exception_handler(req: Request, exc: RequestValidationError
         )
     )
     return JSONResponse(err.model_dump(), status_code=HTTPStatus.BAD_REQUEST)
+
+
+async def engine_error_handler(req: Request, exc: Exception):
+    if req.app.state.args.log_error_stack:
+        logger.exception(
+            "Engine error caught. Request id: %s",
+            req.state.request_metadata.request_id
+            if hasattr(req.state, "request_metadata")
+            else None,
+        )
+    err = ErrorResponse(
+        error=ErrorInfo(
+            message=sanitize_message(str(exc)),
+            type="InternalServerError",
+            code=500,
+        )
+    )
+    return JSONResponse(err.model_dump(), status_code=500)
+
+
+async def exception_handler(req: Request, exc: Exception):
+    if req.app.state.args.log_error_stack:
+        logger.exception(
+            "Unhandled exception caught. Request id: %s",
+            req.state.request_metadata.request_id
+            if hasattr(req.state, "request_metadata")
+            else None,
+        )
+    err = ErrorResponse(
+        error=ErrorInfo(
+            message=sanitize_message(str(exc)),
+            type="InternalServerError",
+            code=500,
+        )
+    )
+    return JSONResponse(err.model_dump(), status_code=500)
 
 
 _running_tasks: set[asyncio.Task] = set()

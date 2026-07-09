@@ -46,7 +46,7 @@ import vllm.envs as envs
 from vllm.distributed.device_communicators.base_device_communicator import (
     DeviceCommunicatorBase,
 )
-from vllm.distributed.utils import StatelessProcessGroup
+from vllm.distributed.utils import MAX_SAFE_PICKLE_SIZE, StatelessProcessGroup
 from vllm.logger import init_logger
 from vllm.utils.import_utils import resolve_obj_by_qualname
 from vllm.utils.network_utils import get_distributed_init_method
@@ -705,7 +705,13 @@ class GroupCoordinator:
             "Received object sender rank does not match the size sender rank."
         )
 
-        obj = pickle.loads(object_tensor.numpy().tobytes())
+        object_bytes = object_tensor.numpy().tobytes()
+        if len(object_bytes) > MAX_SAFE_PICKLE_SIZE:
+            raise ValueError(
+                f"Received pickle data of size {len(object_bytes)} bytes exceeds "
+                f"maximum safe size of {MAX_SAFE_PICKLE_SIZE} bytes"
+            )
+        obj = pickle.loads(object_bytes)
 
         return obj
 

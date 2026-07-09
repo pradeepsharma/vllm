@@ -14,6 +14,7 @@ from unittest.mock import patch
 
 import torch
 
+from vllm.distributed.utils import MAX_SAFE_PICKLE_SIZE
 from vllm.logger import init_logger
 
 logger = init_logger(__name__)
@@ -373,6 +374,11 @@ class MsgpackSerde(ObjectSerde):
     def deserialize(self, data_view: memoryview) -> Any:
         # pickle.loads do not read past the end of a pickled object
         # within a large buffer, so we can skip storing the metadata size
+        if len(data_view) > MAX_SAFE_PICKLE_SIZE:
+            raise ValueError(
+                f"Received pickle data of size {len(data_view)} bytes exceeds "
+                f"maximum safe size of {MAX_SAFE_PICKLE_SIZE} bytes"
+            )
         type_name, nbytes, len_arr = pickle.loads(data_view)
         serialized_data = data_view[-nbytes:]
 
@@ -393,6 +399,11 @@ class MsgpackSerde(ObjectSerde):
                 start_idx += length
             obj = self.mm_decoder.decode(obj)
         elif type_name == bytes.__name__:
+            if len(serialized_data) > MAX_SAFE_PICKLE_SIZE:
+                raise ValueError(
+                    f"Received pickle data of size {len(serialized_data)} bytes exceeds "
+                    f"maximum safe size of {MAX_SAFE_PICKLE_SIZE} bytes"
+                )
             obj = pickle.loads(serialized_data)
         else:
             raise ValueError(f"Unsupported object type '{type_name}' in metadata")
