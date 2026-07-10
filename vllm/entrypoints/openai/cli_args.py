@@ -245,6 +245,19 @@ class FrontendArgs(BaseFrontendArgs):
     api_key: list[str] | None = None
     """If provided, the server will require one of these keys to be presented in
     the header."""
+    enable_mfa: bool = False
+    """Enable Multi-Factor Authentication (MFA) for the API server. When enabled,
+    clients must provide a valid TOTP code in the X-MFA-Code header along with
+    their API key. Requires --api-key or VLLM_API_KEY to be set."""
+    mfa_secret: str | None = None
+    """TOTP secret for MFA. If not provided and --enable-mfa is set, a secret
+    will be auto-generated and logged at startup."""
+    mfa_issuer: str = "vLLM"
+    """Issuer name for MFA provisioning URI. Used in authenticator apps to
+    identify the service."""
+    mfa_account_name: str = "vllm-server"
+    """Account name for MFA provisioning URI. Used in authenticator apps to
+    identify the account."""
     ssl_keyfile: str | None = None
     """The file path to the SSL key file."""
     ssl_certfile: str | None = None
@@ -371,6 +384,29 @@ def validate_parsed_serve_args(args: argparse.Namespace):
         raise TypeError("Error: --enable-auto-tool-choice requires --tool-call-parser")
     if args.enable_log_outputs and not args.enable_log_requests:
         raise TypeError("Error: --enable-log-outputs requires --enable-log-requests")
+
+    # MFA validation: MFA requires API key to be configured
+    if hasattr(args, "enable_mfa") and args.enable_mfa:
+        api_key_configured = (
+            (hasattr(args, "api_key") and args.api_key)
+            or envs.VLLM_API_KEY
+        )
+        if not api_key_configured:
+            raise ValueError(
+                "--enable-mfa requires --api-key or VLLM_API_KEY to be set. "
+                "MFA without API key authentication provides no security benefit."
+            )
+
+        # Warn if MFA is enabled without SSL (unless on localhost)
+        if hasattr(args, "ssl_certfile") and hasattr(args, "host"):
+            is_localhost = args.host in ("localhost", "127.0.0.1", "::1")
+            if args.ssl_certfile is None and not is_localhost:
+                logger.warning(
+                    "[SECURITY] MFA is enabled but SSL/TLS is not configured. "
+                    "TOTP codes will be transmitted over unencrypted HTTP. "
+                    "This is insecure for production use. "
+                    "Consider using --ssl-certfile and --ssl-keyfile."
+                )
 
 
 def create_parser_for_docs() -> FlexibleArgumentParser:

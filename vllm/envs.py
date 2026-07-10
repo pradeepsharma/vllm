@@ -25,6 +25,9 @@ if TYPE_CHECKING:
     VLLM_ENGINE_ITERATION_TIMEOUT_S: int = 60
     VLLM_ENGINE_READY_TIMEOUT_S: int = 600
     VLLM_API_KEY: str | None = None
+    VLLM_MFA_ENABLED: bool = False
+    VLLM_MFA_SECRET: str | None = None
+    VLLM_MFA_ISSUER: str = "vLLM"
     VLLM_DEBUG_LOG_API_SERVER_RESPONSE: bool = False
     S3_ACCESS_KEY_ID: str | None = None
     S3_SECRET_ACCESS_KEY: str | None = None
@@ -635,6 +638,11 @@ environment_variables: dict[str, Callable[[], Any]] = {
     ),
     # API key for vLLM API server
     "VLLM_API_KEY": lambda: os.environ.get("VLLM_API_KEY", None),
+    # MFA (Multi-Factor Authentication) settings for vLLM API server
+    "VLLM_MFA_ENABLED": lambda: os.environ.get("VLLM_MFA_ENABLED", "False").lower()
+    == "true",
+    "VLLM_MFA_SECRET": lambda: os.environ.get("VLLM_MFA_SECRET", None),
+    "VLLM_MFA_ISSUER": lambda: os.environ.get("VLLM_MFA_ISSUER", "vLLM"),
     # Whether to log responses from API Server for debugging
     "VLLM_DEBUG_LOG_API_SERVER_RESPONSE": lambda: os.environ.get(
         "VLLM_DEBUG_LOG_API_SERVER_RESPONSE", "False"
