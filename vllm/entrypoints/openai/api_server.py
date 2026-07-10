@@ -37,6 +37,7 @@ from vllm.entrypoints.openai.server_utils import (
     http_exception_handler,
     lifespan,
     log_response,
+    validate_plugin_path,
     validation_exception_handler,
 )
 from vllm.entrypoints.sagemaker.api_router import sagemaker_standards_bootstrap
@@ -537,10 +538,12 @@ async def run_server_worker(
 ) -> None:
     """Run a single API server worker."""
 
-    if args.tool_parser_plugin and len(args.tool_parser_plugin) > 3:
+    if args.tool_parser_plugin:
+        validate_plugin_path(args.tool_parser_plugin, "tool parser plugin")
         ToolParserManager.import_tool_parser(args.tool_parser_plugin)
 
-    if args.reasoning_parser_plugin and len(args.reasoning_parser_plugin) > 3:
+    if args.reasoning_parser_plugin:
+        validate_plugin_path(args.reasoning_parser_plugin, "reasoning parser plugin")
         ReasoningParserManager.import_reasoning_parser(args.reasoning_parser_plugin)
 
     async with build_async_engine_client(

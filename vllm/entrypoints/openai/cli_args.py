@@ -358,6 +358,117 @@ def make_arg_parser(parser: FlexibleArgumentParser) -> FlexibleArgumentParser:
     return parser
 
 
+def _validate_tool_server(tool_server: str | None) -> None:
+    """
+    Validate the tool_server argument.
+    
+    When not "demo", validates that each host:port entry matches a safe pattern
+    (IPv4, IPv6, or hostname) and does not contain shell metacharacters.
+    
+    Args:
+        tool_server: Comma-separated list of host:port pairs or "demo"
+        
+    Raises:
+        ValueError: If validation fails
+    """
+    if not tool_server or tool_server == "demo":
+        return
+    
+    import re
+    
+    # Shell metacharacters that should not appear in host:port entries
+    shell_metacharacters = set('<>|;&$`\\"\' \t\n')
+    
+    # Pattern for valid IPv4 address
+    ipv4_pattern = r'^(\d{1,3}\.){3}\d{1,3}$'
+    
+    # Pattern for valid IPv6 address (simplified, allows [::1] format)
+    ipv6_pattern = r'^\[([0-9a-fA-F:]+)\]$'
+    
+    # Pattern for valid hostname (alphanumeric, dots, hyphens)
+    hostname_pattern = r'^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$'
+    
+    # Split by comma to get individual entries
+    entries = [e.strip() for e in tool_server.split(",") if e.strip()]
+    
+    for entry in entries:
+        # Check for shell metacharacters
+        if any(c in entry for c in shell_metacharacters):
+            raise ValueError(
+                f"Invalid tool_server entry: contains shell metacharacters. "
+                f"Entry: {entry}"
+            )
+        
+        # Split host and port
+        if ":" not in entry:
+            raise ValueError(
+                f"Invalid tool_server entry: missing port. "
+                f"Expected format: host:port. Entry: {entry}"
+            )
+        
+        # Handle IPv6 addresses in brackets
+        if entry.startswith("["):
+            # IPv6 format: [::1]:8000
+            if "]::" in entry:
+                raise ValueError(
+                    f"Invalid tool_server entry: malformed IPv6 address. "
+                    f"Entry: {entry}"
+                )
+            bracket_end = entry.rfind("]")
+            if bracket_end == -1:
+                raise ValueError(
+                    f"Invalid tool_server entry: unclosed bracket in IPv6 address. "
+                    f"Entry: {entry}"
+                )
+            host_part = entry[:bracket_end + 1]
+            port_part = entry[bracket_end + 1:]
+            
+            # Validate IPv6 format
+            if not re.match(ipv6_pattern, host_part):
+                raise ValueError(
+                    f"Invalid tool_server entry: invalid IPv6 address format. "
+                    f"Entry: {entry}"
+                )
+            
+            # Validate port
+            if not port_part.startswith(":"):
+                raise ValueError(
+                    f"Invalid tool_server entry: invalid port format. "
+                    f"Entry: {entry}"
+                )
+            port_str = port_part[1:]
+        else:
+            # IPv4 or hostname format: host:port
+            parts = entry.rsplit(":", 1)
+            if len(parts) != 2:
+                raise ValueError(
+                    f"Invalid tool_server entry: invalid format. "
+                    f"Entry: {entry}"
+                )
+            host_part, port_str = parts
+            
+            # Validate host (IPv4 or hostname)
+            if not (re.match(ipv4_pattern, host_part) or re.match(hostname_pattern, host_part)):
+                raise ValueError(
+                    f"Invalid tool_server entry: invalid host format. "
+                    f"Must be IPv4, IPv6 (in brackets), or hostname. Entry: {entry}"
+                )
+        
+        # Validate port
+        try:
+            port = int(port_str)
+            if port < 1 or port > 65535:
+                raise ValueError(
+                    f"Invalid tool_server entry: port out of range (1-65535). "
+                    f"Entry: {entry}"
+                )
+        except ValueError:
+            raise ValueError(
+                f"Invalid tool_server entry: invalid port number. "
+                f"Entry: {entry}"
+            )
+
+
 def validate_parsed_serve_args(args: argparse.Namespace):
     """Quick checks for model serve args that raise prior to loading."""
     if hasattr(args, "subparser") and args.subparser != "serve":
@@ -371,6 +482,21 @@ def validate_parsed_serve_args(args: argparse.Namespace):
         raise TypeError("Error: --enable-auto-tool-choice requires --tool-call-parser")
     if args.enable_log_outputs and not args.enable_log_requests:
         raise TypeError("Error: --enable-log-outputs requires --enable-log-requests")
+    
+    # Validate tool_server if specified
+    if hasattr(args, "tool_server") and args.tool_server:
+        _validate_tool_server(args.tool_server)
+    
+    # Validate h11_max_incomplete_event_size is not unreasonably large
+    if hasattr(args, "h11_max_incomplete_event_size") and args.h11_max_incomplete_event_size:
+        max_size_mb = args.h11_max_incomplete_event_size / (1024 * 1024)
+        if args.h11_max_incomplete_event_size > 100 * 1024 * 1024:  # 100 MB
+            logger.warning(
+                "h11_max_incomplete_event_size is set to %.1f MB, which is very large. "
+                "This may increase memory usage and vulnerability to header-based DoS attacks. "
+                "Consider using a smaller value (default: 4 MB).",
+                max_size_mb
+            )
 
 
 def create_parser_for_docs() -> FlexibleArgumentParser:
