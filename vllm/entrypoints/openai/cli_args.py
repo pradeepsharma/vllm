@@ -340,6 +340,13 @@ class FrontendArgs(BaseFrontendArgs):
         if "nargs" in frontend_kwargs["disable_access_log_for_endpoints"]:
             del frontend_kwargs["disable_access_log_for_endpoints"]["nargs"]
 
+        # Special case: auth_protected_paths needs json.loads type to parse
+        # comma-separated list
+        if "auth_protected_paths" in frontend_kwargs:
+            frontend_kwargs["auth_protected_paths"]["type"] = json.loads
+            if "nargs" in frontend_kwargs["auth_protected_paths"]:
+                del frontend_kwargs["auth_protected_paths"]["nargs"]
+
         return frontend_kwargs
 
 

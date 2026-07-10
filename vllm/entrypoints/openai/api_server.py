@@ -261,7 +261,11 @@ def build_app(
     if tokens := [key for key in (args.api_key or [envs.VLLM_API_KEY]) if key]:
         from vllm.entrypoints.openai.server_utils import AuthenticationMiddleware
 
-        app.add_middleware(AuthenticationMiddleware, tokens=tokens)
+        app.add_middleware(
+            AuthenticationMiddleware,
+            tokens=tokens,
+            protected_paths=args.auth_protected_paths or ["/v1"],
+        )
 
     if args.enable_request_id_headers:
         from vllm.entrypoints.openai.server_utils import XRequestIdMiddleware

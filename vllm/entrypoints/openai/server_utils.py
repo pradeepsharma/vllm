@@ -40,12 +40,19 @@ class AuthenticationMiddleware:
     -----
     There are two cases in which authentication is skipped:
         1. The HTTP method is OPTIONS.
-        2. The request path doesn't start with /v1 (e.g. /health).
+        2. The request path doesn't start with any of the protected paths.
+
+    By default, only paths starting with /v1 are protected. Other paths such as
+    /health, /metrics, /ping, and /docs are not protected by default to allow
+    load balancers, monitoring systems, and documentation access without
+    authentication. Use the `protected_paths` parameter to customize which
+    paths require authentication.
     """
 
-    def __init__(self, app: ASGIApp, tokens: list[str]) -> None:
+    def __init__(self, app: ASGIApp, tokens: list[str], protected_paths: list[str] | None = None) -> None:
         self.app = app
         self.api_tokens = [hashlib.sha256(t.encode("utf-8")).digest() for t in tokens]
+        self.protected_paths = protected_paths if protected_paths is not None else ["/v1"]
 
     def verify_token(self, headers: Headers) -> bool:
         authorization_header_value = headers.get("Authorization")
@@ -73,7 +80,7 @@ class AuthenticationMiddleware:
         url_path = URL(scope=scope).path.removeprefix(root_path)
         headers = Headers(scope=scope)
         # Type narrow to satisfy mypy.
-        if url_path.startswith("/v1") and not self.verify_token(headers):
+        if any(url_path.startswith(p) for p in self.protected_paths) and not self.verify_token(headers):
             response = JSONResponse(content={"error": "Unauthorized"}, status_code=401)
             return response(scope, receive, send)
         return self.app(scope, receive, send)
@@ -269,104 +276,29 @@ def _log_streaming_response(response, response_body: list) -> None:
                             full_content = full_content[:2048] + ""
                             "...[truncated]"
                         logger.info(
-                            "response_body={streaming_complete: content=%r, chunks=%d}",
-                            full_content,
-                            chunk_count,
+                            "Streaming response content: %s", full_content
                         )
-                    else:
-                        logger.info(
-                            "response_body={streaming_complete: no_content, chunks=%d}",
-                            chunk_count,
-                        )
-                    return
 
-    response.body_iterator = iterate_in_threadpool(buffered_iterator())
-    logger.info("response_body={streaming_started: chunks=%d}", len(response_body))
-
-
-def _log_non_streaming_response(response_body: list) -> None:
-    """Log non-streaming response."""
-    try:
-        decoded_body = response_body[0].decode()
-        logger.info("response_body={%s}", decoded_body)
-    except UnicodeDecodeError:
-        logger.info("response_body={<binary_data>}")
+    return buffered_iterator()
 
 
 async def log_response(request: Request, call_next):
+    """Log the response from the API server."""
     response = await call_next(request)
-    response_body = [section async for section in response.body_iterator]
-    response.body_iterator = iterate_in_threadpool(iter(response_body))
-    # Check if this is a streaming response by looking at content-type
-    content_type = response.headers.get("content-type", "")
-    is_streaming = content_type == "text/event-stream; charset=utf-8"
 
-    # Log response body based on type
-    if not response_body:
-        logger.info("response_body={<empty>}")
-    elif is_streaming:
-        _log_streaming_response(response, response_body)
-    else:
-        _log_non_streaming_response(response_body)
+    if response.status_code >= 400:
+        # Log error responses
+        logger.error(
+            "Error response: %s %s - Status: %s",
+            request.method,
+            request.url.path,
+            response.status_code,
+        )
+
     return response
 
 
-async def engine_error_handler(
-    req: Request, exc: EngineDeadError | EngineGenerateError
-):
-    """
-    VLLM V1 AsyncLLM catches exceptions and returns
-    only two types: EngineGenerateError and EngineDeadError.
-
-    EngineGenerateError is raised by the per request generate()
-    method. This error could be request specific (and therefore
-    recoverable - e.g. if there is an error in input processing).
-
-    EngineDeadError is raised by the background output_handler
-    method. This error is global and therefore not recoverable.
-
-    We register these @app.exception_handlers to return nice
-    responses to the end user if they occur and shut down if needed.
-    See https://fastapi.tiangolo.com/tutorial/handling-errors/
-    for more details on how exception handlers work.
-
-    If an exception is encountered in a StreamingResponse
-    generator, the exception is not raised, since we already sent
-    a 200 status. Rather, we send an error message as the next chunk.
-    Since the exception is not raised, this means that the server
-    will not automatically shut down. Instead, we use the watchdog
-    background task for check for errored state.
-    """
-
-    if req.app.state.args.log_error_stack:
-        logger.exception(
-            "Engine Exception caught. Request id: %s",
-            req.state.request_metadata.request_id
-            if hasattr(req.state, "request_metadata")
-            else None,
-        )
-
-    terminate_if_errored(
-        server=req.app.state.server,
-        engine=req.app.state.engine_client,
-    )
-    return Response(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-
-async def exception_handler(req: Request, exc: Exception):
-    if req.app.state.args.log_error_stack:
-        logger.exception(
-            "Exception caught. Request id: %s",
-            req.state.request_metadata.request_id
-            if hasattr(req.state, "request_metadata")
-            else None,
-        )
-
-    err = create_error_response(exc)
-    return JSONResponse(err.model_dump(), status_code=err.error.code)
-
-
-async def http_exception_handler(req: Request, exc: HTTPException):
+def http_exception_handler(req: Request, exc: HTTPException):
     if req.app.state.args.log_error_stack:
         logger.exception(
             "HTTPException caught. Request id: %s",
@@ -452,3 +384,39 @@ async def lifespan(app: FastAPI):
     finally:
         # Ensure app state including engine ref is gc'd
         del app.state
+
+
+def engine_error_handler(req: Request, exc: Exception):
+    if req.app.state.args.log_error_stack:
+        logger.exception(
+            "Engine error caught. Request id: %s",
+            req.state.request_metadata.request_id
+            if hasattr(req.state, "request_metadata")
+            else None,
+        )
+    err = ErrorResponse(
+        error=ErrorInfo(
+            message=sanitize_message(str(exc)),
+            type="InternalServerError",
+            code=500,
+        )
+    )
+    return JSONResponse(err.model_dump(), status_code=500)
+
+
+def exception_handler(req: Request, exc: Exception):
+    if req.app.state.args.log_error_stack:
+        logger.exception(
+            "Unhandled exception caught. Request id: %s",
+            req.state.request_metadata.request_id
+            if hasattr(req.state, "request_metadata")
+            else None,
+        )
+    err = ErrorResponse(
+        error=ErrorInfo(
+            message=sanitize_message(str(exc)),
+            type="InternalServerError",
+            code=500,
+        )
+    )
+    return JSONResponse(err.model_dump(), status_code=500)
