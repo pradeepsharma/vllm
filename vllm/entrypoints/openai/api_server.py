@@ -263,6 +263,15 @@ def build_app(
         from vllm.entrypoints.openai.server_utils import AuthenticationMiddleware
 
         app.add_middleware(AuthenticationMiddleware, tokens=tokens)
+    else:
+        # Warn if no API key is configured and server is not on localhost
+        from vllm.entrypoints.utils import emit_security_warning, is_localhost
+
+        if not is_localhost(args.host):
+            emit_security_warning(
+                "No API key configured. The server is accepting unauthenticated "
+                "requests. Set --api-key or VLLM_API_KEY to require authentication."
+            )
 
     if args.enable_request_id_headers:
         from vllm.entrypoints.openai.server_utils import XRequestIdMiddleware
@@ -446,6 +455,17 @@ def setup_server(args):
         ReasoningParserManager.import_reasoning_parser(args.reasoning_parser_plugin)
 
     validate_api_server_args(args)
+    
+    # Check SSL/TLS configuration and warn if not configured for non-localhost
+    if args.ssl_keyfile is None and args.ssl_certfile is None:
+        from vllm.entrypoints.utils import emit_security_warning, is_localhost
+        
+        if not is_localhost(args.host):
+            emit_security_warning(
+                "SSL is not configured. The server is running over plaintext HTTP. "
+                "API keys and model outputs will be transmitted unencrypted. "
+                "Set --ssl-keyfile and --ssl-certfile for production deployments."
+            )
 
     # workaround to make sure that we bind the port before the engine is set up.
     # This avoids race conditions with ray.

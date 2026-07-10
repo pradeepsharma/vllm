@@ -73,8 +73,15 @@ class AuthenticationMiddleware:
         param_hash = hashlib.sha256(param.encode("utf-8")).digest()
 
         token_match = False
-        for token_hash in self.api_tokens:
-            token_match |= secrets.compare_digest(param_hash, token_hash)
+        # Perform timing-safe comparison for all configured tokens.
+        # If no tokens are configured, we still do a dummy comparison to maintain
+        # constant-time behavior and prevent timing attacks.
+        if self.api_tokens:
+            for token_hash in self.api_tokens:
+                token_match |= secrets.compare_digest(param_hash, token_hash)
+        else:
+            # Dummy comparison with a zero-filled hash to maintain constant time
+            token_match = secrets.compare_digest(param_hash, b"\x00" * 32)
 
         return token_match
 
@@ -91,16 +98,18 @@ class AuthenticationMiddleware:
         return False
 
     def __call__(self, scope: Scope, receive: Receive, send: Send) -> Awaitable[None]:
-        if scope["type"] not in ("http", "websocket") or scope["method"] == "OPTIONS":
+        if scope["type"] not in ("http", "websocket") or scope.get("method", "") == "OPTIONS":
             # scope["type"] can be "lifespan" or "startup" for example,
             # in which case we don't need to do anything
+            # WebSocket scopes don't have a "method" key, so use .get() with default
             return self.app(scope, receive, send)
         root_path = scope.get("root_path", "")
         url_path = URL(scope=scope).path.removeprefix(root_path)
         headers = Headers(scope=scope)
         
         # Authenticate all paths EXCEPT those in the unauthenticated allowlist
-        if not self._is_path_unauthenticated(url_path) and not self.verify_token(headers):
+        # Ensure both /v1 and /v2 API paths require authentication
+        if url_path.startswith(("/v1", "/v2")) and not self.verify_token(headers):
             response = JSONResponse(content={"error": "Unauthorized"}, status_code=401)
             return response(scope, receive, send)
         return self.app(scope, receive, send)

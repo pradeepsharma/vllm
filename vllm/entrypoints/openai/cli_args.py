@@ -244,7 +244,9 @@ class FrontendArgs(BaseFrontendArgs):
     """Allowed headers."""
     api_key: list[str] | None = None
     """If provided, the server will require one of these keys to be presented in
-    the header."""
+    the header. Note: Using the VLLM_API_KEY environment variable is the
+    recommended approach for production deployments, as CLI flags may appear
+    in process listings and system logs."""
     ssl_keyfile: str | None = None
     """The file path to the SSL key file."""
     ssl_certfile: str | None = None
@@ -257,6 +259,17 @@ class FrontendArgs(BaseFrontendArgs):
     """Whether client certificate is required (see stdlib ssl module's)."""
     ssl_ciphers: str | None = None
     """SSL cipher suites for HTTPS (TLS 1.2 and below only).
+    
+    Specifies the cipher suite string for OpenSSL. If not set, vLLM uses
+    secure defaults: 'ECDH+AESGCM:ECDH+CHACHA20:!aNULL:!MD5:!DSS'
+    
+    Recommended cipher string for production:
+    'ECDH+AESGCM:ECDH+CHACHA20:!aNULL:!MD5:!DSS'
+    
+    WARNING: Do NOT use 'ALL', 'DEFAULT', or other unrestricted cipher strings
+    as they may include weak algorithms (RC4, DES, 3DES, EXPORT, NULL, aNULL,
+    eNULL) that expose the connection to cryptographic attacks.
+    
     Example: 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-CHACHA20-POLY1305'"""
     root_path: str | None = None
     """FastAPI root_path when app is behind a path based routing proxy."""
