@@ -303,10 +303,10 @@ def build_app(
         app.add_middleware(WebSocketMetricsMiddleware)
 
     if envs.VLLM_DEBUG_LOG_API_SERVER_RESPONSE:
-        logger.warning(
-            "CAUTION: Enabling log response in the API Server. "
-            "This can include sensitive information and should be "
-            "avoided in production."
+        emit_security_warning(
+            "VLLM_DEBUG_LOG_API_SERVER_RESPONSE is enabled. Full API response "
+            "bodies will be logged. This may expose sensitive data including "
+            "prompts and completions. Do not use in production."
         )
         app.middleware("http")(log_response)
 

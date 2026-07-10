@@ -348,6 +348,8 @@ async def http_exception_handler(req: Request, exc: HTTPException):
             if hasattr(req.state, "request_metadata")
             else None,
         )
+    # Sanitize the exception detail to prevent leaking sensitive information
+    # such as file paths, line numbers, and internal module names in HTTP responses.
     err = ErrorResponse(
         error=ErrorInfo(
             message=sanitize_message(exc.detail),
@@ -384,6 +386,8 @@ async def validation_exception_handler(req: Request, exc: RequestValidationError
     else:
         message = exc_str
 
+    # Sanitize the combined error message to prevent leaking sensitive information
+    # such as file paths, line numbers, and internal module names in HTTP responses.
     err = ErrorResponse(
         error=ErrorInfo(
             message=sanitize_message(message),
@@ -403,6 +407,8 @@ async def engine_error_handler(req: Request, exc: Exception):
             if hasattr(req.state, "request_metadata")
             else None,
         )
+    # Sanitize the exception message to prevent leaking sensitive information
+    # such as file paths, line numbers, and internal module names in HTTP responses.
     err = ErrorResponse(
         error=ErrorInfo(
             message=sanitize_message(str(exc)),
@@ -421,6 +427,8 @@ async def exception_handler(req: Request, exc: Exception):
             if hasattr(req.state, "request_metadata")
             else None,
         )
+    # Sanitize the exception message to prevent leaking sensitive information
+    # such as file paths, line numbers, and internal module names in HTTP responses.
     err = ErrorResponse(
         error=ErrorInfo(
             message=sanitize_message(str(exc)),

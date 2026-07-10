@@ -152,8 +152,11 @@ class BaseFrontendArgs:
     """If set to False, output deltas will not be logged. Relevant only if 
     --enable-log-outputs is set.
     """
-    log_error_stack: bool = envs.VLLM_SERVER_DEV_MODE
-    """If set to True, log the stack trace of error responses"""
+    log_error_stack: bool = False
+    """If set to True, log the stack trace of error responses. Stack traces should
+    never be logged by default as they may expose sensitive information about the
+    server's internal structure. Operators must explicitly opt in by setting this
+    to True or via the --log-error-stack CLI flag."""
     tokens_only: bool = False
     """
     If set to True, only enable the Tokens In<>Out endpoint. 

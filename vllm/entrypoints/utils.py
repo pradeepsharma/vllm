@@ -267,7 +267,8 @@ def sanitize_message(message: str) -> str:
     
     Removes:
     - Memory addresses from object reprs (e.g., " at 0x7f1234567890>")
-    - File paths and line numbers that could reveal internal structure
+    - File paths (absolute and relative) that could reveal internal structure
+    - Line number references in traceback format
     - Module names that could leak library versions
     
     Args:
@@ -279,16 +280,28 @@ def sanitize_message(message: str) -> str:
     # Avoid leaking memory address from object reprs
     message = re.sub(r" at 0x[0-9a-f]+>", ">", message)
     
-    # Remove file paths (both absolute and relative) to prevent information leakage
-    # Matches patterns like /path/to/file.py or C:\path\to\file.py
-    message = re.sub(r"[/\\](?:[a-zA-Z0-9._-]+[/\\])*[a-zA-Z0-9._-]+\.py", "<file>", message)
+    # Remove absolute file paths (Unix-style: /path/to/file.py)
+    # Matches patterns like /home/user/project/file.py, /usr/lib/python3.x/site-packages/module/file.py
+    message = re.sub(r"/[a-zA-Z0-9._\-/]*\.py", "<file>", message)
     
-    # Remove line numbers in traceback format (e.g., "line 123")
+    # Remove absolute file paths (Windows-style: C:\path\to\file.py)
+    # Matches patterns like C:\Users\user\project\file.py
+    message = re.sub(r"[A-Za-z]:\\[a-zA-Z0-9._\-\\]*\.py", "<file>", message)
+    
+    # Remove relative file paths (e.g., "vllm/engine/core.py", "src/module/file.py")
+    # Matches patterns like module/submodule/file.py
+    message = re.sub(r"(?:[a-zA-Z0-9._\-]+[/\\])+[a-zA-Z0-9._\-]+\.py", "<file>", message)
+    
+    # Remove line numbers in traceback format (e.g., "line 123", "line 456")
     message = re.sub(r"line \d+", "<line>", message)
     
     # Remove module paths that could reveal internal structure (e.g., "vllm.engine.core")
-    # This pattern matches module paths like "module.submodule.name"
+    # This pattern matches module paths like "module.submodule.name" (lowercase with dots)
     message = re.sub(r"\b(?:[a-z_][a-z0-9_]*\.)+[a-z_][a-z0-9_]*\b", "<module>", message)
+    
+    # Remove site-packages paths that could leak library versions
+    # Matches patterns like "site-packages/package_name/module.py"
+    message = re.sub(r"site-packages[/\\][a-zA-Z0-9._\-/\\]*", "<site-packages>", message)
     
     return message
 
