@@ -47,9 +47,12 @@ from vllm.entrypoints.serve.elastic_ep.middleware import (
 from vllm.entrypoints.serve.tokenize.serving import OpenAIServingTokenization
 from vllm.entrypoints.utils import (
     cli_env_setup,
+    emit_security_warning,
+    is_localhost,
     log_non_default_args,
     log_version_and_model,
     process_lora_modules,
+    validate_cors_origins,
 )
 from vllm.logger import init_logger
 from vllm.reasoning import ReasoningParserManager
@@ -251,6 +254,16 @@ def build_app(
         allow_methods=args.allowed_methods,
         allow_headers=args.allowed_headers,
     )
+
+    # Validate CORS configuration for security issues
+    validate_cors_origins(args.allowed_origins, args.allow_credentials)
+    
+    # Warn if CORS is disabled on non-localhost deployments
+    if not args.allowed_origins and not is_localhost(args.host):
+        emit_security_warning(
+            "CORS allowed_origins is empty — all cross-origin requests will be "
+            "rejected. Set --allowed-origins to enable cross-origin access."
+        )
 
     app.exception_handler(HTTPException)(http_exception_handler)
     app.exception_handler(RequestValidationError)(validation_exception_handler)
