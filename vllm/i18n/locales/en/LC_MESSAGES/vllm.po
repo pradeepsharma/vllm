@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 #
-# Japanese translation for vLLM
-# 日本語翻訳
+# English translation for vLLM
+# This is the base English catalog where msgid == msgstr (identity translation)
 #
 msgid ""
 msgstr ""
@@ -11,361 +11,361 @@ msgstr ""
 "POT-Creation-Date: 2026-07-09 23:30:00+0000\n"
 "PO-Revision-Date: 2026-07-09 23:30:00+0000\n"
 "Last-Translator: vLLM Team <dev@vllm.ai>\n"
-"Language-Team: Japanese\n"
-"Language: ja\n"
+"Language-Team: English\n"
+"Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: vllm/logger.py:308
 msgid "VLLM_TRACE_FUNCTION is enabled. It will record every function executed by Python. This will slow down the code. It is suggested to be used for debugging hang or crashes only."
-msgstr "VLLM_TRACE_FUNCTION が有効です。Pythonで実行されたすべての関数を記録します。これはコードを遅くします。ハングやクラッシュのデバッグにのみ使用することをお勧めします。"
+msgstr "VLLM_TRACE_FUNCTION is enabled. It will record every function executed by Python. This will slow down the code. It is suggested to be used for debugging hang or crashes only."
 
 #: vllm/logger.py:313
 msgid "Trace frame log is saved to %s"
-msgstr "トレースフレームログは %s に保存されました"
+msgstr "Trace frame log is saved to %s"
 
 #: vllm/entrypoints/utils.py:180
 msgid "Setting VLLM_WORKER_MULTIPROC_METHOD to 'spawn'"
-msgstr "VLLM_WORKER_MULTIPROC_METHOD を 'spawn' に設定しています"
+msgstr "Setting VLLM_WORKER_MULTIPROC_METHOD to 'spawn'"
 
 #: vllm/entrypoints/utils.py:260
 msgid "non-default args: %s"
-msgstr "デフォルト以外の引数: %s"
+msgstr "non-default args: %s"
 
 #: vllm/entrypoints/utils.py:280
 msgid "Unsupported argument type. Must be Namespace or EngineArgs instance."
-msgstr "サポートされていない引数型です。Namespace または EngineArgs インスタンスである必要があります。"
+msgstr "Unsupported argument type. Must be Namespace or EngineArgs instance."
 
 #: vllm/entrypoints/utils.py:310
 msgid "raw_request required when server load tracking is enabled"
-msgstr "サーバー負荷追跡が有効な場合、raw_request が必要です"
+msgstr "raw_request required when server load tracking is enabled"
 
 #: vllm/exceptions.py:10
 msgid "vLLM-specific validation error for request validation failures."
-msgstr "リクエスト検証失敗のための vLLM 固有の検証エラー。"
+msgstr "vLLM-specific validation error for request validation failures."
 
 #: vllm/i18n/__init__.py:50
 msgid "Hello, World!"
-msgstr "こんにちは、世界！"
+msgstr "Hello, World!"
 
 #: vllm/i18n/__init__.py:55
 msgid "This is help text"
-msgstr "これはヘルプテキストです"
+msgstr "This is help text"
 
 #: vllm/i18n/__init__.py:60
 msgid "1 file"
-msgstr "1 ファイル"
+msgstr "1 file"
 
 #: vllm/i18n/__init__.py:61
 msgid "{} files"
-msgstr "{} ファイル"
+msgstr "{} files"
 
 #: vllm/entrypoints/utils.py:150
 msgid "For full list:            vllm {subcmd} --help=all"
-msgstr "完全なリスト：            vllm {subcmd} --help=all"
+msgstr "For full list:            vllm {subcmd} --help=all"
 
 #: vllm/entrypoints/utils.py:151
 msgid "For a section:            vllm {subcmd} --help=ModelConfig    (case-insensitive)"
-msgstr "セクション：            vllm {subcmd} --help=ModelConfig    (大文字小文字を区別しない)"
+msgstr "For a section:            vllm {subcmd} --help=ModelConfig    (case-insensitive)"
 
 #: vllm/entrypoints/utils.py:152
 msgid "For a flag:               vllm {subcmd} --help=max-model-len  (_ or - accepted)"
-msgstr "フラグ：               vllm {subcmd} --help=max-model-len  (_ または - を受け入れます)"
+msgstr "For a flag:               vllm {subcmd} --help=max-model-len  (_ or - accepted)"
 
 #: vllm/entrypoints/utils.py:153
 msgid "Documentation:            https://docs.vllm.ai"
-msgstr "ドキュメント：            https://docs.vllm.ai"
+msgstr "Documentation:            https://docs.vllm.ai"
 
 #: vllm/logger.py:155
 msgid "VLLM_CONFIGURE_LOGGING evaluated to false, but VLLM_LOGGING_CONFIG_PATH was given. VLLM_LOGGING_CONFIG_PATH implies VLLM_CONFIGURE_LOGGING. Please enable VLLM_CONFIGURE_LOGGING or unset VLLM_LOGGING_CONFIG_PATH."
-msgstr "VLLM_CONFIGURE_LOGGING は false と評価されましたが、VLLM_LOGGING_CONFIG_PATH が指定されました。VLLM_LOGGING_CONFIG_PATH は VLLM_CONFIGURE_LOGGING を意味します。VLLM_CONFIGURE_LOGGING を有効にするか、VLLM_LOGGING_CONFIG_PATH を設定解除してください。"
+msgstr "VLLM_CONFIGURE_LOGGING evaluated to false, but VLLM_LOGGING_CONFIG_PATH was given. VLLM_LOGGING_CONFIG_PATH implies VLLM_CONFIGURE_LOGGING. Please enable VLLM_CONFIGURE_LOGGING or unset VLLM_LOGGING_CONFIG_PATH."
 
 #: vllm/logger.py:165
 msgid "Could not load logging config. File does not exist: %s"
-msgstr "ロギング設定を読み込めません。ファイルが存在しません: %s"
+msgstr "Could not load logging config. File does not exist: %s"
 
 #: vllm/logger.py:172
 msgid "Invalid logging config. Expected dict, got %s."
-msgstr "無効なロギング設定です。dict が必要ですが、%s が得られました。"
+msgstr "Invalid logging config. Expected dict, got %s."
 
 #: vllm/entrypoints/utils.py:290
 msgid "vLLM server version %s, serving model %s"
-msgstr "vLLM サーバーバージョン %s、モデル %s を提供しています"
+msgstr "vLLM server version %s, serving model %s"
 
 #: vllm/entrypoints/utils.py:295
 msgid "version"
-msgstr "バージョン"
+msgstr "version"
 
 #: vllm/entrypoints/utils.py:296
 msgid "model"
-msgstr "モデル"
+msgstr "model"
 
 #: vllm/i18n/_config.py:30
 msgid "Configuration for the vLLM I18N system."
-msgstr "vLLM I18N システムの設定。"
+msgstr "Configuration for the vLLM I18N system."
 
 #: vllm/i18n/_config.py:35
 msgid "The locale code (e.g., 'en', 'zh_CN', 'de', 'fr', 'ja')."
-msgstr "ロケールコード（例：'en'、'zh_CN'、'de'、'fr'、'ja'）。"
+msgstr "The locale code (e.g., 'en', 'zh_CN', 'de', 'fr', 'ja')."
 
 #: vllm/i18n/_config.py:36
 msgid "The translation domain name (default: 'vllm')."
-msgstr "翻訳ドメイン名（デフォルト：'vllm'）。"
+msgstr "The translation domain name (default: 'vllm')."
 
 #: vllm/i18n/_config.py:37
 msgid "Path to the directory containing locale catalogs."
-msgstr "ロケールカタログを含むディレクトリへのパス。"
+msgstr "Path to the directory containing locale catalogs."
 
 #: vllm/i18n/_config.py:50
 msgid "Resolve the locale to use for translation."
-msgstr "翻訳に使用するロケールを解決します。"
+msgstr "Resolve the locale to use for translation."
 
 #: vllm/i18n/_config.py:60
 msgid "A locale code string (e.g., 'en', 'zh_CN', 'de', 'fr', 'ja')."
-msgstr "ロケールコード文字列（例：'en'、'zh_CN'、'de'、'fr'、'ja'）。"
+msgstr "A locale code string (e.g., 'en', 'zh_CN', 'de', 'fr', 'ja')."
 
 #: vllm/i18n/_config.py:90
 msgid "Get a GNUTranslations object for the specified locale."
-msgstr "指定されたロケールの GNUTranslations オブジェクトを取得します。"
+msgstr "Get a GNUTranslations object for the specified locale."
 
 #: vllm/i18n/__init__.py:70
 msgid "Translate a message string."
-msgstr "メッセージ文字列を翻訳します。"
+msgstr "Translate a message string."
 
 #: vllm/i18n/__init__.py:85
 msgid "The translated message string, or the original message if no translation is found."
-msgstr "翻訳されたメッセージ文字列、または翻訳が見つからない場合は元のメッセージ。"
+msgstr "The translated message string, or the original message if no translation is found."
 
 #: vllm/i18n/__init__.py:110
 msgid "Translate a message with plural forms."
-msgstr "複数形を含むメッセージを翻訳します。"
+msgstr "Translate a message with plural forms."
 
 #: vllm/i18n/__init__.py:125
 msgid "The translated message string in the appropriate form."
-msgstr "適切な形式の翻訳されたメッセージ文字列。"
+msgstr "The translated message string in the appropriate form."
 
 #: vllm/i18n/__init__.py:145
 msgid "Create a lazy-evaluated translation string."
-msgstr "遅延評価される翻訳文字列を作成します。"
+msgstr "Create a lazy-evaluated translation string."
 
 #: vllm/i18n/__init__.py:160
 msgid "A LazyString object that will be translated when converted to a string."
-msgstr "文字列に変換されるときに翻訳される LazyString オブジェクト。"
+msgstr "A LazyString object that will be translated when converted to a string."
 
 #: vllm/i18n/__init__.py:175
 msgid "Set up the I18N system with a specific locale."
-msgstr "特定のロケールで I18N システムをセットアップします。"
+msgstr "Set up the I18N system with a specific locale."
 
 #: vllm/i18n/__init__.py:190
 msgid "Get the currently active locale."
-msgstr "現在アクティブなロケールを取得します。"
+msgstr "Get the currently active locale."
 
 #: vllm/i18n/__init__.py:195
 msgid "The locale code of the currently active translator."
-msgstr "現在アクティブな翻訳者のロケールコード。"
+msgstr "The locale code of the currently active translator."
 
 #: vllm/i18n/_lazy.py:20
 msgid "A lazy-evaluated translation string."
-msgstr "遅延評価される翻訳文字列。"
+msgstr "A lazy-evaluated translation string."
 
 #: vllm/i18n/_lazy.py:30
 msgid "Initialize a LazyString."
-msgstr "LazyString を初期化します。"
+msgstr "Initialize a LazyString."
 
 #: vllm/i18n/_lazy.py:50
 msgid "Convert the lazy string to a regular string."
-msgstr "遅延文字列を通常の文字列に変換します。"
+msgstr "Convert the lazy string to a regular string."
 
 #: vllm/i18n/_lazy.py:60
 msgid "This method triggers the actual translation lookup and formatting."
-msgstr "このメソッドは実際の翻訳検索とフォーマットをトリガーします。"
+msgstr "This method triggers the actual translation lookup and formatting."
 
 #: vllm/i18n/_lazy.py:70
 msgid "The translated and formatted string."
-msgstr "翻訳およびフォーマットされた文字列。"
+msgstr "The translated and formatted string."
 
 #: vllm/i18n/_lazy.py:85
 msgid "Return a representation of the lazy string."
-msgstr "遅延文字列の表現を返します。"
+msgstr "Return a representation of the lazy string."
 
 #: vllm/i18n/_lazy.py:95
 msgid "A string representation showing the message ID and any arguments."
-msgstr "メッセージ ID と任意の引数を示す文字列表現。"
+msgstr "A string representation showing the message ID and any arguments."
 
 #: vllm/i18n/_lazy.py:110
 msgid "Format the lazy string using a format specification."
-msgstr "フォーマット仕様を使用して遅延文字列をフォーマットします。"
+msgstr "Format the lazy string using a format specification."
 
 #: vllm/i18n/_lazy.py:125
 msgid "The formatted string."
-msgstr "フォーマットされた文字列。"
+msgstr "The formatted string."
 
 #: vllm/i18n/_lazy.py:140
 msgid "Check equality with another object."
-msgstr "別のオブジェクトとの等価性をチェックします。"
+msgstr "Check equality with another object."
 
 #: vllm/i18n/_lazy.py:160
 msgid "True if the other object is a LazyString with the same msgid, args, and kwargs, or if it's a string equal to the translated string."
-msgstr "他のオブジェクトが同じ msgid、args、kwargs を持つ LazyString である場合、または翻訳された文字列と等しい文字列である場合は True。"
+msgstr "True if the other object is a LazyString with the same msgid, args, and kwargs, or if it's a string equal to the translated string."
 
 #: vllm/i18n/_lazy.py:175
 msgid "Return the hash of the lazy string."
-msgstr "遅延文字列のハッシュを返します。"
+msgstr "Return the hash of the lazy string."
 
 #: vllm/i18n/_lazy.py:185
 msgid "The hash of the message ID (args and kwargs are not included in the hash to allow for consistent hashing)."
-msgstr "メッセージ ID のハッシュ（args と kwargs は一貫したハッシュを許可するためにハッシュに含まれていません）。"
+msgstr "The hash of the message ID (args and kwargs are not included in the hash to allow for consistent hashing)."
 
 #: vllm/i18n/_lazy.py:195
 msgid "Check if the lazy string is truthy."
-msgstr "遅延文字列が真であるかどうかをチェックします。"
+msgstr "Check if the lazy string is truthy."
 
 #: vllm/i18n/_lazy.py:205
 msgid "True if the translated string is non-empty."
-msgstr "翻訳された文字列が空でない場合は True。"
+msgstr "True if the translated string is non-empty."
 
 #: vllm/i18n/_lazy.py:215
 msgid "Return the length of the translated string."
-msgstr "翻訳された文字列の長さを返します。"
+msgstr "Return the length of the translated string."
 
 #: vllm/i18n/_lazy.py:225
 msgid "The length of the translated and formatted string."
-msgstr "翻訳およびフォーマットされた文字列の長さ。"
+msgstr "The length of the translated and formatted string."
 
 #: vllm/i18n/_lazy.py:235
 msgid "Concatenate with another string."
-msgstr "別の文字列と連結します。"
+msgstr "Concatenate with another string."
 
 #: vllm/i18n/_lazy.py:250
 msgid "The concatenated string."
-msgstr "連結された文字列。"
+msgstr "The concatenated string."
 
 #: vllm/i18n/_lazy.py:260
 msgid "Right-hand concatenation with another string."
-msgstr "別の文字列との右側の連結。"
+msgstr "Right-hand concatenation with another string."
 
 #: vllm/i18n/_lazy.py:275
 msgid "The concatenated string."
-msgstr "連結された文字列。"
+msgstr "The concatenated string."
 
 #: vllm/i18n/_lazy.py:285
 msgid "Repeat the lazy string."
-msgstr "遅延文字列を繰り返します。"
+msgstr "Repeat the lazy string."
 
 #: vllm/i18n/_lazy.py:300
 msgid "The repeated string."
-msgstr "繰り返された文字列。"
+msgstr "The repeated string."
 
 #: vllm/i18n/_lazy.py:310
 msgid "Right-hand repeat of the lazy string."
-msgstr "遅延文字列の右側の繰り返し。"
+msgstr "Right-hand repeat of the lazy string."
 
 #: vllm/i18n/_lazy.py:325
 msgid "The repeated string."
-msgstr "繰り返された文字列。"
+msgstr "The repeated string."
 
 #: vllm/i18n/_lazy.py:335
 msgid "Check if a substring is contained in the lazy string."
-msgstr "部分文字列が遅延文字列に含まれているかどうかをチェックします。"
+msgstr "Check if a substring is contained in the lazy string."
 
 #: vllm/i18n/_lazy.py:350
 msgid "True if the substring is in the translated string."
-msgstr "部分文字列が翻訳された文字列に含まれている場合は True。"
+msgstr "True if the substring is in the translated string."
 
 #: vllm/i18n/_lazy.py:360
 msgid "Get a character or slice from the lazy string."
-msgstr "遅延文字列から文字またはスライスを取得します。"
+msgstr "Get a character or slice from the lazy string."
 
 #: vllm/i18n/_lazy.py:375
 msgid "The character or substring."
-msgstr "文字または部分文字列。"
+msgstr "The character or substring."
 
 #: vllm/entrypoints/utils.py:330
 msgid "BadRequestError"
-msgstr "不正なリクエストエラー"
+msgstr "BadRequestError"
 
 #: vllm/entrypoints/utils.py:335
 msgid "NotImplementedError"
-msgstr "未実装エラー"
+msgstr "NotImplementedError"
 
 #: vllm/entrypoints/utils.py:340
 msgid "InternalServerError"
-msgstr "内部サーバーエラー"
+msgstr "InternalServerError"
 
 #: vllm/entrypoints/utils.py:345
 msgid "Error response message"
-msgstr "エラー応答メッセージ"
+msgstr "Error response message"
 
 #: vllm/logger.py:100
 msgid "As debug, but subsequent calls with the same message are silently dropped."
-msgstr "デバッグと同様ですが、同じメッセージの後続の呼び出しは静かに削除されます。"
+msgstr "As debug, but subsequent calls with the same message are silently dropped."
 
 #: vllm/logger.py:110
 msgid "As info, but subsequent calls with the same message are silently dropped."
-msgstr "情報と同様ですが、同じメッセージの後続の呼び出しは静かに削除されます。"
+msgstr "As info, but subsequent calls with the same message are silently dropped."
 
 #: vllm/logger.py:120
 msgid "As warning, but subsequent calls with the same message are silently dropped."
-msgstr "警告と同様ですが、同じメッセージの後続の呼び出しは静かに削除されます。"
+msgstr "As warning, but subsequent calls with the same message are silently dropped."
 
 #: vllm/entrypoints/utils.py:50
 msgid "Returns if a disconnect message is received"
-msgstr "切断メッセージが受信された場合に返します"
+msgstr "Returns if a disconnect message is received"
 
 #: vllm/entrypoints/utils.py:70
 msgid "Decorator that allows a route handler to be cancelled by client disconnections."
-msgstr "クライアント切断によってルートハンドラーをキャンセルできるようにするデコレーター。"
+msgstr "Decorator that allows a route handler to be cancelled by client disconnections."
 
 #: vllm/entrypoints/utils.py:165
 msgid "Unsupported argument type. Must be Namespace or EngineArgs instance."
-msgstr "サポートされていない引数型です。Namespace または EngineArgs インスタンスである必要があります。"
+msgstr "Unsupported argument type. Must be Namespace or EngineArgs instance."
 
 #: vllm/entrypoints/utils.py:200
 msgid "The error message describing the validation failure."
-msgstr "検証失敗を説明するエラーメッセージ。"
+msgstr "The error message describing the validation failure."
 
 #: vllm/entrypoints/utils.py:205
 msgid "Optional parameter name that failed validation."
-msgstr "検証に失敗したオプションのパラメーター名。"
+msgstr "Optional parameter name that failed validation."
 
 #: vllm/entrypoints/utils.py:210
 msgid "Optional value that was rejected during validation."
-msgstr "検証中に拒否されたオプション値。"
+msgstr "Optional value that was rejected during validation."
 
 #: vllm/entrypoints/utils.py:215
 msgid "vLLM-specific validation error for request validation failures."
-msgstr "リクエスト検証失敗のための vLLM 固有の検証エラー。"
+msgstr "vLLM-specific validation error for request validation failures."
 
 #: vllm/entrypoints/utils.py:220
 msgid "Model configuration error"
-msgstr "モデル設定エラー"
+msgstr "Model configuration error"
 
 #: vllm/entrypoints/utils.py:225
 msgid "Invalid parameter value"
-msgstr "無効なパラメーター値"
+msgstr "Invalid parameter value"
 
 #: vllm/entrypoints/utils.py:230
 msgid "Missing required parameter"
-msgstr "必須パラメーターが見つかりません"
+msgstr "Missing required parameter"
 
 #: vllm/entrypoints/utils.py:235
 msgid "Invalid request format"
-msgstr "無効なリクエスト形式"
+msgstr "Invalid request format"
 
 #: vllm/entrypoints/utils.py:240
 msgid "Server error occurred"
-msgstr "サーバーエラーが発生しました"
+msgstr "Server error occurred"
 
 #: vllm/entrypoints/utils.py:245
 msgid "Operation not supported"
-msgstr "操作はサポートされていません"
+msgstr "Operation not supported"
 
 #: vllm/entrypoints/utils.py:250
 msgid "Resource not found"
-msgstr "リソースが見つかりません"
+msgstr "Resource not found"
 
 #: vllm/entrypoints/utils.py:255
 msgid "Request timeout"
-msgstr "リクエストタイムアウト"
+msgstr "Request timeout"

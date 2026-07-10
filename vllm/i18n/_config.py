@@ -45,8 +45,12 @@ def _resolve_locale() -> str:
     Returns:
         A locale code string (e.g., 'en', 'zh_CN', 'de', 'fr', 'ja').
     """
+    # Import here to avoid circular imports
+    # vllm.envs imports from vllm.logger which may import from vllm.i18n
+    from vllm.envs import VLLM_LOCALE
+    
     # Check VLLM_LOCALE first (highest priority for operator override)
-    vllm_locale = os.environ.get("VLLM_LOCALE")
+    vllm_locale = VLLM_LOCALE
     if vllm_locale:
         return vllm_locale
 

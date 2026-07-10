@@ -43,6 +43,8 @@ if TYPE_CHECKING:
     VLLM_LOGGING_CONFIG_PATH: str | None = None
     VLLM_LOGGING_COLOR: str = "auto"
     NO_COLOR: bool = False
+    VLLM_LOCALE: str | None = None
+    VLLM_I18N_ENABLED: bool = True
     VLLM_LOG_STATS_INTERVAL: float = 10.0
     VLLM_TRACE_FUNCTION: int = 0
     VLLM_USE_FLASHINFER_SAMPLER: bool | None = None
@@ -675,6 +677,12 @@ environment_variables: dict[str, Callable[[], Any]] = {
     "VLLM_LOGGING_COLOR": lambda: os.getenv("VLLM_LOGGING_COLOR", "auto"),
     # Standard unix flag for disabling ANSI color codes
     "NO_COLOR": lambda: os.getenv("NO_COLOR", "0") != "0",
+    # Internationalization (I18N) configuration
+    # Locale code for message translation (e.g., 'en', 'zh_CN', 'de', 'fr', 'ja')
+    # If not set, locale is resolved from LC_ALL, LANG, or system default
+    "VLLM_LOCALE": lambda: os.getenv("VLLM_LOCALE", None),
+    # Enable I18N translation of user-facing messages
+    "VLLM_I18N_ENABLED": lambda: os.getenv("VLLM_I18N_ENABLED", "1") == "1",
     # If set, vllm will log stats at this interval in seconds
     # If not set, vllm will log stats every 10 seconds.
     "VLLM_LOG_STATS_INTERVAL": lambda: val
@@ -1749,6 +1757,8 @@ def compile_factors() -> dict[str, object]:
         "VLLM_LOGGING_COLOR",
         "VLLM_LOG_STATS_INTERVAL",
         "VLLM_DEBUG_LOG_API_SERVER_RESPONSE",
+        "VLLM_LOCALE",
+        "VLLM_I18N_ENABLED",
         "VLLM_TUNED_CONFIG_FOLDER",
         "VLLM_ENGINE_ITERATION_TIMEOUT_S",
         "VLLM_HTTP_TIMEOUT_KEEP_ALIVE",

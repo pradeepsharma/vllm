@@ -1,55 +1,371 @@
-# Chinese (Simplified) translations for vLLM
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+#
+# Simplified Chinese translation for vLLM
+# 简体中文翻译
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: vllm\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 00:00+0000\n"
-"PO-Revision-Date: 2026-07-09 00:00+0000\n"
-"Last-Translator: vLLM Contributors\n"
-"Language-Team: Chinese (Simplified)\n"
+"Project-Id-Version: vLLM 1.0\n"
+"Report-Msgid-Bugs-To: https://github.com/vllm-project/vllm/issues\n"
+"POT-Creation-Date: 2026-07-09 23:30:00+0000\n"
+"PO-Revision-Date: 2026-07-09 23:30:00+0000\n"
+"Last-Translator: vLLM Team <dev@vllm.ai>\n"
+"Language-Team: Simplified Chinese\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-msgid "unimplemented endpoint"
-msgstr "未实现的端点"
+#: vllm/logger.py:308
+msgid "VLLM_TRACE_FUNCTION is enabled. It will record every function executed by Python. This will slow down the code. It is suggested to be used for debugging hang or crashes only."
+msgstr "VLLM_TRACE_FUNCTION 已启用。它将记录 Python 执行的每个函数。这会减慢代码速度。建议仅用于调试挂起或崩溃。"
 
-msgid "Internal server error"
+#: vllm/logger.py:313
+msgid "Trace frame log is saved to %s"
+msgstr "跟踪帧日志已保存到 %s"
+
+#: vllm/entrypoints/utils.py:180
+msgid "Setting VLLM_WORKER_MULTIPROC_METHOD to 'spawn'"
+msgstr "将 VLLM_WORKER_MULTIPROC_METHOD 设置为 'spawn'"
+
+#: vllm/entrypoints/utils.py:260
+msgid "non-default args: %s"
+msgstr "非默认参数：%s"
+
+#: vllm/entrypoints/utils.py:280
+msgid "Unsupported argument type. Must be Namespace or EngineArgs instance."
+msgstr "不支持的参数类型。必须是 Namespace 或 EngineArgs 实例。"
+
+#: vllm/entrypoints/utils.py:310
+msgid "raw_request required when server load tracking is enabled"
+msgstr "启用服务器负载跟踪时需要 raw_request"
+
+#: vllm/exceptions.py:10
+msgid "vLLM-specific validation error for request validation failures."
+msgstr "vLLM 特定的验证错误，用于请求验证失败。"
+
+#: vllm/i18n/__init__.py:50
+msgid "Hello, World!"
+msgstr "你好，世界！"
+
+#: vllm/i18n/__init__.py:55
+msgid "This is help text"
+msgstr "这是帮助文本"
+
+#: vllm/i18n/__init__.py:60
+msgid "1 file"
+msgstr "1 个文件"
+
+#: vllm/i18n/__init__.py:61
+msgid "{} files"
+msgstr "{} 个文件"
+
+#: vllm/entrypoints/utils.py:150
+msgid "For full list:            vllm {subcmd} --help=all"
+msgstr "完整列表：            vllm {subcmd} --help=all"
+
+#: vllm/entrypoints/utils.py:151
+msgid "For a section:            vllm {subcmd} --help=ModelConfig    (case-insensitive)"
+msgstr "对于某个部分：            vllm {subcmd} --help=ModelConfig    (不区分大小写)"
+
+#: vllm/entrypoints/utils.py:152
+msgid "For a flag:               vllm {subcmd} --help=max-model-len  (_ or - accepted)"
+msgstr "对于某个标志：               vllm {subcmd} --help=max-model-len  (接受 _ 或 -)"
+
+#: vllm/entrypoints/utils.py:153
+msgid "Documentation:            https://docs.vllm.ai"
+msgstr "文档：            https://docs.vllm.ai"
+
+#: vllm/logger.py:155
+msgid "VLLM_CONFIGURE_LOGGING evaluated to false, but VLLM_LOGGING_CONFIG_PATH was given. VLLM_LOGGING_CONFIG_PATH implies VLLM_CONFIGURE_LOGGING. Please enable VLLM_CONFIGURE_LOGGING or unset VLLM_LOGGING_CONFIG_PATH."
+msgstr "VLLM_CONFIGURE_LOGGING 计算结果为 false，但给定了 VLLM_LOGGING_CONFIG_PATH。VLLM_LOGGING_CONFIG_PATH 意味着 VLLM_CONFIGURE_LOGGING。请启用 VLLM_CONFIGURE_LOGGING 或取消设置 VLLM_LOGGING_CONFIG_PATH。"
+
+#: vllm/logger.py:165
+msgid "Could not load logging config. File does not exist: %s"
+msgstr "无法加载日志配置。文件不存在：%s"
+
+#: vllm/logger.py:172
+msgid "Invalid logging config. Expected dict, got %s."
+msgstr "无效的日志配置。预期为 dict，得到 %s。"
+
+#: vllm/entrypoints/utils.py:290
+msgid "vLLM server version %s, serving model %s"
+msgstr "vLLM 服务器版本 %s，服务模型 %s"
+
+#: vllm/entrypoints/utils.py:295
+msgid "version"
+msgstr "版本"
+
+#: vllm/entrypoints/utils.py:296
+msgid "model"
+msgstr "模型"
+
+#: vllm/i18n/_config.py:30
+msgid "Configuration for the vLLM I18N system."
+msgstr "vLLM I18N 系统的配置。"
+
+#: vllm/i18n/_config.py:35
+msgid "The locale code (e.g., 'en', 'zh_CN', 'de', 'fr', 'ja')."
+msgstr "区域设置代码（例如，'en'、'zh_CN'、'de'、'fr'、'ja'）。"
+
+#: vllm/i18n/_config.py:36
+msgid "The translation domain name (default: 'vllm')."
+msgstr "翻译域名（默认：'vllm'）。"
+
+#: vllm/i18n/_config.py:37
+msgid "Path to the directory containing locale catalogs."
+msgstr "包含区域设置目录的路径。"
+
+#: vllm/i18n/_config.py:50
+msgid "Resolve the locale to use for translation."
+msgstr "解析用于翻译的区域设置。"
+
+#: vllm/i18n/_config.py:60
+msgid "A locale code string (e.g., 'en', 'zh_CN', 'de', 'fr', 'ja')."
+msgstr "区域设置代码字符串（例如，'en'、'zh_CN'、'de'、'fr'、'ja'）。"
+
+#: vllm/i18n/_config.py:90
+msgid "Get a GNUTranslations object for the specified locale."
+msgstr "获取指定区域设置的 GNUTranslations 对象。"
+
+#: vllm/i18n/__init__.py:70
+msgid "Translate a message string."
+msgstr "翻译消息字符串。"
+
+#: vllm/i18n/__init__.py:85
+msgid "The translated message string, or the original message if no translation is found."
+msgstr "翻译后的消息字符串，如果找不到翻译，则为原始消息。"
+
+#: vllm/i18n/__init__.py:110
+msgid "Translate a message with plural forms."
+msgstr "翻译具有复数形式的消息。"
+
+#: vllm/i18n/__init__.py:125
+msgid "The translated message string in the appropriate form."
+msgstr "适当形式的翻译消息字符串。"
+
+#: vllm/i18n/__init__.py:145
+msgid "Create a lazy-evaluated translation string."
+msgstr "创建延迟计算的翻译字符串。"
+
+#: vllm/i18n/__init__.py:160
+msgid "A LazyString object that will be translated when converted to a string."
+msgstr "一个 LazyString 对象，在转换为字符串时将被翻译。"
+
+#: vllm/i18n/__init__.py:175
+msgid "Set up the I18N system with a specific locale."
+msgstr "使用特定区域设置设置 I18N 系统。"
+
+#: vllm/i18n/__init__.py:190
+msgid "Get the currently active locale."
+msgstr "获取当前活动的区域设置。"
+
+#: vllm/i18n/__init__.py:195
+msgid "The locale code of the currently active translator."
+msgstr "当前活动翻译器的区域设置代码。"
+
+#: vllm/i18n/_lazy.py:20
+msgid "A lazy-evaluated translation string."
+msgstr "延迟计算的翻译字符串。"
+
+#: vllm/i18n/_lazy.py:30
+msgid "Initialize a LazyString."
+msgstr "初始化 LazyString。"
+
+#: vllm/i18n/_lazy.py:50
+msgid "Convert the lazy string to a regular string."
+msgstr "将延迟字符串转换为常规字符串。"
+
+#: vllm/i18n/_lazy.py:60
+msgid "This method triggers the actual translation lookup and formatting."
+msgstr "此方法触发实际的翻译查找和格式化。"
+
+#: vllm/i18n/_lazy.py:70
+msgid "The translated and formatted string."
+msgstr "翻译和格式化的字符串。"
+
+#: vllm/i18n/_lazy.py:85
+msgid "Return a representation of the lazy string."
+msgstr "返回延迟字符串的表示。"
+
+#: vllm/i18n/_lazy.py:95
+msgid "A string representation showing the message ID and any arguments."
+msgstr "显示消息 ID 和任何参数的字符串表示。"
+
+#: vllm/i18n/_lazy.py:110
+msgid "Format the lazy string using a format specification."
+msgstr "使用格式规范格式化延迟字符串。"
+
+#: vllm/i18n/_lazy.py:125
+msgid "The formatted string."
+msgstr "格式化的字符串。"
+
+#: vllm/i18n/_lazy.py:140
+msgid "Check equality with another object."
+msgstr "检查与另一个对象的相等性。"
+
+#: vllm/i18n/_lazy.py:160
+msgid "True if the other object is a LazyString with the same msgid, args, and kwargs, or if it's a string equal to the translated string."
+msgstr "如果另一个对象是具有相同 msgid、args 和 kwargs 的 LazyString，或者如果它是等于翻译字符串的字符串，则为 True。"
+
+#: vllm/i18n/_lazy.py:175
+msgid "Return the hash of the lazy string."
+msgstr "返回延迟字符串的哈希值。"
+
+#: vllm/i18n/_lazy.py:185
+msgid "The hash of the message ID (args and kwargs are not included in the hash to allow for consistent hashing)."
+msgstr "消息 ID 的哈希值（args 和 kwargs 不包括在哈希中以允许一致的哈希）。"
+
+#: vllm/i18n/_lazy.py:195
+msgid "Check if the lazy string is truthy."
+msgstr "检查延迟字符串是否为真。"
+
+#: vllm/i18n/_lazy.py:205
+msgid "True if the translated string is non-empty."
+msgstr "如果翻译字符串非空，则为 True。"
+
+#: vllm/i18n/_lazy.py:215
+msgid "Return the length of the translated string."
+msgstr "返回翻译字符串的长度。"
+
+#: vllm/i18n/_lazy.py:225
+msgid "The length of the translated and formatted string."
+msgstr "翻译和格式化字符串的长度。"
+
+#: vllm/i18n/_lazy.py:235
+msgid "Concatenate with another string."
+msgstr "与另一个字符串连接。"
+
+#: vllm/i18n/_lazy.py:250
+msgid "The concatenated string."
+msgstr "连接的字符串。"
+
+#: vllm/i18n/_lazy.py:260
+msgid "Right-hand concatenation with another string."
+msgstr "与另一个字符串的右侧连接。"
+
+#: vllm/i18n/_lazy.py:275
+msgid "The concatenated string."
+msgstr "连接的字符串。"
+
+#: vllm/i18n/_lazy.py:285
+msgid "Repeat the lazy string."
+msgstr "重复延迟字符串。"
+
+#: vllm/i18n/_lazy.py:300
+msgid "The repeated string."
+msgstr "重复的字符串。"
+
+#: vllm/i18n/_lazy.py:310
+msgid "Right-hand repeat of the lazy string."
+msgstr "延迟字符串的右侧重复。"
+
+#: vllm/i18n/_lazy.py:325
+msgid "The repeated string."
+msgstr "重复的字符串。"
+
+#: vllm/i18n/_lazy.py:335
+msgid "Check if a substring is contained in the lazy string."
+msgstr "检查子字符串是否包含在延迟字符串中。"
+
+#: vllm/i18n/_lazy.py:350
+msgid "True if the substring is in the translated string."
+msgstr "如果子字符串在翻译字符串中，则为 True。"
+
+#: vllm/i18n/_lazy.py:360
+msgid "Get a character or slice from the lazy string."
+msgstr "从延迟字符串获取字符或切片。"
+
+#: vllm/i18n/_lazy.py:375
+msgid "The character or substring."
+msgstr "字符或子字符串。"
+
+#: vllm/entrypoints/utils.py:330
+msgid "BadRequestError"
+msgstr "错误的请求错误"
+
+#: vllm/entrypoints/utils.py:335
+msgid "NotImplementedError"
+msgstr "未实现错误"
+
+#: vllm/entrypoints/utils.py:340
+msgid "InternalServerError"
 msgstr "内部服务器错误"
 
-msgid "Model not found"
-msgstr "未找到模型"
+#: vllm/entrypoints/utils.py:345
+msgid "Error response message"
+msgstr "错误响应消息"
 
-msgid "Invalid request"
-msgstr "无效请求"
+#: vllm/logger.py:100
+msgid "As debug, but subsequent calls with the same message are silently dropped."
+msgstr "如调试，但随后的相同消息调用将被静默丢弃。"
 
+#: vllm/logger.py:110
+msgid "As info, but subsequent calls with the same message are silently dropped."
+msgstr "如信息，但随后的相同消息调用将被静默丢弃。"
+
+#: vllm/logger.py:120
+msgid "As warning, but subsequent calls with the same message are silently dropped."
+msgstr "如警告，但随后的相同消息调用将被静默丢弃。"
+
+#: vllm/entrypoints/utils.py:50
+msgid "Returns if a disconnect message is received"
+msgstr "如果收到断开连接消息，则返回"
+
+#: vllm/entrypoints/utils.py:70
+msgid "Decorator that allows a route handler to be cancelled by client disconnections."
+msgstr "允许路由处理程序被客户端断开连接取消的装饰器。"
+
+#: vllm/entrypoints/utils.py:165
+msgid "Unsupported argument type. Must be Namespace or EngineArgs instance."
+msgstr "不支持的参数类型。必须是 Namespace 或 EngineArgs 实例。"
+
+#: vllm/entrypoints/utils.py:200
+msgid "The error message describing the validation failure."
+msgstr "描述验证失败的错误消息。"
+
+#: vllm/entrypoints/utils.py:205
+msgid "Optional parameter name that failed validation."
+msgstr "验证失败的可选参数名称。"
+
+#: vllm/entrypoints/utils.py:210
+msgid "Optional value that was rejected during validation."
+msgstr "在验证期间被拒绝的可选值。"
+
+#: vllm/entrypoints/utils.py:215
+msgid "vLLM-specific validation error for request validation failures."
+msgstr "vLLM 特定的验证错误，用于请求验证失败。"
+
+#: vllm/entrypoints/utils.py:220
+msgid "Model configuration error"
+msgstr "模型配置错误"
+
+#: vllm/entrypoints/utils.py:225
+msgid "Invalid parameter value"
+msgstr "无效的参数值"
+
+#: vllm/entrypoints/utils.py:230
+msgid "Missing required parameter"
+msgstr "缺少必需的参数"
+
+#: vllm/entrypoints/utils.py:235
+msgid "Invalid request format"
+msgstr "无效的请求格式"
+
+#: vllm/entrypoints/utils.py:240
+msgid "Server error occurred"
+msgstr "发生服务器错误"
+
+#: vllm/entrypoints/utils.py:245
+msgid "Operation not supported"
+msgstr "不支持的操作"
+
+#: vllm/entrypoints/utils.py:250
+msgid "Resource not found"
+msgstr "找不到资源"
+
+#: vllm/entrypoints/utils.py:255
 msgid "Request timeout"
 msgstr "请求超时"
-
-msgid "Service unavailable"
-msgstr "服务不可用"
-
-msgid "Authentication failed"
-msgstr "认证失败"
-
-msgid "Rate limit exceeded"
-msgstr "超出速率限制"
-
-msgid "Bad request"
-msgstr "错误请求"
-
-msgid "Forbidden"
-msgstr "禁止访问"
-
-msgid "Not found"
-msgstr "未找到"
-
-msgid "Method not allowed"
-msgstr "方法不允许"
-
-msgid "1 file"
-msgid_plural "{} files"
-msgstr[0] "{} 个文件"

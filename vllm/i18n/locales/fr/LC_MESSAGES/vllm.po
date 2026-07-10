@@ -1,12 +1,16 @@
-# French translations for vLLM
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+#
+# French translation for vLLM
+# Traduction française
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: vllm\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 00:00+0000\n"
-"PO-Revision-Date: 2026-07-09 00:00+0000\n"
-"Last-Translator: vLLM Contributors\n"
+"Project-Id-Version: vLLM 1.0\n"
+"Report-Msgid-Bugs-To: https://github.com/vllm-project/vllm/issues\n"
+"POT-Creation-Date: 2026-07-09 23:30:00+0000\n"
+"PO-Revision-Date: 2026-07-09 23:30:00+0000\n"
+"Last-Translator: vLLM Team <dev@vllm.ai>\n"
 "Language-Team: French\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -14,43 +18,354 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-msgid "unimplemented endpoint"
-msgstr "Point de terminaison non implémenté"
+#: vllm/logger.py:308
+msgid "VLLM_TRACE_FUNCTION is enabled. It will record every function executed by Python. This will slow down the code. It is suggested to be used for debugging hang or crashes only."
+msgstr "VLLM_TRACE_FUNCTION est activé. Il enregistrera chaque fonction exécutée par Python. Cela ralentira le code. Il est suggéré de l'utiliser uniquement pour déboguer les blocages ou les plantages."
 
-msgid "Internal server error"
+#: vllm/logger.py:313
+msgid "Trace frame log is saved to %s"
+msgstr "Le journal des cadres de trace est enregistré dans %s"
+
+#: vllm/entrypoints/utils.py:180
+msgid "Setting VLLM_WORKER_MULTIPROC_METHOD to 'spawn'"
+msgstr "Définition de VLLM_WORKER_MULTIPROC_METHOD sur 'spawn'"
+
+#: vllm/entrypoints/utils.py:260
+msgid "non-default args: %s"
+msgstr "arguments non-défaut : %s"
+
+#: vllm/entrypoints/utils.py:280
+msgid "Unsupported argument type. Must be Namespace or EngineArgs instance."
+msgstr "Type d'argument non supporté. Doit être une instance Namespace ou EngineArgs."
+
+#: vllm/entrypoints/utils.py:310
+msgid "raw_request required when server load tracking is enabled"
+msgstr "raw_request requis lorsque le suivi de la charge du serveur est activé"
+
+#: vllm/exceptions.py:10
+msgid "vLLM-specific validation error for request validation failures."
+msgstr "Erreur de validation spécifique à vLLM pour les échecs de validation des demandes."
+
+#: vllm/i18n/__init__.py:50
+msgid "Hello, World!"
+msgstr "Bonjour, le monde!"
+
+#: vllm/i18n/__init__.py:55
+msgid "This is help text"
+msgstr "Ceci est un texte d'aide"
+
+#: vllm/i18n/__init__.py:60
+msgid "1 file"
+msgstr "1 fichier"
+
+#: vllm/i18n/__init__.py:61
+msgid "{} files"
+msgstr "{} fichiers"
+
+#: vllm/entrypoints/utils.py:150
+msgid "For full list:            vllm {subcmd} --help=all"
+msgstr "Pour la liste complète :            vllm {subcmd} --help=all"
+
+#: vllm/entrypoints/utils.py:151
+msgid "For a section:            vllm {subcmd} --help=ModelConfig    (case-insensitive)"
+msgstr "Pour une section :            vllm {subcmd} --help=ModelConfig    (insensible à la casse)"
+
+#: vllm/entrypoints/utils.py:152
+msgid "For a flag:               vllm {subcmd} --help=max-model-len  (_ or - accepted)"
+msgstr "Pour un drapeau :               vllm {subcmd} --help=max-model-len  (_ ou - accepté)"
+
+#: vllm/entrypoints/utils.py:153
+msgid "Documentation:            https://docs.vllm.ai"
+msgstr "Documentation :            https://docs.vllm.ai"
+
+#: vllm/logger.py:155
+msgid "VLLM_CONFIGURE_LOGGING evaluated to false, but VLLM_LOGGING_CONFIG_PATH was given. VLLM_LOGGING_CONFIG_PATH implies VLLM_CONFIGURE_LOGGING. Please enable VLLM_CONFIGURE_LOGGING or unset VLLM_LOGGING_CONFIG_PATH."
+msgstr "VLLM_CONFIGURE_LOGGING a été évalué à false, mais VLLM_LOGGING_CONFIG_PATH a été donné. VLLM_LOGGING_CONFIG_PATH implique VLLM_CONFIGURE_LOGGING. Veuillez activer VLLM_CONFIGURE_LOGGING ou désactiver VLLM_LOGGING_CONFIG_PATH."
+
+#: vllm/logger.py:165
+msgid "Could not load logging config. File does not exist: %s"
+msgstr "Impossible de charger la configuration de journalisation. Le fichier n'existe pas : %s"
+
+#: vllm/logger.py:172
+msgid "Invalid logging config. Expected dict, got %s."
+msgstr "Configuration de journalisation invalide. Attendu dict, obtenu %s."
+
+#: vllm/entrypoints/utils.py:290
+msgid "vLLM server version %s, serving model %s"
+msgstr "Version du serveur vLLM %s, modèle de service %s"
+
+#: vllm/entrypoints/utils.py:295
+msgid "version"
+msgstr "version"
+
+#: vllm/entrypoints/utils.py:296
+msgid "model"
+msgstr "modèle"
+
+#: vllm/i18n/_config.py:30
+msgid "Configuration for the vLLM I18N system."
+msgstr "Configuration du système I18N vLLM."
+
+#: vllm/i18n/_config.py:35
+msgid "The locale code (e.g., 'en', 'zh_CN', 'de', 'fr', 'ja')."
+msgstr "Le code de locale (par exemple, 'en', 'zh_CN', 'de', 'fr', 'ja')."
+
+#: vllm/i18n/_config.py:36
+msgid "The translation domain name (default: 'vllm')."
+msgstr "Le nom du domaine de traduction (par défaut : 'vllm')."
+
+#: vllm/i18n/_config.py:37
+msgid "Path to the directory containing locale catalogs."
+msgstr "Chemin d'accès au répertoire contenant les catalogues de locale."
+
+#: vllm/i18n/_config.py:50
+msgid "Resolve the locale to use for translation."
+msgstr "Résoudre la locale à utiliser pour la traduction."
+
+#: vllm/i18n/_config.py:60
+msgid "A locale code string (e.g., 'en', 'zh_CN', 'de', 'fr', 'ja')."
+msgstr "Une chaîne de code de locale (par exemple, 'en', 'zh_CN', 'de', 'fr', 'ja')."
+
+#: vllm/i18n/_config.py:90
+msgid "Get a GNUTranslations object for the specified locale."
+msgstr "Obtenir un objet GNUTranslations pour la locale spécifiée."
+
+#: vllm/i18n/__init__.py:70
+msgid "Translate a message string."
+msgstr "Traduire une chaîne de message."
+
+#: vllm/i18n/__init__.py:85
+msgid "The translated message string, or the original message if no translation is found."
+msgstr "La chaîne de message traduite, ou le message original si aucune traduction n'est trouvée."
+
+#: vllm/i18n/__init__.py:110
+msgid "Translate a message with plural forms."
+msgstr "Traduire un message avec des formes plurielles."
+
+#: vllm/i18n/__init__.py:125
+msgid "The translated message string in the appropriate form."
+msgstr "La chaîne de message traduite sous la forme appropriée."
+
+#: vllm/i18n/__init__.py:145
+msgid "Create a lazy-evaluated translation string."
+msgstr "Créer une chaîne de traduction évaluée tardivement."
+
+#: vllm/i18n/__init__.py:160
+msgid "A LazyString object that will be translated when converted to a string."
+msgstr "Un objet LazyString qui sera traduit lors de la conversion en chaîne."
+
+#: vllm/i18n/__init__.py:175
+msgid "Set up the I18N system with a specific locale."
+msgstr "Configurer le système I18N avec une locale spécifique."
+
+#: vllm/i18n/__init__.py:190
+msgid "Get the currently active locale."
+msgstr "Obtenir la locale actuellement active."
+
+#: vllm/i18n/__init__.py:195
+msgid "The locale code of the currently active translator."
+msgstr "Le code de locale du traducteur actuellement actif."
+
+#: vllm/i18n/_lazy.py:20
+msgid "A lazy-evaluated translation string."
+msgstr "Une chaîne de traduction évaluée tardivement."
+
+#: vllm/i18n/_lazy.py:30
+msgid "Initialize a LazyString."
+msgstr "Initialiser un LazyString."
+
+#: vllm/i18n/_lazy.py:50
+msgid "Convert the lazy string to a regular string."
+msgstr "Convertir la chaîne paresseuse en chaîne régulière."
+
+#: vllm/i18n/_lazy.py:60
+msgid "This method triggers the actual translation lookup and formatting."
+msgstr "Cette méthode déclenche la recherche de traduction réelle et le formatage."
+
+#: vllm/i18n/_lazy.py:70
+msgid "The translated and formatted string."
+msgstr "La chaîne traduite et formatée."
+
+#: vllm/i18n/_lazy.py:85
+msgid "Return a representation of the lazy string."
+msgstr "Retourner une représentation de la chaîne paresseuse."
+
+#: vllm/i18n/_lazy.py:95
+msgid "A string representation showing the message ID and any arguments."
+msgstr "Une représentation sous forme de chaîne montrant l'ID du message et tous les arguments."
+
+#: vllm/i18n/_lazy.py:110
+msgid "Format the lazy string using a format specification."
+msgstr "Formater la chaîne paresseuse à l'aide d'une spécification de format."
+
+#: vllm/i18n/_lazy.py:125
+msgid "The formatted string."
+msgstr "La chaîne formatée."
+
+#: vllm/i18n/_lazy.py:140
+msgid "Check equality with another object."
+msgstr "Vérifier l'égalité avec un autre objet."
+
+#: vllm/i18n/_lazy.py:160
+msgid "True if the other object is a LazyString with the same msgid, args, and kwargs, or if it's a string equal to the translated string."
+msgstr "True si l'autre objet est un LazyString avec le même msgid, args et kwargs, ou s'il s'agit d'une chaîne égale à la chaîne traduite."
+
+#: vllm/i18n/_lazy.py:175
+msgid "Return the hash of the lazy string."
+msgstr "Retourner le hash de la chaîne paresseuse."
+
+#: vllm/i18n/_lazy.py:185
+msgid "The hash of the message ID (args and kwargs are not included in the hash to allow for consistent hashing)."
+msgstr "Le hash de l'ID du message (args et kwargs ne sont pas inclus dans le hash pour permettre un hachage cohérent)."
+
+#: vllm/i18n/_lazy.py:195
+msgid "Check if the lazy string is truthy."
+msgstr "Vérifier si la chaîne paresseuse est vraie."
+
+#: vllm/i18n/_lazy.py:205
+msgid "True if the translated string is non-empty."
+msgstr "True si la chaîne traduite n'est pas vide."
+
+#: vllm/i18n/_lazy.py:215
+msgid "Return the length of the translated string."
+msgstr "Retourner la longueur de la chaîne traduite."
+
+#: vllm/i18n/_lazy.py:225
+msgid "The length of the translated and formatted string."
+msgstr "La longueur de la chaîne traduite et formatée."
+
+#: vllm/i18n/_lazy.py:235
+msgid "Concatenate with another string."
+msgstr "Concaténer avec une autre chaîne."
+
+#: vllm/i18n/_lazy.py:250
+msgid "The concatenated string."
+msgstr "La chaîne concaténée."
+
+#: vllm/i18n/_lazy.py:260
+msgid "Right-hand concatenation with another string."
+msgstr "Concaténation de droite avec une autre chaîne."
+
+#: vllm/i18n/_lazy.py:275
+msgid "The concatenated string."
+msgstr "La chaîne concaténée."
+
+#: vllm/i18n/_lazy.py:285
+msgid "Repeat the lazy string."
+msgstr "Répéter la chaîne paresseuse."
+
+#: vllm/i18n/_lazy.py:300
+msgid "The repeated string."
+msgstr "La chaîne répétée."
+
+#: vllm/i18n/_lazy.py:310
+msgid "Right-hand repeat of the lazy string."
+msgstr "Répétition de droite de la chaîne paresseuse."
+
+#: vllm/i18n/_lazy.py:325
+msgid "The repeated string."
+msgstr "La chaîne répétée."
+
+#: vllm/i18n/_lazy.py:335
+msgid "Check if a substring is contained in the lazy string."
+msgstr "Vérifier si une sous-chaîne est contenue dans la chaîne paresseuse."
+
+#: vllm/i18n/_lazy.py:350
+msgid "True if the substring is in the translated string."
+msgstr "True si la sous-chaîne est dans la chaîne traduite."
+
+#: vllm/i18n/_lazy.py:360
+msgid "Get a character or slice from the lazy string."
+msgstr "Obtenir un caractère ou une tranche de la chaîne paresseuse."
+
+#: vllm/i18n/_lazy.py:375
+msgid "The character or substring."
+msgstr "Le caractère ou la sous-chaîne."
+
+#: vllm/entrypoints/utils.py:330
+msgid "BadRequestError"
+msgstr "Erreur de mauvaise demande"
+
+#: vllm/entrypoints/utils.py:335
+msgid "NotImplementedError"
+msgstr "Erreur non implémentée"
+
+#: vllm/entrypoints/utils.py:340
+msgid "InternalServerError"
 msgstr "Erreur interne du serveur"
 
-msgid "Model not found"
-msgstr "Modèle introuvable"
+#: vllm/entrypoints/utils.py:345
+msgid "Error response message"
+msgstr "Message de réponse d'erreur"
 
-msgid "Invalid request"
-msgstr "Requête invalide"
+#: vllm/logger.py:100
+msgid "As debug, but subsequent calls with the same message are silently dropped."
+msgstr "Comme le débogage, mais les appels ultérieurs avec le même message sont silencieusement supprimés."
 
+#: vllm/logger.py:110
+msgid "As info, but subsequent calls with the same message are silently dropped."
+msgstr "Comme info, mais les appels ultérieurs avec le même message sont silencieusement supprimés."
+
+#: vllm/logger.py:120
+msgid "As warning, but subsequent calls with the same message are silently dropped."
+msgstr "Comme avertissement, mais les appels ultérieurs avec le même message sont silencieusement supprimés."
+
+#: vllm/entrypoints/utils.py:50
+msgid "Returns if a disconnect message is received"
+msgstr "Retourne si un message de déconnexion est reçu"
+
+#: vllm/entrypoints/utils.py:70
+msgid "Decorator that allows a route handler to be cancelled by client disconnections."
+msgstr "Décorateur qui permet à un gestionnaire de route d'être annulé par les déconnexions des clients."
+
+#: vllm/entrypoints/utils.py:165
+msgid "Unsupported argument type. Must be Namespace or EngineArgs instance."
+msgstr "Type d'argument non supporté. Doit être une instance Namespace ou EngineArgs."
+
+#: vllm/entrypoints/utils.py:200
+msgid "The error message describing the validation failure."
+msgstr "Le message d'erreur décrivant l'échec de la validation."
+
+#: vllm/entrypoints/utils.py:205
+msgid "Optional parameter name that failed validation."
+msgstr "Nom du paramètre facultatif qui a échoué la validation."
+
+#: vllm/entrypoints/utils.py:210
+msgid "Optional value that was rejected during validation."
+msgstr "Valeur facultative qui a été rejetée lors de la validation."
+
+#: vllm/entrypoints/utils.py:215
+msgid "vLLM-specific validation error for request validation failures."
+msgstr "Erreur de validation spécifique à vLLM pour les échecs de validation des demandes."
+
+#: vllm/entrypoints/utils.py:220
+msgid "Model configuration error"
+msgstr "Erreur de configuration du modèle"
+
+#: vllm/entrypoints/utils.py:225
+msgid "Invalid parameter value"
+msgstr "Valeur de paramètre invalide"
+
+#: vllm/entrypoints/utils.py:230
+msgid "Missing required parameter"
+msgstr "Paramètre requis manquant"
+
+#: vllm/entrypoints/utils.py:235
+msgid "Invalid request format"
+msgstr "Format de demande invalide"
+
+#: vllm/entrypoints/utils.py:240
+msgid "Server error occurred"
+msgstr "Une erreur serveur s'est produite"
+
+#: vllm/entrypoints/utils.py:245
+msgid "Operation not supported"
+msgstr "Opération non supportée"
+
+#: vllm/entrypoints/utils.py:250
+msgid "Resource not found"
+msgstr "Ressource non trouvée"
+
+#: vllm/entrypoints/utils.py:255
 msgid "Request timeout"
-msgstr "Délai de requête dépassé"
-
-msgid "Service unavailable"
-msgstr "Service indisponible"
-
-msgid "Authentication failed"
-msgstr "Échec de l'authentification"
-
-msgid "Rate limit exceeded"
-msgstr "Limite de débit dépassée"
-
-msgid "Bad request"
-msgstr "Mauvaise requête"
-
-msgid "Forbidden"
-msgstr "Interdit"
-
-msgid "Not found"
-msgstr "Introuvable"
-
-msgid "Method not allowed"
-msgstr "Méthode non autorisée"
-
-msgid "1 file"
-msgid_plural "{} files"
-msgstr[0] "1 fichier"
-msgstr[1] "{} fichiers"
+msgstr "Délai d'expiration de la demande"
