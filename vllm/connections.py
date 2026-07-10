@@ -32,7 +32,13 @@ class HTTPConnection:
     # required, so that the client is only accessible inside async event loop
     async def get_async_client(self) -> aiohttp.ClientSession:
         if self._async_client is None or not self.reuse_client:
-            self._async_client = aiohttp.ClientSession(trust_env=True)
+            # NOTE: trust_env is intentionally NOT set to True to prevent SSRF attacks
+            # via proxy environment variables (HTTP_PROXY, HTTPS_PROXY, etc.).
+            # Proxy configuration should be explicit and controlled by the application,
+            # not inherited from the environment. This prevents attackers from
+            # redirecting HTTP requests through a malicious proxy in multi-tenant
+            # or untrusted deployment environments.
+            self._async_client = aiohttp.ClientSession()
 
         return self._async_client
 
@@ -76,6 +82,7 @@ class HTTPConnection:
         timeout: float | None = None,
         extra_headers: Mapping[str, str] | None = None,
         allow_redirects: bool = True,
+        proxy: str | None = None,
     ):
         self._validate_http_url(url)
 
@@ -87,6 +94,7 @@ class HTTPConnection:
             headers=self._headers(**extra_headers),
             timeout=timeout,
             allow_redirects=allow_redirects,
+            proxy=proxy,
         )
 
     def get_bytes(

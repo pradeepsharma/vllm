@@ -236,12 +236,37 @@ class FrontendArgs(BaseFrontendArgs):
     while keeping logs for other endpoints."""
     allow_credentials: bool = False
     """Allow credentials."""
-    allowed_origins: list[str] = field(default_factory=lambda: ["*"])
-    """Allowed origins."""
-    allowed_methods: list[str] = field(default_factory=lambda: ["*"])
-    """Allowed methods."""
-    allowed_headers: list[str] = field(default_factory=lambda: ["*"])
-    """Allowed headers."""
+    allowed_origins: list[str] = field(default_factory=list)
+    """Allowed origins for CORS. Defaults to an empty list (no origins allowed).
+    
+    To allow requests from specific origins, provide a list of origin URLs.
+    Example: ['https://example.com', 'https://app.example.com']
+    
+    WARNING: Using ['*'] (wildcard) allows requests from any origin and is only
+    recommended for development. For production, always specify explicit origins.
+    To restore the old permissive behavior for development, use:
+    --allowed-origins '["*"]'
+    """
+    allowed_methods: list[str] = field(default_factory=lambda: ["GET", "POST", "OPTIONS"])
+    """Allowed HTTP methods for CORS. Defaults to GET, POST, and OPTIONS.
+    
+    These are the standard methods needed for OpenAI-compatible API usage.
+    To allow additional methods (e.g., PUT, DELETE, PATCH), provide a list.
+    Example: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+    
+    To restore the old permissive behavior for development, use:
+    --allowed-methods '["*"]'
+    """
+    allowed_headers: list[str] = field(default_factory=lambda: ["Authorization", "Content-Type", "X-Request-Id"])
+    """Allowed HTTP headers for CORS. Defaults to Authorization, Content-Type, and X-Request-Id.
+    
+    These are the standard headers needed for OpenAI-compatible API usage.
+    To allow additional headers, provide a list.
+    Example: ['Authorization', 'Content-Type', 'X-Request-Id', 'X-Custom-Header']
+    
+    To restore the old permissive behavior for development, use:
+    --allowed-headers '["*"]'
+    """
     api_key: list[str] | None = None
     """If provided, the server will require one of these keys to be presented in
     the header."""
