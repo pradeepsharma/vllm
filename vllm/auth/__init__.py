@@ -3,5 +3,6 @@
 """Authentication and authorization modules for vLLM."""
 
 from vllm.auth.mfa import MFAManager
+from vllm.auth.mfa_middleware import MFAMiddleware
 
-__all__ = ["MFAManager"]
+__all__ = ["MFAManager", "MFAMiddleware"]
