@@ -48,6 +48,7 @@ from vllm.transformers_utils.model_arch_config_convertor import (
 from vllm.transformers_utils.runai_utils import ObjectStorageModel, is_runai_obj_uri
 from vllm.transformers_utils.utils import maybe_model_redirect
 from vllm.utils.import_utils import LazyLoader
+from vllm.utils.security_utils import emit_security_warning
 from vllm.v1.attention.backends.registry import AttentionBackendEnum
 
 if TYPE_CHECKING:
@@ -470,6 +471,14 @@ class ModelConfig:
 
         if self.enable_sleep_mode and not current_platform.is_sleep_mode_available():
             raise ValueError("Sleep mode is not supported on current platform.")
+
+        # Emit security warning if trust_remote_code is enabled
+        if self.trust_remote_code is True:
+            emit_security_warning(
+                "trust_remote_code=True is set. This allows execution of arbitrary "
+                "Python code from the model repository. Only enable this for models "
+                "from trusted sources."
+            )
 
         hf_config = get_config(
             self.hf_config_path or self.model,
