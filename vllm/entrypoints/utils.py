@@ -263,8 +263,93 @@ def process_lora_modules(
 
 
 def sanitize_message(message: str) -> str:
+    """Sanitize error messages to prevent leaking sensitive information.
+    
+    Removes:
+    - Memory addresses from object reprs (e.g., " at 0x7f1234567890>")
+    - File paths and line numbers that could reveal internal structure
+    - Module names that could leak library versions
+    
+    Args:
+        message: The error message to sanitize.
+        
+    Returns:
+        The sanitized error message safe for HTTP responses.
+    """
     # Avoid leaking memory address from object reprs
-    return re.sub(r" at 0x[0-9a-f]+>", ">", message)
+    message = re.sub(r" at 0x[0-9a-f]+>", ">", message)
+    
+    # Remove file paths (both absolute and relative) to prevent information leakage
+    # Matches patterns like /path/to/file.py or C:\path\to\file.py
+    message = re.sub(r"[/\\](?:[a-zA-Z0-9._-]+[/\\])*[a-zA-Z0-9._-]+\.py", "<file>", message)
+    
+    # Remove line numbers in traceback format (e.g., "line 123")
+    message = re.sub(r"line \d+", "<line>", message)
+    
+    # Remove module paths that could reveal internal structure (e.g., "vllm.engine.core")
+    # This pattern matches module paths like "module.submodule.name"
+    message = re.sub(r"\b(?:[a-z_][a-z0-9_]*\.)+[a-z_][a-z0-9_]*\b", "<module>", message)
+    
+    return message
+
+
+def emit_security_warning(msg: str) -> None:
+    """Emit a security-related warning with a [SECURITY] prefix.
+    
+    This helper function logs security-relevant warnings at WARNING level
+    with a consistent [SECURITY] prefix for easy identification in logs.
+    Used for startup checks and configuration validation.
+    
+    Args:
+        msg: The security warning message to log.
+    """
+    logger.warning("[SECURITY] %s", msg)
+
+
+def validate_cors_origins(origins: list[str], allow_credentials: bool = False) -> None:
+    """Validate CORS origin configuration for security issues.
+    
+    Raises ValueError if wildcard origins ("*") are combined with
+    allow_credentials=True, which browsers reject and indicates
+    a misconfiguration.
+    
+    Args:
+        origins: List of allowed CORS origins.
+        allow_credentials: Whether credentials are allowed in CORS requests.
+        
+    Raises:
+        ValueError: If wildcard origins are combined with allow_credentials=True.
+    """
+    if allow_credentials and "*" in origins:
+        raise ValueError(
+            "CORS configuration error: wildcard origins ('*') cannot be combined "
+            "with allow_credentials=True. Browsers reject this configuration. "
+            "Please specify explicit origins or disable allow_credentials."
+        )
+
+
+def is_localhost(host: str | None) -> bool:
+    """Check if a host is localhost or None.
+    
+    Returns True for:
+    - None (unspecified host)
+    - "127.0.0.1" (IPv4 loopback)
+    - "::1" (IPv6 loopback)
+    - "localhost" (hostname)
+    
+    Used to determine if SSL/TLS and authentication checks should be enforced.
+    
+    Args:
+        host: The hostname or IP address to check.
+        
+    Returns:
+        True if the host is localhost or None, False otherwise.
+    """
+    if host is None:
+        return True
+    
+    host_lower = host.lower()
+    return host_lower in ("127.0.0.1", "::1", "localhost")
 
 
 def log_version_and_model(lgr: Logger, version: str, model_name: str) -> None:
