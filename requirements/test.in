@@ -1,5 +1,6 @@
 # testing
 pytest
+babel  # Required for i18n message extraction and catalog management
 tensorizer==2.10.1
 pytest-forked
 pytest-asyncio
