@@ -1,0 +1,55 @@
+# Japanese translations for vLLM
+# SPDX-License-Identifier: Apache-2.0
+msgid ""
+msgstr ""
+"Project-Id-Version: vllm\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-09 00:00+0000\n"
+"PO-Revision-Date: 2026-07-09 00:00+0000\n"
+"Last-Translator: vLLM Contributors\n"
+"Language-Team: Japanese\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "unimplemented endpoint"
+msgstr "未実装のエンドポイント"
+
+msgid "Internal server error"
+msgstr "内部サーバーエラー"
+
+msgid "Model not found"
+msgstr "モデルが見つかりません"
+
+msgid "Invalid request"
+msgstr "無効なリクエスト"
+
+msgid "Request timeout"
+msgstr "リクエストタイムアウト"
+
+msgid "Service unavailable"
+msgstr "サービス利用不可"
+
+msgid "Authentication failed"
+msgstr "認証に失敗しました"
+
+msgid "Rate limit exceeded"
+msgstr "レート制限を超えました"
+
+msgid "Bad request"
+msgstr "不正なリクエスト"
+
+msgid "Forbidden"
+msgstr "アクセス禁止"
+
+msgid "Not found"
+msgstr "見つかりません"
+
+msgid "Method not allowed"
+msgstr "メソッドは許可されていません"
+
+msgid "1 file"
+msgid_plural "{} files"
+msgstr[0] "{} ファイル"
