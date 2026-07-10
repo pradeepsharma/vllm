@@ -236,12 +236,37 @@ class FrontendArgs(BaseFrontendArgs):
     while keeping logs for other endpoints."""
     allow_credentials: bool = False
     """Allow credentials."""
-    allowed_origins: list[str] = field(default_factory=lambda: ["*"])
-    """Allowed origins."""
-    allowed_methods: list[str] = field(default_factory=lambda: ["*"])
-    """Allowed methods."""
-    allowed_headers: list[str] = field(default_factory=lambda: ["*"])
-    """Allowed headers."""
+    allowed_origins: list[str] = field(default_factory=lambda: [])
+    """Allowed CORS origins. Default is empty list (deny all cross-origin requests).
+    
+    For security, cross-origin requests are denied by default. To enable CORS,
+    specify explicit origins (e.g., --allowed-origins '["https://example.com"]').
+    
+    WARNING: Using wildcard "*" allows any origin to access the API. This is
+    insecure and should only be used in development environments. For production,
+    always specify explicit trusted origins.
+    
+    To restore permissive behavior for development:
+    --allowed-origins '["*"]'
+    """
+    allowed_methods: list[str] = field(default_factory=lambda: ["GET", "POST", "OPTIONS"])
+    """Allowed HTTP methods for CORS. Default is ["GET", "POST", "OPTIONS"].
+    
+    These are the minimum methods needed for the OpenAI-compatible API.
+    Only add additional methods if your use case requires them.
+    
+    To restore permissive behavior for development:
+    --allowed-methods '["*"]'
+    """
+    allowed_headers: list[str] = field(default_factory=lambda: ["Authorization", "Content-Type", "X-Request-Id"])
+    """Allowed HTTP headers for CORS. Default is ["Authorization", "Content-Type", "X-Request-Id"].
+    
+    These are the standard headers needed for the OpenAI-compatible API.
+    Only add additional headers if your use case requires them.
+    
+    To restore permissive behavior for development:
+    --allowed-headers '["*"]'
+    """
     api_key: list[str] | None = None
     """If provided, the server will require one of these keys to be presented in
     the header."""
@@ -457,14 +482,14 @@ def _validate_tool_server(tool_server: str | None) -> None:
         # Validate port
         try:
             port = int(port_str)
-            if port < 1 or port > 65535:
-                raise ValueError(
-                    f"Invalid tool_server entry: port out of range (1-65535). "
-                    f"Entry: {entry}"
-                )
         except ValueError:
             raise ValueError(
                 f"Invalid tool_server entry: invalid port number. "
+                f"Entry: {entry}"
+            )
+        if port < 1 or port > 65535:
+            raise ValueError(
+                f"Invalid tool_server entry: port out of range (1-65535). "
                 f"Entry: {entry}"
             )
 
